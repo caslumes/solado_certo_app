@@ -6,9 +6,10 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashPage(),
+      initialRoute: '/',
+      routes: {'/': (context) => SplashPage()},
     );
   }
 }
