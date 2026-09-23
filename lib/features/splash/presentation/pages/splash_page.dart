@@ -6,7 +6,12 @@ class SplashPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: Image(image: AssetImage('assets/images/logo.png'))),
+      body: Stack(
+        children: [
+          Center(child: Image(image: AssetImage('assets/images/logo.png'))),
+          Center(child: CircularProgressIndicator()),
+        ],
+      ),
     );
   }
 }
