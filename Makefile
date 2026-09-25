@@ -1,7 +1,7 @@
 clean-build:
 	rd /s /q "build"
 
-run-chrome:
+run-chrome: clean-build
 	flutter run -d chrome --dart-define-from-file=.env
 
 pub-get:
