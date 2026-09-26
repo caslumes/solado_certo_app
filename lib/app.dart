@@ -4,6 +4,7 @@ import 'package:solado_certo_app/config/dependencies.dart';
 import 'package:solado_certo_app/config/routes/auth/auth_routes.dart';
 import 'package:solado_certo_app/config/theme/app_themes.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/auth_gate.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
@@ -19,6 +20,7 @@ class App extends StatelessWidget {
         signInUseCase: getIt<SignInUseCase>(),
         getProfileUseCase: getIt<GetProfileUseCase>(),
         signOutUseCase: getIt<SignOutUseCase>(),
+        signUpUseCase: getIt<SignUpUseCase>(),
       )..add(CheckAuthEvent()),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

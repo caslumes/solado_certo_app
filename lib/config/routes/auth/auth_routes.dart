@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:solado_certo_app/features/auth/presentation/pages/sign_up_page.dart';
 
 class AuthRoutes {
   static const String signIn = '/sign-in';
@@ -7,5 +8,6 @@ class AuthRoutes {
 
   static Map<String, WidgetBuilder> get routes => {
     signIn: (context) => const SignInPage(),
+    signUp: (context) => SignUpPage(),
   };
 }

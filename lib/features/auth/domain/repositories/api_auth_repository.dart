@@ -8,14 +8,36 @@ class ApiAuthRepository implements AuthRepositoryInterface {
   final ClientInterface client;
 
   @override
+  Future<void> signUp(
+    String name,
+    String email,
+    String phone,
+    String password,
+  ) {
+    return client
+        .post(
+          '/auth/register',
+          data: {
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'password': password,
+          },
+        )
+        .then((response) => response);
+  }
+
+  @override
   Future<AuthTokens?> signIn(String email, String password) {
     return client
         .post('/auth/login', data: {'email': email, 'password': password})
         .then((response) => AuthTokens.fromJson(response));
   }
-  
+
   @override
   Future<void> signOut(String refreshToken) {
-    return client.post('/auth/logout', data: {'refreshToken': refreshToken}).then((response) => response);
+    return client
+        .post('/auth/logout', data: {'refreshToken': refreshToken})
+        .then((response) => response);
   }
 }

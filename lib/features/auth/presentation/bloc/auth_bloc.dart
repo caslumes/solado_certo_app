@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final SignUpUseCase signUpUseCase;
   final SignInUseCase signInUseCase;
   final GetProfileUseCase getProfileUseCase;
   final SignOutUseCase signOutUseCase;
@@ -13,10 +15,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.signInUseCase,
     required this.getProfileUseCase,
     required this.signOutUseCase,
+    required this.signUpUseCase,
   }) : super(AuthInitial()) {
     on<CheckAuthEvent>(_onCheckAuth);
     on<SignInEvent>(_onSignIn);
     on<SignOutEvent>(_onSignOut);
+    on<SignUpEvent>(_onSignUp);
   }
 
   Future<void> _onCheckAuth(
@@ -26,6 +30,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final profile = await getProfileUseCase.execute();
       emit(AuthAuthenticated(user: profile));
+    } catch (e) {
+      emit(AuthUnauthenticated());
+    }
+  }
+
+  Future<void> _onSignUp(SignUpEvent event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await signUpUseCase.execute(
+        event.name,
+        event.email,
+        event.phone,
+        event.password,
+      );
+      emit(AuthSignUpSuccess());
+      emit(AuthUnauthenticated());
     } catch (e) {
       emit(AuthUnauthenticated());
     }
@@ -56,6 +76,20 @@ class AuthEvent {}
 
 class CheckAuthEvent extends AuthEvent {}
 
+class SignUpEvent extends AuthEvent {
+  final String name;
+  final String email;
+  final String phone;
+  final String password;
+
+  SignUpEvent({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.password,
+  });
+}
+
 class SignInEvent extends AuthEvent {
   final String email;
   final String password;
@@ -78,3 +112,5 @@ class AuthAuthenticated extends AuthState {
 
   AuthAuthenticated({required this.user});
 }
+
+class AuthSignUpSuccess extends AuthState {}
