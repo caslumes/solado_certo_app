@@ -1,8 +1,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/config/dependencies.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
+import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
+import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:solado_certo_app/features/onboarding/presentation/pages/onboarding_gate.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/splash/presentation/pages/splash_page.dart';
 
 class AuthGate extends StatelessWidget {
@@ -10,18 +17,27 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is AuthAuthenticated) {
-          return const HomePage();
-        }
+    return BlocProvider<OnboardingBloc>(
+      create: (context) => OnboardingBloc(
+        getProfileUseCase: getIt<GetProfileUseCase>(),
+        getAddressesUseCase: getIt<GetAddressesUseCase>(),
+        getPodologicalProfileUseCase: getIt<GetPodologicalProfileUseCase>(),
+        getOnboardingUseCase: getIt<GetOnboardingUseCase>(),
+        changeOnboardingStepUseCase: getIt<ChangeOnboardingStepUseCase>(),
+      )..add(StartOnboardingEvent()),
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is AuthAuthenticated) {
+            return const OnboardingGate();
+          }
 
-        if (state is AuthUnauthenticated) {
-          return const SignInPage();
-        }
+          if (state is AuthUnauthenticated) {
+            return const SignInPage();
+          }
 
-        return const SplashPage();
-      },
+          return const SplashPage();
+        },
+      ),
     );
   }
 }

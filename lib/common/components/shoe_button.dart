@@ -5,35 +5,32 @@ class ShoeButton extends StatelessWidget {
   const ShoeButton({
     super.key,
     required this.onPressed,
-    required this.text,
-    this.textStyle,
+    required this.child,
+    this.filled = true,
   });
 
   final VoidCallback onPressed;
-  final String text;
-  final TextStyle? textStyle;
+  final Widget child;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        ),
-        child: Text(
-          text.toUpperCase(),
-          style:
-              (textStyle ??
-                      Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: Colors.white))
-                  ?.copyWith(height: 2),
-        ),
-      ),
+      child: filled
+          ? FilledButton(
+              onPressed: onPressed,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              ),
+              child: child,
+            )
+          : MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(onTap: onPressed, child: child),
+            ),
     );
   }
 }

@@ -61,9 +61,9 @@ class ApiClient implements ClientInterface {
   }
 
   @override
-  Future<void> put(String url, {Map<String, dynamic>? data}) {
-    // TODO: implement put
-    throw UnimplementedError();
+  Future<dynamic> put(String url, {Map<String, dynamic>? data}) async {
+    Response response = await dio.put(url, data: data);
+    return response.data;
   }
 
   Future<void> attachAuthorizationHeader(RequestOptions options) async {

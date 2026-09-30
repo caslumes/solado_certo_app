@@ -20,5 +20,11 @@ final primaryTheme = ThemeData(
       fontFamily: 'Inter',
       fontSize: 20,
     ),
+    bodySmall: TextStyle(
+      color: AppColors.primaryColor,
+      fontWeight: FontWeight.bold,
+      fontFamily: 'Inter',
+      fontSize: 16,
+    ),
   ),
 );

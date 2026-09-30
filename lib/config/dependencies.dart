@@ -6,6 +6,12 @@ import 'package:solado_certo_app/features/auth/domain/repositories/api_auth_repo
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/onboarding/domain/repositories/api_onboarding_repository.dart';
+import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
+import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
+import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/api_profile_repository.dart';
@@ -26,6 +32,9 @@ void configureDependencies() {
   getIt.registerLazySingleton<ProfileRepositoryInterface>(
     () => ApiProfileRepository(getIt<ClientInterface>()),
   );
+  getIt.registerLazySingleton<OnboardingRepository>(
+    () => ApiOnboardingRepository(getIt<ClientInterface>()),
+  );
 
   getIt.registerLazySingleton<SignUpUseCase>(
     () => SignUpUseCase(authRepository: getIt<AuthRepositoryInterface>()),
@@ -44,5 +53,17 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GetProfileUseCase>(
     () => GetProfileUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetOnboardingUseCase>(
+    () => GetOnboardingUseCase(getIt<OnboardingRepository>()),
+  );
+  getIt.registerLazySingleton<GetAddressesUseCase>(
+    () => GetAddressesUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetPodologicalProfileUseCase>(
+    () => GetPodologicalProfileUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ChangeOnboardingStepUseCase>(
+    () => ChangeOnboardingStepUseCase(getIt<OnboardingRepository>()),
   );
 }

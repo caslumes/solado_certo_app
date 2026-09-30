@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/common/components/form/shoe_text_form_field.dart';
-import 'package:solado_certo_app/common/components/shoe_button.dart';
+import 'package:solado_certo_app/common/components/shoe_text_button.dart';
 import 'package:solado_certo_app/common/components/shoe_hypertext.dart';
 import 'package:solado_certo_app/config/routes/auth/auth_routes.dart';
 import 'package:solado_certo_app/config/theme/app_colors.dart';
@@ -73,7 +73,7 @@ class _SignInPageState extends State<SignInPage> {
                             obscureText: true,
                             controller: _passwordController,
                           ),
-                          ShoeButton(
+                          ShoeTextButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
                                 final email = _emailController.text;
