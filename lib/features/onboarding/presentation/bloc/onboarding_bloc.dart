@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_action.dart';
+import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
@@ -52,6 +53,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     final onboardingDraft = await fetchOnboardingDraft();
+    if (onboardingDraft.onboarding!.status == OnboardingStatus.completed) {
+      emit(OnboardingFinished());
+      return;
+    }
     emit(OnboardingInProgress(onboardingDraft: onboardingDraft));
   }
 

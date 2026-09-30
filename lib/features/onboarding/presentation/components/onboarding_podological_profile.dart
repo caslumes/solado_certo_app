@@ -41,21 +41,39 @@ class OnboardingPodologicalProfile extends StatelessWidget {
                             'Perfil Podológico',
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                          ShoeTextFormField(
-                            controller: footstrikeTypeController
-                              ..text = podologicalProfile?.footstrikeType ?? '',
-                            labelText: 'Tipo de pisada',
-                          ),
-                          ShoeTextFormField(
-                            controller: clinicalConditionController
-                              ..text =
-                                  podologicalProfile?.clinicalCondition ?? '',
-                            labelText: 'Condição clínica',
-                          ),
-                          ShoeTextFormField(
-                            controller: obsController
-                              ..text = podologicalProfile?.obs ?? '',
-                            labelText: 'Observações',
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              0.0,
+                              16.0,
+                              0.0,
+                              16.0,
+                            ),
+                            child: Form(
+                              child: Column(
+                                children: [
+                                  ShoeTextFormField(
+                                    controller: footstrikeTypeController
+                                      ..text =
+                                          podologicalProfile?.footstrikeType ??
+                                          '',
+                                    labelText: 'Tipo de pisada',
+                                  ),
+                                  ShoeTextFormField(
+                                    controller: clinicalConditionController
+                                      ..text =
+                                          podologicalProfile
+                                              ?.clinicalCondition ??
+                                          '',
+                                    labelText: 'Condição clínica',
+                                  ),
+                                  ShoeTextFormField(
+                                    controller: obsController
+                                      ..text = podologicalProfile?.obs ?? '',
+                                    labelText: 'Observações',
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                           ShoeTextButton(
                             onPressed: () {

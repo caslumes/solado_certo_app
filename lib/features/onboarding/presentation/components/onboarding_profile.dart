@@ -39,22 +39,30 @@ class OnboardingProfile extends StatelessWidget {
                             'Perfil',
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                          Form(
-                            child: Column(
-                              children: [
-                                ShoeTextFormField(
-                                  labelText: 'Nome',
-                                  controller: nameController,
-                                ),
-                                ShoeTextFormField(
-                                  labelText: 'Email',
-                                  controller: emailController,
-                                ),
-                                ShoeTextFormField(
-                                  labelText: 'Telefone',
-                                  controller: phoneController,
-                                ),
-                              ],
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              0.0,
+                              16.0,
+                              0.0,
+                              16.0,
+                            ),
+                            child: Form(
+                              child: Column(
+                                children: [
+                                  ShoeTextFormField(
+                                    labelText: 'Nome',
+                                    controller: nameController,
+                                  ),
+                                  ShoeTextFormField(
+                                    labelText: 'Email',
+                                    controller: emailController,
+                                  ),
+                                  ShoeTextFormField(
+                                    labelText: 'Telefone',
+                                    controller: phoneController,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           ShoeTextButton(

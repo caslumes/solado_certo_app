@@ -24,10 +24,12 @@ class AuthGate extends StatelessWidget {
         getPodologicalProfileUseCase: getIt<GetPodologicalProfileUseCase>(),
         getOnboardingUseCase: getIt<GetOnboardingUseCase>(),
         changeOnboardingStepUseCase: getIt<ChangeOnboardingStepUseCase>(),
-      )..add(StartOnboardingEvent()),
+      ),
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
+          final onboardingBloc = BlocProvider.of<OnboardingBloc>(context);
           if (state is AuthAuthenticated) {
+            onboardingBloc.add(StartOnboardingEvent());
             return const OnboardingGate();
           }
 
