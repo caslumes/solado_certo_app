@@ -37,7 +37,7 @@ class ApiAuthRepository implements AuthRepositoryInterface {
   @override
   Future<void> signOut(String refreshToken) {
     return client
-        .post('/auth/logout', data: {'refreshToken': refreshToken})
+        .post('/auth/logout', data: {'refresh_token': refreshToken})
         .then((response) => response);
   }
 }

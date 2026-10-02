@@ -9,7 +9,7 @@ class SignOutUseCase {
 
   Future<void> execute() async {
     try {
-      final refreshToken = await secureStorage.read(key: 'refreshToken');
+      final refreshToken = await secureStorage.read(key: 'refresh_token');
       if (refreshToken != null) {
         await repository.signOut(refreshToken);
       }
