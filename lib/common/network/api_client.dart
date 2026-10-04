@@ -83,7 +83,7 @@ class ApiClient implements ClientInterface {
       key: 'refresh_token',
     )).toString();
     if (refreshToken.isEmpty) {
-      return handler.next(e);
+      return handler.reject(e);
     }
 
     try {
@@ -99,6 +99,8 @@ class ApiClient implements ClientInterface {
       final retryResponse = await dio.fetch(requestOptions);
       return handler.resolve(retryResponse);
     } catch (refreshError) {
+      await localStorage.delete(key: 'access_token');
+      await localStorage.delete(key: 'refresh_token');
       print('Erro ao atualizar token de acesso: $refreshError');
     }
   }
