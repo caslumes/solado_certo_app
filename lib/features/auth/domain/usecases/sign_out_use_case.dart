@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solado_certo_app/core/storage/storage_keys.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 
 class SignOutUseCase {
@@ -9,7 +10,7 @@ class SignOutUseCase {
 
   Future<void> execute() async {
     try {
-      final refreshToken = await secureStorage.read(key: 'refresh_token');
+      final refreshToken = await secureStorage.read(key: StorageKeys.refreshToken);
       if (refreshToken != null) {
         await repository.signOut(refreshToken);
       }

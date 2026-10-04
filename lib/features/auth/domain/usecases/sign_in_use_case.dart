@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solado_certo_app/core/storage/storage_keys.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 
 class SignInUseCase {
@@ -21,8 +22,8 @@ class SignInUseCase {
     }
 
     if (refreshToken != null) {
-      await localStorage.write(key: 'refresh_token', value: refreshToken);
+      await localStorage.write(key: StorageKeys.refreshToken, value: refreshToken);
     }
-    await localStorage.write(key: 'access_token', value: accessToken);
+    await localStorage.write(key: StorageKeys.accessToken, value: accessToken);
   }
 }
