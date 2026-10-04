@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/common/components/shoe_button.dart';
 import 'package:solado_certo_app/common/components/shoe_text_button.dart';
-import 'package:solado_certo_app/core/config/theme/app_colors.dart';
+import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 

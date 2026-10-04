@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:solado_certo_app/common/envs.dart';
-import 'package:solado_certo_app/common/network/client.dart';
-import 'package:solado_certo_app/core/config/dependencies.dart';
+import 'package:solado_certo_app/core/config/envs.dart';
+import 'package:solado_certo_app/core/network/client.dart';
+import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
 
 class ApiClient implements ClientInterface {

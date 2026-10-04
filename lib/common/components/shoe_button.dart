@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:solado_certo_app/core/config/theme/app_colors.dart';
+import 'package:solado_certo_app/app/theme/app_colors.dart';
 
 class ShoeButton extends StatelessWidget {
   const ShoeButton({

@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-import 'package:solado_certo_app/common/network/api_client.dart';
-import 'package:solado_certo_app/common/network/client.dart';
+import 'package:solado_certo_app/core/network/api_client.dart';
+import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/api_auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';

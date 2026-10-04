@@ -1,4 +1,4 @@
-import 'package:solado_certo_app/common/network/client.dart';
+import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/auth/domain/dtos/auth_tokens.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 

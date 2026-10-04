@@ -1,4 +1,4 @@
-import 'package:solado_certo_app/common/network/client.dart';
+import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_action.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
