@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solado_certo_app/config/dependencies.dart';
-import 'package:solado_certo_app/config/routes/auth/auth_routes.dart';
-import 'package:solado_certo_app/config/routes/onboarding/onboarding_routes.dart';
-import 'package:solado_certo_app/config/theme/app_themes.dart';
+import 'package:solado_certo_app/core/config/dependencies.dart';
+import 'package:solado_certo_app/core/config/routes/auth/auth_routes.dart';
+import 'package:solado_certo_app/core/config/routes/onboarding/onboarding_routes.dart';
+import 'package:solado_certo_app/core/config/theme/app_themes.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/auth_gate.dart';

@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solado_certo_app/common/envs.dart';
 import 'package:solado_certo_app/common/network/client.dart';
-import 'package:solado_certo_app/config/dependencies.dart';
+import 'package:solado_certo_app/core/config/dependencies.dart';
+import 'package:solado_certo_app/core/storage/storage_keys.dart';
 
 class ApiClient implements ClientInterface {
   ApiClient._(this.localStorage)
@@ -68,7 +69,7 @@ class ApiClient implements ClientInterface {
 
   Future<void> attachAuthorizationHeader(RequestOptions options) async {
     final String accessToken = (await localStorage.read(
-      key: 'access_token',
+      key: StorageKeys.accessToken,
     )).toString();
     if (accessToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $accessToken';
@@ -80,7 +81,7 @@ class ApiClient implements ClientInterface {
     DioException e,
   ) async {
     final String refreshToken = (await localStorage.read(
-      key: 'refresh_token',
+      key: StorageKeys.refreshToken,
     )).toString();
     if (refreshToken.isEmpty) {
       return handler.reject(e);
@@ -92,15 +93,15 @@ class ApiClient implements ClientInterface {
         data: {'refresh_token': refreshToken},
       );
       final newAccessToken = response.data['access_token'];
-      await localStorage.write(key: 'access_token', value: newAccessToken);
+      await localStorage.write(key: StorageKeys.accessToken, value: newAccessToken);
 
       final requestOptions = e.requestOptions;
       requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
       final retryResponse = await dio.fetch(requestOptions);
       return handler.resolve(retryResponse);
     } catch (refreshError) {
-      await localStorage.delete(key: 'access_token');
-      await localStorage.delete(key: 'refresh_token');
+      await localStorage.delete(key: StorageKeys.accessToken);
+      await localStorage.delete(key: StorageKeys.refreshToken);
       print('Erro ao atualizar token de acesso: $refreshError');
     }
   }

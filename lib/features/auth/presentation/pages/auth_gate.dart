@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solado_certo_app/config/dependencies.dart';
+import 'package:solado_certo_app/core/config/dependencies.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
