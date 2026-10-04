@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:solado_certo_app/common/components/shoe_button.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_button.dart';
 
 class ShoeTextButton extends StatelessWidget {
   const ShoeTextButton({

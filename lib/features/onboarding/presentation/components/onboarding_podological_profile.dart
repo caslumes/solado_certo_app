@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solado_certo_app/common/components/form/shoe_text_form_field.dart';
-import 'package:solado_certo_app/common/components/shoe_text_button.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 class OnboardingPodologicalProfile extends StatelessWidget {

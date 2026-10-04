@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:solado_certo_app/common/components/form/shoe_text_form_field.dart';
-import 'package:solado_certo_app/common/components/shoe_text_button.dart';
-import 'package:solado_certo_app/common/components/shoe_hypertext.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_hypertext.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
