@@ -26,7 +26,8 @@ class ApiClient implements ClientInterface {
           return handler.next(options);
         },
         onError: (e, handler) async {
-          if (e.response?.statusCode != 401) {
+          if (e.response?.statusCode != 401 ||
+              e.requestOptions.path.startsWith('/auth/')) {
             return handler.next(e);
           }
 
@@ -93,7 +94,9 @@ class ApiClient implements ClientInterface {
         data: {'refresh_token': refreshToken},
       );
       final newAccessToken = response.data['access_token'];
+      final newRefreshToken = response.data['refresh_token'];
       await localStorage.write(key: StorageKeys.accessToken, value: newAccessToken);
+      await localStorage.write(key: StorageKeys.refreshToken, value: newRefreshToken);
 
       final requestOptions = e.requestOptions;
       requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
