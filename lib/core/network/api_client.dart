@@ -27,13 +27,12 @@ class ApiClient implements ClientInterface {
         },
         onError: (e, handler) async {
           if (e.response?.statusCode != 401 ||
-              e.requestOptions.path.startsWith('/auth/')) {
+              e.requestOptions.path.startsWith('/auth/') ||
+              e.requestOptions.extra[_retriedKey] == true) {
             return handler.next(e);
           }
 
           await refreshToken(handler, e);
-
-          return handler.next(e);
         },
       ),
     );
@@ -68,10 +67,11 @@ class ApiClient implements ClientInterface {
     return response.data;
   }
 
+  static const _retriedKey = 'retried_after_refresh';
+
   Future<void> attachAuthorizationHeader(RequestOptions options) async {
-    final String accessToken = (await localStorage.read(
-      key: StorageKeys.accessToken,
-    )).toString();
+    final String accessToken =
+        await localStorage.read(key: StorageKeys.accessToken) ?? '';
     if (accessToken.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $accessToken';
     }
@@ -81,31 +81,37 @@ class ApiClient implements ClientInterface {
     ErrorInterceptorHandler handler,
     DioException e,
   ) async {
-    final String refreshToken = (await localStorage.read(
-      key: StorageKeys.refreshToken,
-    )).toString();
+    final String refreshToken =
+        await localStorage.read(key: StorageKeys.refreshToken) ?? '';
     if (refreshToken.isEmpty) {
-      return handler.reject(e);
+      return handler.next(e);
     }
 
+    final String newAccessToken;
     try {
       final response = await dio.post(
         '/auth/refresh-token',
         data: {'refresh_token': refreshToken},
       );
-      final newAccessToken = response.data['access_token'];
+      newAccessToken = response.data['access_token'];
       final newRefreshToken = response.data['refresh_token'];
       await localStorage.write(key: StorageKeys.accessToken, value: newAccessToken);
       await localStorage.write(key: StorageKeys.refreshToken, value: newRefreshToken);
-
-      final requestOptions = e.requestOptions;
-      requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-      final retryResponse = await dio.fetch(requestOptions);
-      return handler.resolve(retryResponse);
     } catch (refreshError) {
       await localStorage.delete(key: StorageKeys.accessToken);
       await localStorage.delete(key: StorageKeys.refreshToken);
       print('Erro ao atualizar token de acesso: $refreshError');
+      return handler.next(e);
+    }
+
+    final requestOptions = e.requestOptions;
+    requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+    requestOptions.extra[_retriedKey] = true;
+    try {
+      final retryResponse = await dio.fetch(requestOptions);
+      return handler.resolve(retryResponse);
+    } on DioException catch (retryError) {
+      return handler.next(retryError);
     }
   }
 }
