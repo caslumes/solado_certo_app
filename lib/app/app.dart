@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
-import 'package:solado_certo_app/features/onboarding/presentation/routes/onboarding_routes.dart';
 import 'package:solado_certo_app/app/theme/app_themes.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
@@ -31,7 +30,7 @@ class App extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: primaryTheme,
         home: const AuthGate(),
-        routes: {...AuthRoutes.routes, ...OnboardingRoutes.routes},
+        routes: AuthRoutes.routes,
       ),
     );
   }
