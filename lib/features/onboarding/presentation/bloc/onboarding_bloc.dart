@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_action.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
@@ -29,7 +30,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
        _getPodologicalProfileUseCase = getPodologicalProfileUseCase,
        _getOnboardingUseCase = getOnboardingUseCase,
        _changeOnboardingStepUseCase = changeOnboardingStepUseCase,
-       super(OnboardingInitial()) {
+       super(OnboardingLoading()) {
     on<StartOnboardingEvent>(_onOnboardingStarted);
     on<CompleteOnboardingEvent>(_onOnboardingCompleted);
     on<AdvanceOnboardingEvent>(_onOnboardingAdvanced);
@@ -41,79 +42,87 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final profile = await _getProfileUseCase.execute();
     final addresses = await _getAddressesUseCase.execute();
     final podologicalProfile = await _getPodologicalProfileUseCase.execute();
-    return OnboardingDraft()
-      ..onboarding = onboarding
-      ..profile = profile
-      ..addresses = addresses
-      ..podologicalProfile = podologicalProfile;
+    return OnboardingDraft(
+      onboarding: onboarding,
+      profile: profile,
+      addresses: addresses,
+      podologicalProfile: podologicalProfile,
+    );
   }
 
-  void _onOnboardingStarted(
+  Future<void> _onOnboardingStarted(
     StartOnboardingEvent event,
     Emitter<OnboardingState> emit,
   ) async {
-    final onboardingDraft = await fetchOnboardingDraft();
-    if (onboardingDraft.onboarding!.status == OnboardingStatus.completed) {
-      emit(OnboardingFinished());
-      return;
+    emit(OnboardingLoading());
+    try {
+      final onboardingDraft = await fetchOnboardingDraft();
+      if (onboardingDraft.onboarding.status == OnboardingStatus.completed) {
+        emit(OnboardingFinished());
+        return;
+      }
+      emit(OnboardingInProgress(onboardingDraft: onboardingDraft));
+    } catch (e) {
+      emit(OnboardingLoadFailure(failure: Failure.from(e)));
     }
-    emit(OnboardingInProgress(onboardingDraft: onboardingDraft));
   }
 
-  void _onOnboardingAdvanced(
+  Future<void> _onOnboardingAdvanced(
     AdvanceOnboardingEvent event,
     Emitter<OnboardingState> emit,
+  ) => _changeStep(OnboardingAction.advance, emit);
+
+  Future<void> _onOnboardingRetreated(
+    RetreatOnboardingEvent event,
+    Emitter<OnboardingState> emit,
+  ) => _changeStep(OnboardingAction.retreat, emit);
+
+  Future<void> _changeStep(
+    OnboardingAction action,
+    Emitter<OnboardingState> emit,
   ) async {
-    if (state is OnboardingInProgress) {
-      final currentState = state as OnboardingInProgress;
-      final currentStep = currentState.onboardingDraft!.onboarding!.currentStep;
+    final currentState = state;
+    if (currentState is! OnboardingInProgress || currentState.isSaving) return;
+
+    final draft = currentState.onboardingDraft;
+    emit(OnboardingInProgress(onboardingDraft: draft, isSaving: true));
+    try {
       await _changeOnboardingStepUseCase.execute(
-        currentStep,
-        OnboardingAction.advance,
+        draft.onboarding.currentStep,
+        action,
       );
       final updatedOnboarding = await _getOnboardingUseCase.execute();
       emit(
         OnboardingInProgress(
-          onboardingDraft: currentState.onboardingDraft!
-            ..onboarding = updatedOnboarding,
+          onboardingDraft: draft.copyWith(onboarding: updatedOnboarding),
         ),
       );
-    }
-  }
-
-  void _onOnboardingRetreated(
-    RetreatOnboardingEvent event,
-    Emitter<OnboardingState> emit,
-  ) async {
-    if (state is OnboardingInProgress) {
-      final currentState = state as OnboardingInProgress;
-      final currentStep = currentState.onboardingDraft!.onboarding!.currentStep;
-      await _changeOnboardingStepUseCase.execute(
-        currentStep,
-        OnboardingAction.retreat,
-      );
-      final updatedOnboardingEntity = await _getOnboardingUseCase.execute();
+    } catch (e) {
       emit(
-        OnboardingInProgress(
-          onboardingDraft: currentState.onboardingDraft!
-            ..onboarding = updatedOnboardingEntity,
-        ),
+        OnboardingInProgress(onboardingDraft: draft, failure: Failure.from(e)),
       );
     }
   }
 
-  void _onOnboardingCompleted(
+  Future<void> _onOnboardingCompleted(
     CompleteOnboardingEvent event,
     Emitter<OnboardingState> emit,
-  ) {
-    if (state is OnboardingInProgress) {
-      final currentState = state as OnboardingInProgress;
-      final currentStep = currentState.onboardingDraft!.onboarding!.currentStep;
-      _changeOnboardingStepUseCase.execute(
-        currentStep,
+  ) async {
+    final currentState = state;
+    if (currentState is! OnboardingInProgress || currentState.isSaving) return;
+
+    final draft = currentState.onboardingDraft;
+    emit(OnboardingInProgress(onboardingDraft: draft, isSaving: true));
+    try {
+      await _changeOnboardingStepUseCase.execute(
+        draft.onboarding.currentStep,
         OnboardingAction.complete,
       );
       emit(OnboardingFinished());
+    } catch (e) {
+      emit(
+        OnboardingInProgress(onboardingDraft: draft, failure: Failure.from(e)),
+      );
     }
   }
 }
@@ -130,19 +139,45 @@ class CompleteOnboardingEvent extends OnboardingEvent {}
 
 class OnboardingState {}
 
-class OnboardingInitial extends OnboardingState {}
+class OnboardingLoading extends OnboardingState {}
+
+class OnboardingLoadFailure extends OnboardingState {
+  final Failure failure;
+
+  OnboardingLoadFailure({required this.failure});
+}
 
 class OnboardingInProgress extends OnboardingState {
-  final OnboardingDraft? onboardingDraft;
+  final OnboardingDraft onboardingDraft;
+  final bool isSaving;
+  final Failure? failure;
 
-  OnboardingInProgress({this.onboardingDraft});
+  OnboardingInProgress({
+    required this.onboardingDraft,
+    this.isSaving = false,
+    this.failure,
+  });
 }
 
 class OnboardingFinished extends OnboardingState {}
 
 class OnboardingDraft {
-  OnboardingEntity? onboarding;
-  ProfileEntity? profile;
-  List<AddressEntity>? addresses;
-  PodologicalProfileEntity? podologicalProfile;
+  final OnboardingEntity onboarding;
+  final ProfileEntity profile;
+  final List<AddressEntity> addresses;
+  final PodologicalProfileEntity podologicalProfile;
+
+  const OnboardingDraft({
+    required this.onboarding,
+    required this.profile,
+    required this.addresses,
+    required this.podologicalProfile,
+  });
+
+  OnboardingDraft copyWith({OnboardingEntity? onboarding}) => OnboardingDraft(
+    onboarding: onboarding ?? this.onboarding,
+    profile: profile,
+    addresses: addresses,
+    podologicalProfile: podologicalProfile,
+  );
 }

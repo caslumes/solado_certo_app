@@ -15,7 +15,7 @@ class OnboardingAddress extends StatelessWidget {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
         final addresses = (state is OnboardingInProgress)
-            ? state.onboardingDraft?.addresses ?? []
+            ? state.onboardingDraft.addresses
             : [];
         return Scaffold(
           body: Column(

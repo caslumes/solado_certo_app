@@ -17,8 +17,9 @@ class OnboardingProfile extends StatelessWidget {
 
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
-        final profile =
-            (state as OnboardingInProgress).onboardingDraft!.profile;
+        final profile = (state is OnboardingInProgress)
+            ? state.onboardingDraft.profile
+            : null;
 
         nameController.text = profile?.name ?? '';
         emailController.text = profile?.email ?? '';

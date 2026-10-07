@@ -18,7 +18,7 @@ class OnboardingPodologicalProfile extends StatelessWidget {
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (BuildContext context, state) {
         final podologicalProfile = (state is OnboardingInProgress)
-            ? state.onboardingDraft?.podologicalProfile
+            ? state.onboardingDraft.podologicalProfile
             : null;
 
         footstrikeTypeController.text =
