@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -8,7 +9,7 @@ typedef FakeResponse = ({int statusCode, Object? body});
 class FakeHttpAdapter implements HttpClientAdapter {
   FakeHttpAdapter(this.respond);
 
-  final FakeResponse Function(RequestOptions request) respond;
+  final FutureOr<FakeResponse> Function(RequestOptions request) respond;
   final List<RequestOptions> requests = [];
 
   Iterable<RequestOptions> requestsTo(String path) =>
@@ -21,7 +22,7 @@ class FakeHttpAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    final response = respond(options);
+    final response = await respond(options);
     return ResponseBody.fromString(
       jsonEncode(response.body),
       response.statusCode,

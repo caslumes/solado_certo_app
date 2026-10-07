@@ -77,30 +77,42 @@ class ApiClient implements ClientInterface {
     }
   }
 
-  Future<void> refreshToken(
-    ErrorInterceptorHandler handler,
-    DioException e,
-  ) async {
+  Future<String?>? _refreshInFlight;
+
+  Future<String?> _refreshAccessToken() => _refreshInFlight ??=
+      _performRefresh().whenComplete(() => _refreshInFlight = null);
+
+  Future<String?> _performRefresh() async {
     final String refreshToken =
         await localStorage.read(key: StorageKeys.refreshToken) ?? '';
     if (refreshToken.isEmpty) {
-      return handler.next(e);
+      return null;
     }
 
-    final String newAccessToken;
     try {
       final response = await dio.post(
         '/auth/refresh-token',
         data: {'refresh_token': refreshToken},
       );
-      newAccessToken = response.data['access_token'];
+      final String newAccessToken = response.data['access_token'];
       final newRefreshToken = response.data['refresh_token'];
       await localStorage.write(key: StorageKeys.accessToken, value: newAccessToken);
       await localStorage.write(key: StorageKeys.refreshToken, value: newRefreshToken);
+      return newAccessToken;
     } catch (refreshError) {
       await localStorage.delete(key: StorageKeys.accessToken);
       await localStorage.delete(key: StorageKeys.refreshToken);
       print('Erro ao atualizar token de acesso: $refreshError');
+      return null;
+    }
+  }
+
+  Future<void> refreshToken(
+    ErrorInterceptorHandler handler,
+    DioException e,
+  ) async {
+    final newAccessToken = await _refreshAccessToken();
+    if (newAccessToken == null) {
       return handler.next(e);
     }
 

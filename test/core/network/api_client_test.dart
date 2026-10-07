@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/core/network/api_client.dart';
@@ -14,7 +16,9 @@ void main() {
   late ApiClient client;
   late FakeHttpAdapter adapter;
 
-  void useServer(FakeResponse Function(RequestOptions request) respond) {
+  void useServer(
+    FutureOr<FakeResponse> Function(RequestOptions request) respond,
+  ) {
     adapter = FakeHttpAdapter(respond);
     client.dio.httpClientAdapter = adapter;
   }
@@ -131,5 +135,70 @@ void main() {
 
     await expectLater(client.get(profilePath), throwsA(isA<DioException>()));
     expect(adapter.requestsTo(refreshPath), isEmpty);
+  });
+
+  test('shares one refresh between concurrent 401 responses', () async {
+    var currentRefreshToken = 'old-refresh';
+    var issued = 0;
+    useServer((request) async {
+      if (request.path == refreshPath) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        if (request.data['refresh_token'] != currentRefreshToken) {
+          return (statusCode: 401, body: {'error': 'revoked'});
+        }
+        issued++;
+        currentRefreshToken = 'refresh-$issued';
+        return (
+          statusCode: 200,
+          body: {
+            'access_token': 'access-$issued',
+            'refresh_token': currentRefreshToken,
+          },
+        );
+      }
+      final authorized =
+          request.headers['Authorization'] == 'Bearer access-$issued';
+      return issued > 0 && authorized
+          ? (statusCode: 200, body: {'ok': true})
+          : (statusCode: 401, body: {'error': 'expired'});
+    });
+
+    final responses = await Future.wait(
+      List.generate(5, (_) => client.get(profilePath)),
+    );
+
+    expect(responses, everyElement({'ok': true}));
+    expect(adapter.requestsTo(refreshPath), hasLength(1));
+    expect(storage.values, {
+      StorageKeys.accessToken: 'access-1',
+      StorageKeys.refreshToken: 'refresh-1',
+    });
+  });
+
+  test('starts a new refresh after the previous one finished', () async {
+    var issued = 0;
+    useServer((request) {
+      if (request.path == refreshPath) {
+        issued++;
+        return (
+          statusCode: 200,
+          body: {
+            'access_token': 'access-$issued',
+            'refresh_token': 'refresh-$issued',
+          },
+        );
+      }
+      return request.extra['retried_after_refresh'] == true
+          ? (statusCode: 200, body: {'ok': true})
+          : (statusCode: 401, body: {'error': 'expired'});
+    });
+
+    await client.get(profilePath);
+    await client.get(profilePath);
+
+    expect(adapter.requestsTo(refreshPath), hasLength(2));
+    expect(adapter.requestsTo(refreshPath).last.data, {
+      'refresh_token': 'refresh-1',
+    });
   });
 }
