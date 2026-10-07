@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solado_certo_app/core/config/envs.dart';
 import 'package:solado_certo_app/core/network/client.dart';
@@ -102,7 +103,7 @@ class ApiClient implements ClientInterface {
     } catch (refreshError) {
       await localStorage.delete(key: StorageKeys.accessToken);
       await localStorage.delete(key: StorageKeys.refreshToken);
-      print('Erro ao atualizar token de acesso: $refreshError');
+      debugPrint('Erro ao atualizar token de acesso: $refreshError');
       return null;
     }
   }
