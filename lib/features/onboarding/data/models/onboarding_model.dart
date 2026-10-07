@@ -4,18 +4,18 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_stat
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
 
 const _stepValues = {
-  OnboardingStep.welcome: 'bem_vindo',
-  OnboardingStep.profileConfig: 'configuracao_perfil',
-  OnboardingStep.addressConfig: 'configuracao_endereco',
-  OnboardingStep.podologicalProfile: 'perfil_podologico',
-  OnboardingStep.completion: 'finalizacao',
+  OnboardingStep.welcome: 'welcome',
+  OnboardingStep.profileConfig: 'profile_setup',
+  OnboardingStep.addressConfig: 'address_setup',
+  OnboardingStep.podologicalProfile: 'podological_profile',
+  OnboardingStep.completion: 'completion',
 };
 
 const _statusValues = {
-  OnboardingStatus.notStarted: 'nao_iniciado',
-  OnboardingStatus.inProgress: 'em_andamento',
-  OnboardingStatus.completed: 'concluido',
-  OnboardingStatus.dismissed: 'dispensado',
+  OnboardingStatus.notStarted: 'not_started',
+  OnboardingStatus.inProgress: 'in_progress',
+  OnboardingStatus.completed: 'completed',
+  OnboardingStatus.dismissed: 'dismissed',
 };
 
 String onboardingStepToApi(OnboardingStep step) => _stepValues[step]!;

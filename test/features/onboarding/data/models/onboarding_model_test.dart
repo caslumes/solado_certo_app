@@ -7,8 +7,8 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step
 void main() {
   test('maps API step and status values to domain enums', () {
     final entity = OnboardingModel.fromJson({
-      'current_step': 'configuracao_endereco',
-      'status': 'em_andamento',
+      'current_step': 'address_setup',
+      'status': 'in_progress',
     }).toEntity();
 
     expect(entity.currentStep, OnboardingStep.addressConfig);
@@ -19,7 +19,7 @@ void main() {
     for (final step in OnboardingStep.values) {
       final model = OnboardingModel.fromJson({
         'current_step': onboardingStepToApi(step),
-        'status': 'nao_iniciado',
+        'status': 'not_started',
       });
       expect(model.currentStep, step);
     }
@@ -34,13 +34,13 @@ void main() {
     expect(
       () => OnboardingModel.fromJson({
         'current_step': 'unknown',
-        'status': 'em_andamento',
+        'status': 'in_progress',
       }),
       throwsFormatException,
     );
     expect(
       () => OnboardingModel.fromJson({
-        'current_step': 'bem_vindo',
+        'current_step': 'welcome',
         'status': 'unknown',
       }),
       throwsFormatException,
@@ -49,7 +49,7 @@ void main() {
 
   test('rejects a missing step', () {
     expect(
-      () => OnboardingModel.fromJson({'status': 'em_andamento'}),
+      () => OnboardingModel.fromJson({'status': 'in_progress'}),
       throwsA(isA<TypeError>()),
     );
   });
