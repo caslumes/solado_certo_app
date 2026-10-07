@@ -9,7 +9,7 @@ class ShoeButton extends StatelessWidget {
     this.filled = true,
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Widget child;
   final bool filled;
 
@@ -23,6 +23,10 @@ class ShoeButton extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primaryColor.withValues(
+                  alpha: 0.6,
+                ),
+                disabledForegroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               child: child,

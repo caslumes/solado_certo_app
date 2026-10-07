@@ -37,6 +37,11 @@ final class UnauthorizedFailure extends Failure {
   String get message => 'Sua sessão expirou. Entre novamente.';
 }
 
+final class InvalidCredentialsFailure extends Failure {
+  @override
+  String get message => 'E-mail ou senha inválidos.';
+}
+
 final class InvalidInputFailure extends Failure {
   @override
   String get message => 'Verifique os dados informados.';

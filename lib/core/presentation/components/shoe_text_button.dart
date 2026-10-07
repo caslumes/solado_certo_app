@@ -7,25 +7,37 @@ class ShoeTextButton extends StatelessWidget {
     required this.onPressed,
     required this.text,
     this.textStyle,
+    this.isLoading = false,
   });
 
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String text;
   final TextStyle? textStyle;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
+    final style =
+        (textStyle ??
+                Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.white))
+            ?.copyWith(height: 2);
+
     return ShoeButton(
-      onPressed: onPressed,
-      child: Text(
-        text.toUpperCase(),
-        style:
-            (textStyle ??
-                    Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.white))
-                ?.copyWith(height: 2),
-      ),
+      onPressed: isLoading ? null : onPressed,
+      child: isLoading
+          ? SizedBox.square(
+              dimension: (style?.fontSize ?? 14) * 2,
+              child: const Padding(
+                padding: EdgeInsets.all(4.0),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+            )
+          : Text(text.toUpperCase(), style: style),
     );
   }
 }

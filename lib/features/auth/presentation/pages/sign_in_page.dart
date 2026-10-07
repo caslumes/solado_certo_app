@@ -5,7 +5,6 @@ import 'package:solado_certo_app/core/presentation/components/shoe_text_button.d
 import 'package:solado_certo_app/core/presentation/components/shoe_hypertext.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
-import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class SignInPage extends StatefulWidget {
@@ -16,8 +15,6 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  late SignInUseCase useCase;
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -25,97 +22,119 @@ class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     final bloc = BlocProvider.of<AuthBloc>(context);
-    return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
-                    child: Image(
-                      image: AssetImage('assets/images/logo.png'),
-                      width: MediaQuery.of(context).size.width * 0.6,
+    return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          current is AuthUnauthenticated && current.failure != null,
+      listener: (context, state) {
+        if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text((state as AuthUnauthenticated).failure!.message),
+            ),
+          );
+      },
+      child: Scaffold(
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
+                      child: Image(
+                        image: AssetImage('assets/images/logo.png'),
+                        width: MediaQuery.of(context).size.width * 0.6,
+                      ),
                     ),
-                  ),
-                  Container(color: AppColors.primaryColor, height: 5),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          child: Text(
-                            'Entrar na sua conta'.toUpperCase(),
-                            style: Theme.of(context).textTheme.headlineSmall,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Form(
-                    key: _formKey,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: Column(
-                        spacing: 25,
+                    Container(color: AppColors.primaryColor, height: 5),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
                         children: [
-                          ShoeTextFormField(
-                            hintText: 'email@exemplo.com',
-                            controller: _emailController,
-                          ),
-                          ShoeTextFormField(
-                            hintText: 'senha',
-                            obscureText: true,
-                            controller: _passwordController,
-                          ),
-                          ShoeTextButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                final email = _emailController.text;
-                                final password = _passwordController.text;
-
-                                bloc.add(
-                                  SignInEvent(email: email, password: password),
-                                );
-                              }
-                            },
-                            text: 'Entrar',
-                            textStyle: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(color: Colors.white),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            child: Text(
+                              'Entrar na sua conta'.toUpperCase(),
+                              style: Theme.of(context).textTheme.headlineSmall,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 10,
-                      children: [
-                        Text(
-                          'Já tem uma conta?',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                    Form(
+                      key: _formKey,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: Column(
+                          spacing: 25,
+                          children: [
+                            ShoeTextFormField(
+                              hintText: 'email@exemplo.com',
+                              controller: _emailController,
+                            ),
+                            ShoeTextFormField(
+                              hintText: 'senha',
+                              obscureText: true,
+                              controller: _passwordController,
+                            ),
+                            BlocBuilder<AuthBloc, AuthState>(
+                              builder: (context, state) => ShoeTextButton(
+                                isLoading: state is AuthLoading,
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    final email = _emailController.text;
+                                    final password = _passwordController.text;
+
+                                    bloc.add(
+                                      SignInEvent(
+                                        email: email,
+                                        password: password,
+                                      ),
+                                    );
+                                  }
+                                },
+                                text: 'Entrar',
+                                textStyle: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(color: Colors.white),
+                              ),
+                            ),
+                          ],
                         ),
-                        ShoeHypertext(
-                          text: 'Cadastre-se',
-                          onTap: () {
-                            Navigator.pushNamed(context, AuthRoutes.signUp);
-                          },
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0.0, 32.0, 0.0, 32.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 10,
+                        children: [
+                          Text(
+                            'Já tem uma conta?',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          ShoeHypertext(
+                            text: 'Cadastre-se',
+                            onTap: () {
+                              Navigator.pushNamed(context, AuthRoutes.signUp);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

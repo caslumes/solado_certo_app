@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
@@ -36,6 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onSignUp(SignUpEvent event, Emitter<AuthState> emit) async {
+    if (state is AuthLoading) return;
     emit(AuthLoading());
     try {
       await signUpUseCase.execute(
@@ -47,27 +49,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthSignUpSuccess());
       emit(AuthUnauthenticated());
     } catch (e) {
-      emit(AuthUnauthenticated());
+      emit(AuthUnauthenticated(failure: Failure.from(e)));
     }
   }
 
   Future<void> _onSignIn(SignInEvent event, Emitter<AuthState> emit) async {
+    if (state is AuthLoading) return;
     emit(AuthLoading());
     try {
       await signInUseCase.execute(event.email, event.password);
       final profile = await getProfileUseCase.execute();
       emit(AuthAuthenticated(user: profile));
     } catch (e) {
-      emit(AuthUnauthenticated());
+      final failure = Failure.from(e);
+      emit(
+        AuthUnauthenticated(
+          failure: failure is UnauthorizedFailure
+              ? InvalidCredentialsFailure()
+              : failure,
+        ),
+      );
     }
   }
 
   Future<void> _onSignOut(SignOutEvent event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-    try {
-      await signOutUseCase.execute();
-      emit(AuthUnauthenticated());
-    } catch (e) {}
+    await signOutUseCase.execute().catchError((_) {});
     emit(AuthUnauthenticated());
   }
 }
@@ -103,7 +110,11 @@ class AuthState {}
 
 class AuthInitial extends AuthState {}
 
-class AuthUnauthenticated extends AuthState {}
+class AuthUnauthenticated extends AuthState {
+  final Failure? failure;
+
+  AuthUnauthenticated({this.failure});
+}
 
 class AuthLoading extends AuthState {}
 

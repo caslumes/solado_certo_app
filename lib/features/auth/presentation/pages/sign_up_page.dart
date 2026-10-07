@@ -23,7 +23,19 @@ class SignUpPage extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (BuildContext context, state) {
         if (state is AuthSignUpSuccess) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text('Conta criada! Entre com seu e-mail e senha.'),
+              ),
+            );
           Navigator.of(context).pop();
+        }
+        if (state is AuthUnauthenticated && state.failure != null) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
         }
       },
       child: Scaffold(
@@ -85,25 +97,28 @@ class SignUpPage extends StatelessWidget {
                               obscureText: true,
                               controller: _passwordController,
                             ),
-                            ShoeTextButton(
-                              text: 'Criar Conta'.toUpperCase(),
-                              textStyle: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(color: Colors.white),
-                              onPressed: () {
-                                if (_formKey.currentState!.validate()) {
-                                  authBloc.add(
-                                    SignUpEvent(
-                                      name:
-                                          '${_nameController.text} ${_surnameController.text}',
-                                      email: _emailController.text,
-                                      phone: _phoneController.text,
-                                      password: _passwordController.text,
-                                    ),
-                                  );
-                                }
-                              },
+                            BlocBuilder<AuthBloc, AuthState>(
+                              builder: (context, state) => ShoeTextButton(
+                                isLoading: state is AuthLoading,
+                                text: 'Criar Conta'.toUpperCase(),
+                                textStyle: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(color: Colors.white),
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    authBloc.add(
+                                      SignUpEvent(
+                                        name:
+                                            '${_nameController.text} ${_surnameController.text}',
+                                        email: _emailController.text,
+                                        phone: _phoneController.text,
+                                        password: _passwordController.text,
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                           ],
                         ),
