@@ -17,29 +17,31 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<OnboardingBloc>(
-      create: (context) => OnboardingBloc(
-        getProfileUseCase: getIt<GetProfileUseCase>(),
-        getAddressesUseCase: getIt<GetAddressesUseCase>(),
-        getPodologicalProfileUseCase: getIt<GetPodologicalProfileUseCase>(),
-        getOnboardingUseCase: getIt<GetOnboardingUseCase>(),
-        changeOnboardingStepUseCase: getIt<ChangeOnboardingStepUseCase>(),
-      ),
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          final onboardingBloc = BlocProvider.of<OnboardingBloc>(context);
-          if (state is AuthAuthenticated) {
-            onboardingBloc.add(StartOnboardingEvent());
-            return const OnboardingGate();
-          }
+    return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (previous, current) =>
+          current is! AuthLoading && current is! AuthSignUpSuccess,
+      builder: (context, state) {
+        if (state is AuthAuthenticated) {
+          return BlocProvider<OnboardingBloc>(
+            create: (context) => OnboardingBloc(
+              getProfileUseCase: getIt<GetProfileUseCase>(),
+              getAddressesUseCase: getIt<GetAddressesUseCase>(),
+              getPodologicalProfileUseCase:
+                  getIt<GetPodologicalProfileUseCase>(),
+              getOnboardingUseCase: getIt<GetOnboardingUseCase>(),
+              changeOnboardingStepUseCase:
+                  getIt<ChangeOnboardingStepUseCase>(),
+            )..add(StartOnboardingEvent()),
+            child: const OnboardingGate(),
+          );
+        }
 
-          if (state is AuthUnauthenticated) {
-            return const SignInPage();
-          }
+        if (state is AuthUnauthenticated) {
+          return const SignInPage();
+        }
 
-          return const SplashPage();
-        },
-      ),
+        return const SplashPage();
+      },
     );
   }
 }
