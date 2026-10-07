@@ -6,7 +6,7 @@ import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
 
 class ApiClient implements ClientInterface {
-  ApiClient._(this.localStorage)
+  ApiClient(this.localStorage)
     : dio = Dio(
         BaseOptions(
           baseUrl: Envs.apiBaseUrl,
@@ -41,7 +41,7 @@ class ApiClient implements ClientInterface {
   final Dio dio;
   final FlutterSecureStorage localStorage;
 
-  static final ApiClient instance = ApiClient._(getIt<FlutterSecureStorage>());
+  static final ApiClient instance = ApiClient(getIt<FlutterSecureStorage>());
 
   @override
   Future<void> delete(String url) {
