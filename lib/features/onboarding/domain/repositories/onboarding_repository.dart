@@ -4,5 +4,8 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step
 
 abstract class OnboardingRepository {
   Future<OnboardingEntity> getOnboarding();
-  Future<void> changeOnboardingStep(OnboardingStep currentStep, OnboardingAction action);
+  Future<void> changeOnboardingStep(
+    OnboardingStep currentStep,
+    OnboardingAction action,
+  );
 }

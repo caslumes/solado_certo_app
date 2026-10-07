@@ -22,7 +22,10 @@ class SignInUseCase {
     }
 
     if (refreshToken != null) {
-      await localStorage.write(key: StorageKeys.refreshToken, value: refreshToken);
+      await localStorage.write(
+        key: StorageKeys.refreshToken,
+        value: refreshToken,
+      );
     }
     await localStorage.write(key: StorageKeys.accessToken, value: accessToken);
   }

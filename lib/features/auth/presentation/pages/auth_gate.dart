@@ -29,8 +29,7 @@ class AuthGate extends StatelessWidget {
               getPodologicalProfileUseCase:
                   getIt<GetPodologicalProfileUseCase>(),
               getOnboardingUseCase: getIt<GetOnboardingUseCase>(),
-              changeOnboardingStepUseCase:
-                  getIt<ChangeOnboardingStepUseCase>(),
+              changeOnboardingStepUseCase: getIt<ChangeOnboardingStepUseCase>(),
             )..add(StartOnboardingEvent()),
             child: const OnboardingGate(),
           );

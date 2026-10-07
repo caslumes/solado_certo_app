@@ -51,9 +51,7 @@ class OnboardingGate extends StatelessWidget {
           return const HomePage();
         }
 
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }

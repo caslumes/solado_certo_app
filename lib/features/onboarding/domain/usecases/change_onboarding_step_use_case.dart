@@ -13,19 +13,34 @@ class ChangeOnboardingStepUseCase {
   ) async {
     switch (action) {
       case OnboardingAction.advance:
-        await _onboardingRepository.changeOnboardingStep(currentStep, OnboardingAction.advance);
+        await _onboardingRepository.changeOnboardingStep(
+          currentStep,
+          OnboardingAction.advance,
+        );
         break;
       case OnboardingAction.retreat:
-        await _onboardingRepository.changeOnboardingStep(currentStep, OnboardingAction.retreat);
+        await _onboardingRepository.changeOnboardingStep(
+          currentStep,
+          OnboardingAction.retreat,
+        );
         break;
       case OnboardingAction.skip:
-        await _onboardingRepository.changeOnboardingStep(currentStep, OnboardingAction.skip);
+        await _onboardingRepository.changeOnboardingStep(
+          currentStep,
+          OnboardingAction.skip,
+        );
         break;
       case OnboardingAction.dismiss:
-        await _onboardingRepository.changeOnboardingStep(currentStep, OnboardingAction.dismiss);
+        await _onboardingRepository.changeOnboardingStep(
+          currentStep,
+          OnboardingAction.dismiss,
+        );
         break;
       case OnboardingAction.complete:
-        await _onboardingRepository.changeOnboardingStep(currentStep, OnboardingAction.complete);
+        await _onboardingRepository.changeOnboardingStep(
+          currentStep,
+          OnboardingAction.complete,
+        );
         break;
     }
   }

@@ -97,8 +97,14 @@ class ApiClient implements ClientInterface {
       );
       final String newAccessToken = response.data['access_token'];
       final newRefreshToken = response.data['refresh_token'];
-      await localStorage.write(key: StorageKeys.accessToken, value: newAccessToken);
-      await localStorage.write(key: StorageKeys.refreshToken, value: newRefreshToken);
+      await localStorage.write(
+        key: StorageKeys.accessToken,
+        value: newAccessToken,
+      );
+      await localStorage.write(
+        key: StorageKeys.refreshToken,
+        value: newRefreshToken,
+      );
       return newAccessToken;
     } catch (refreshError) {
       await localStorage.delete(key: StorageKeys.accessToken);
