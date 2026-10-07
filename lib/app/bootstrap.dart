@@ -2,11 +2,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:solado_certo_app/core/network/api_client.dart';
 import 'package:solado_certo_app/core/network/client.dart';
-import 'package:solado_certo_app/features/auth/domain/repositories/api_auth_repository.dart';
+import 'package:solado_certo_app/features/auth/data/repositories/api_auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
-import 'package:solado_certo_app/features/onboarding/domain/repositories/api_onboarding_repository.dart';
+import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
@@ -14,7 +14,7 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
-import 'package:solado_certo_app/features/profile/domain/repositories/api_profile_repository.dart';
+import 'package:solado_certo_app/features/profile/data/repositories/api_profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 
 final getIt = GetIt.instance;
