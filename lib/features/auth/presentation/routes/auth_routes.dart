@@ -8,6 +8,6 @@ class AuthRoutes {
 
   static Map<String, WidgetBuilder> get routes => {
     signIn: (context) => const SignInPage(),
-    signUp: (context) => SignUpPage(),
+    signUp: (context) => const SignUpPage(),
   };
 }

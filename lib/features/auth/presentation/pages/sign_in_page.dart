@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_hypertext.dart';
+import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -20,8 +21,25 @@ class _SignInPageState extends State<SignInPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    context.read<AuthBloc>().add(
+      SignInEvent(
+        email: _emailController.text.trim().toLowerCase(),
+        password: _passwordController.text,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final bloc = BlocProvider.of<AuthBloc>(context);
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previous, current) =>
           current is AuthUnauthenticated && current.failure != null,
@@ -69,44 +87,42 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                     Form(
                       key: _formKey,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        child: Column(
-                          spacing: 25,
-                          children: [
-                            ShoeTextFormField(
-                              hintText: 'email@exemplo.com',
-                              controller: _emailController,
-                            ),
-                            ShoeTextFormField(
-                              hintText: 'senha',
-                              obscureText: true,
-                              controller: _passwordController,
-                            ),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) => ShoeTextButton(
-                                isLoading: state is AuthLoading,
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    final email = _emailController.text;
-                                    final password = _passwordController.text;
-
-                                    bloc.add(
-                                      SignInEvent(
-                                        email: email,
-                                        password: password,
-                                      ),
-                                    );
-                                  }
-                                },
-                                text: 'Entrar',
-                                textStyle: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(color: Colors.white),
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: AutofillGroup(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          child: Column(
+                            spacing: 25,
+                            children: [
+                              ShoeTextFormField(
+                                hintText: 'email@exemplo.com',
+                                controller: _emailController,
+                                validator: FieldValidators.email,
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [AutofillHints.email],
                               ),
-                            ),
-                          ],
+                              ShoeTextFormField(
+                                hintText: 'senha',
+                                obscureText: true,
+                                controller: _passwordController,
+                                validator: FieldValidators.required,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [AutofillHints.password],
+                                onFieldSubmitted: (_) => _submit(),
+                              ),
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) => ShoeTextButton(
+                                  isLoading: state is AuthLoading,
+                                  onPressed: _submit,
+                                  text: 'Entrar',
+                                  textStyle: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -117,7 +133,7 @@ class _SignInPageState extends State<SignInPage> {
                         spacing: 10,
                         children: [
                           Text(
-                            'Já tem uma conta?',
+                            'Não tem uma conta?',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           ShoeHypertext(

@@ -3,12 +3,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_hypertext.dart';
+import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 
-class SignUpPage extends StatelessWidget {
-  SignUpPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
+  @override
+  State<SignUpPage> createState() => _SignUpPageState();
+}
+
+class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
@@ -17,9 +23,31 @@ class SignUpPage extends StatelessWidget {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    final authBloc = BlocProvider.of<AuthBloc>(context);
+  void dispose() {
+    _nameController.dispose();
+    _surnameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    context.read<AuthBloc>().add(
+      SignUpEvent(
+        name: '${_nameController.text.trim()} ${_surnameController.text.trim()}'
+            .trim(),
+        email: _emailController.text.trim().toLowerCase(),
+        phone: _phoneController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (BuildContext context, state) {
         if (state is AuthSignUpSuccess) {
@@ -66,61 +94,75 @@ class SignUpPage extends StatelessWidget {
                     ),
                     Form(
                       key: _formKey,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        child: Column(
-                          spacing: 16.0,
-                          children: [
-                            ShoeTextFormField(
-                              labelText: 'Nome'.toUpperCase(),
-                              hintText: 'João Guilherme',
-                              controller: _nameController,
-                            ),
-                            ShoeTextFormField(
-                              labelText: 'Sobrenome'.toUpperCase(),
-                              hintText: 'da Silva',
-                              controller: _surnameController,
-                            ),
-                            ShoeTextFormField(
-                              labelText: 'Email'.toUpperCase(),
-                              hintText: 'joao.silva@example.com',
-                              controller: _emailController,
-                            ),
-                            ShoeTextFormField(
-                              labelText: 'Telefone'.toUpperCase(),
-                              hintText: '(19) 99999-9999',
-                              controller: _phoneController,
-                            ),
-                            ShoeTextFormField(
-                              labelText: 'Senha'.toUpperCase(),
-                              hintText: '********',
-                              obscureText: true,
-                              controller: _passwordController,
-                            ),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) => ShoeTextButton(
-                                isLoading: state is AuthLoading,
-                                text: 'Criar Conta'.toUpperCase(),
-                                textStyle: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(color: Colors.white),
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    authBloc.add(
-                                      SignUpEvent(
-                                        name:
-                                            '${_nameController.text} ${_surnameController.text}',
-                                        email: _emailController.text,
-                                        phone: _phoneController.text,
-                                        password: _passwordController.text,
-                                      ),
-                                    );
-                                  }
-                                },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: AutofillGroup(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.8,
+                          child: Column(
+                            spacing: 16.0,
+                            children: [
+                              ShoeTextFormField(
+                                labelText: 'Nome'.toUpperCase(),
+                                hintText: 'João Guilherme',
+                                controller: _nameController,
+                                validator: FieldValidators.combine([
+                                  FieldValidators.required,
+                                  FieldValidators.maxLength(120),
+                                ]),
+                                textCapitalization: TextCapitalization.words,
+                                autofillHints: const [AutofillHints.givenName],
                               ),
-                            ),
-                          ],
+                              ShoeTextFormField(
+                                labelText: 'Sobrenome'.toUpperCase(),
+                                hintText: 'da Silva',
+                                controller: _surnameController,
+                                validator: FieldValidators.maxLength(120),
+                                textCapitalization: TextCapitalization.words,
+                                autofillHints: const [AutofillHints.familyName],
+                              ),
+                              ShoeTextFormField(
+                                labelText: 'Email'.toUpperCase(),
+                                hintText: 'joao.silva@example.com',
+                                controller: _emailController,
+                                validator: FieldValidators.email,
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [AutofillHints.email],
+                              ),
+                              ShoeTextFormField(
+                                labelText: 'Telefone'.toUpperCase(),
+                                hintText: '(19) 99999-9999',
+                                controller: _phoneController,
+                                validator: FieldValidators.phone,
+                                keyboardType: TextInputType.phone,
+                                autofillHints: const [
+                                  AutofillHints.telephoneNumber,
+                                ],
+                              ),
+                              ShoeTextFormField(
+                                labelText: 'Senha'.toUpperCase(),
+                                hintText: '********',
+                                obscureText: true,
+                                controller: _passwordController,
+                                validator: FieldValidators.password,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: const [
+                                  AutofillHints.newPassword,
+                                ],
+                                onFieldSubmitted: (_) => _submit(),
+                              ),
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) => ShoeTextButton(
+                                  isLoading: state is AuthLoading,
+                                  text: 'Criar Conta'.toUpperCase(),
+                                  textStyle: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(color: Colors.white),
+                                  onPressed: _submit,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
