@@ -26,38 +26,4 @@ class AddressEntity {
     required this.country,
     required this.isDefault,
   });
-
-  factory AddressEntity.fromJson(Map<String, dynamic> json) {
-    return AddressEntity(
-      id: json['id'],
-      label: json['label'],
-      receiver: json['receiver'],
-      zipCode: json['zip_code'],
-      street: json['street'],
-      number: json['number'],
-      complement: json['complement'],
-      district: json['district'],
-      city: json['city'],
-      state: json['state'],
-      country: json['country'],
-      isDefault: json['is_default'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'label': label,
-      'receiver': receiver,
-      'zip_code': zipCode,
-      'street': street,
-      'number': number,
-      'complement': complement,
-      'district': district,
-      'city': city,
-      'state': state,
-      'country': country,
-      'is_default': isDefault,
-    };
-  }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
-import 'package:solado_certo_app/features/auth/domain/dtos/auth_tokens.dart';
+import 'package:solado_certo_app/features/auth/domain/entities/auth_tokens.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 
 import '../../../../support/fake_secure_storage.dart';

@@ -1,5 +1,6 @@
 import 'package:solado_certo_app/core/network/client.dart';
-import 'package:solado_certo_app/features/auth/domain/dtos/auth_tokens.dart';
+import 'package:solado_certo_app/features/auth/data/models/auth_tokens_model.dart';
+import 'package:solado_certo_app/features/auth/domain/entities/auth_tokens.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 
 class ApiAuthRepository implements AuthRepositoryInterface {
@@ -31,7 +32,7 @@ class ApiAuthRepository implements AuthRepositoryInterface {
   Future<AuthTokens?> signIn(String email, String password) {
     return client
         .post('/auth/login', data: {'email': email, 'password': password})
-        .then((response) => AuthTokens.fromJson(response));
+        .then((response) => AuthTokensModel.fromJson(response).toEntity());
   }
 
   @override

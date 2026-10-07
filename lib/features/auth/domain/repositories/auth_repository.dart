@@ -1,4 +1,4 @@
-import 'package:solado_certo_app/features/auth/domain/dtos/auth_tokens.dart';
+import 'package:solado_certo_app/features/auth/domain/entities/auth_tokens.dart';
 
 abstract class AuthRepositoryInterface {
   Future<void> signUp(String name, String email, String phone, String password);

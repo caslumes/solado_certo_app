@@ -1,4 +1,5 @@
 import 'package:solado_certo_app/core/network/client.dart';
+import 'package:solado_certo_app/features/onboarding/data/models/onboarding_model.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_action.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
@@ -17,8 +18,8 @@ class ApiOnboardingRepository implements OnboardingRepository {
     await _client.put(
       '/me/onboarding',
       data: {
-        'step': onboardingStepToString(currentStep),
-        'action': onboardingActionToString(action),
+        'step': onboardingStepToApi(currentStep),
+        'action': onboardingActionToApi(action),
       },
     );
   }
@@ -26,6 +27,6 @@ class ApiOnboardingRepository implements OnboardingRepository {
   @override
   Future<OnboardingEntity> getOnboarding() async {
     final response = await _client.get('/me/onboarding');
-    return OnboardingEntity.fromJson(response);
+    return OnboardingModel.fromJson(response).toEntity();
   }
 }
