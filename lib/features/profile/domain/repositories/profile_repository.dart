@@ -18,4 +18,5 @@ abstract class ProfileRepositoryInterface {
   Future<List<PainPointEntity>> getPainPoints();
   Future<List<ConsentEntity>> getConsents();
   Future<ConsentEntity> grantConsent(String purpose, String termsVersion);
+  Future<void> revokeConsent(String purpose);
 }

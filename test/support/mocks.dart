@@ -9,6 +9,7 @@ import 'package:solado_certo_app/features/profile/domain/repositories/profile_re
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
@@ -41,6 +42,9 @@ class MockGetPainPointsUseCase extends Mock implements GetPainPointsUseCase {}
 
 class MockHasPodologicalConsentUseCase extends Mock
     implements HasPodologicalConsentUseCase {}
+
+class MockRevokePodologicalConsentUseCase extends Mock
+    implements RevokePodologicalConsentUseCase {}
 
 class MockGetOnboardingUseCase extends Mock implements GetOnboardingUseCase {}
 

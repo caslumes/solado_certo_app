@@ -104,4 +104,9 @@ class ApiProfileRepository implements ProfileRepositoryInterface {
         )
         .then((response) => ConsentModel.fromJson(response).toEntity());
   }
+
+  @override
+  Future<void> revokeConsent(String purpose) {
+    return client.delete('/me/consents/$purpose');
+  }
 }

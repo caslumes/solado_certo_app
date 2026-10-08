@@ -5,6 +5,7 @@ import 'package:solado_certo_app/features/profile/domain/entities/podological_pr
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/enum/footstrike_type.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 
 import '../../../../support/builders.dart';
@@ -62,6 +63,17 @@ void main() {
       verifyNever(() => repository.savePodologicalProfile(any()));
     });
   });
+
+  test(
+    'RevokePodologicalConsentUseCase revokes the podological purpose',
+    () async {
+      when(() => repository.revokeConsent(any())).thenAnswer((_) async {});
+
+      await RevokePodologicalConsentUseCase(repository).execute();
+
+      verify(() => repository.revokeConsent('podological_profile')).called(1);
+    },
+  );
 
   group('HasPodologicalConsentUseCase', () {
     test('is true only for an active consent to the current terms', () async {
