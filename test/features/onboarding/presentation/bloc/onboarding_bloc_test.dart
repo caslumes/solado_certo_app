@@ -10,8 +10,11 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_stat
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/pain_point.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/footstrike_type.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -21,6 +24,9 @@ void main() {
   late MockUpdateProfileUseCase updateProfile;
   late MockGetAddressesUseCase getAddresses;
   late MockGetPodologicalProfileUseCase getPodologicalProfile;
+  late MockSavePodologicalProfileUseCase savePodologicalProfile;
+  late MockGetPainPointsUseCase getPainPoints;
+  late MockHasPodologicalConsentUseCase hasPodologicalConsent;
   late MockGetOnboardingUseCase getOnboarding;
   late MockChangeOnboardingStepUseCase changeStep;
 
@@ -29,6 +35,9 @@ void main() {
     updateProfileUseCase: updateProfile,
     getAddressesUseCase: getAddresses,
     getPodologicalProfileUseCase: getPodologicalProfile,
+    savePodologicalProfileUseCase: savePodologicalProfile,
+    getPainPointsUseCase: getPainPoints,
+    hasPodologicalConsentUseCase: hasPodologicalConsent,
     getOnboardingUseCase: getOnboarding,
     changeOnboardingStepUseCase: changeStep,
   );
@@ -53,6 +62,9 @@ void main() {
     registerFallbackValue(OnboardingStep.welcome);
     registerFallbackValue(OnboardingAction.advance);
     registerFallbackValue(buildProfile());
+    registerFallbackValue(
+      const PodologicalProfileUpdate(footstrikeType: FootstrikeType.neutral),
+    );
   });
 
   setUp(() {
@@ -60,6 +72,9 @@ void main() {
     updateProfile = MockUpdateProfileUseCase();
     getAddresses = MockGetAddressesUseCase();
     getPodologicalProfile = MockGetPodologicalProfileUseCase();
+    savePodologicalProfile = MockSavePodologicalProfileUseCase();
+    getPainPoints = MockGetPainPointsUseCase();
+    hasPodologicalConsent = MockHasPodologicalConsentUseCase();
     getOnboarding = MockGetOnboardingUseCase();
     changeStep = MockChangeOnboardingStepUseCase();
 
@@ -68,6 +83,10 @@ void main() {
     when(
       () => getPodologicalProfile.execute(),
     ).thenAnswer((_) async => PodologicalProfileEntity());
+    when(() => getPainPoints.execute()).thenAnswer(
+      (_) async => const [PainPointEntity(id: 'p1', name: 'Calcanhar')],
+    );
+    when(() => hasPodologicalConsent.execute()).thenAnswer((_) async => true);
   });
 
   group('StartOnboardingEvent', () {
@@ -80,7 +99,17 @@ void main() {
       act: (bloc) => bloc.add(StartOnboardingEvent()),
       expect: () => [
         isA<OnboardingLoading>(),
-        inProgress(step: OnboardingStep.addressConfig),
+        inProgress(step: OnboardingStep.addressConfig)
+            .having(
+              (s) => s.onboardingDraft.painPoints.single.name,
+              'pain point',
+              'Calcanhar',
+            )
+            .having(
+              (s) => s.onboardingDraft.hasPodologicalConsent,
+              'consent',
+              isTrue,
+            ),
       ],
     );
 
@@ -286,6 +315,99 @@ void main() {
           failure: isA<NetworkFailure>(),
         ),
       ],
+    );
+  });
+
+  group('SubmitPodologicalProfileStepEvent', () {
+    const update = PodologicalProfileUpdate(
+      footstrikeType: FootstrikeType.pronated,
+      painPointIds: ['p1'],
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'saves the profile with consent, then advances',
+      setUp: () {
+        when(() => savePodologicalProfile.execute(any())).thenAnswer(
+          (_) async =>
+              PodologicalProfileEntity(footstrikeType: FootstrikeType.pronated),
+        );
+        when(() => changeStep.execute(any(), any())).thenAnswer((_) async {});
+        when(() => getOnboarding.execute()).thenAnswer(
+          (_) async => buildOnboarding(step: OnboardingStep.completion),
+        );
+      },
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.podologicalProfile),
+      act: (bloc) =>
+          bloc.add(SubmitPodologicalProfileStepEvent(update: update)),
+      expect: () => [
+        inProgress(step: OnboardingStep.podologicalProfile, isSaving: true),
+        inProgress(step: OnboardingStep.completion)
+            .having(
+              (s) => s.onboardingDraft.podologicalProfile.footstrikeType,
+              'footstrike',
+              FootstrikeType.pronated,
+            )
+            .having(
+              (s) => s.onboardingDraft.hasPodologicalConsent,
+              'consent',
+              isTrue,
+            ),
+      ],
+      verify: (_) => verifyInOrder([
+        () => savePodologicalProfile.execute(update),
+        () => changeStep.execute(
+          OnboardingStep.podologicalProfile,
+          OnboardingAction.advance,
+        ),
+      ]),
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'stays on the step when the profile is refused',
+      setUp: () => when(
+        () => savePodologicalProfile.execute(any()),
+      ).thenThrow(buildDioException(statusCode: 403)),
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.podologicalProfile),
+      act: (bloc) =>
+          bloc.add(SubmitPodologicalProfileStepEvent(update: update)),
+      expect: () => [
+        inProgress(step: OnboardingStep.podologicalProfile, isSaving: true),
+        inProgress(
+          step: OnboardingStep.podologicalProfile,
+          failure: isA<ServerFailure>(),
+        ),
+      ],
+      verify: (_) => verifyNever(() => changeStep.execute(any(), any())),
+    );
+  });
+
+  group('SkipOnboardingStepEvent', () {
+    blocTest<OnboardingBloc, OnboardingState>(
+      'sends the skip action without saving anything',
+      setUp: () {
+        when(() => changeStep.execute(any(), any())).thenAnswer((_) async {});
+        when(() => getOnboarding.execute()).thenAnswer(
+          (_) async => buildOnboarding(step: OnboardingStep.completion),
+        );
+      },
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.podologicalProfile),
+      act: (bloc) => bloc.add(SkipOnboardingStepEvent()),
+      expect: () => [
+        inProgress(step: OnboardingStep.podologicalProfile, isSaving: true),
+        inProgress(step: OnboardingStep.completion),
+      ],
+      verify: (_) {
+        verify(
+          () => changeStep.execute(
+            OnboardingStep.podologicalProfile,
+            OnboardingAction.skip,
+          ),
+        ).called(1);
+        verifyNever(() => savePodologicalProfile.execute(any()));
+      },
     );
   });
 

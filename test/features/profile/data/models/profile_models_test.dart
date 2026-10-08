@@ -3,6 +3,8 @@ import 'package:solado_certo_app/features/profile/data/models/address_model.dart
 import 'package:solado_certo_app/features/profile/data/models/podological_profile_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/profile_model.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/footstrike_type.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
 void main() {
@@ -127,17 +129,48 @@ void main() {
       }).toEntity();
 
       expect(entity.footstrikeType, isNull);
+      expect(entity.painPoints, isEmpty);
       expect(entity.updatedAt, isNull);
     });
 
-    test('parses updated_at as a date', () {
+    test('parses the footstrike type, pain points and updated_at', () {
       final entity = PodologicalProfileModel.fromJson({
-        'footstrike_type': 'pronada',
+        'footstrike_type': 'pronated',
+        'pain_points': [
+          {'id': 'p1', 'name': 'Calcanhar', 'description': null},
+        ],
         'updated_at': '2026-10-01T12:00:00Z',
       }).toEntity();
 
-      expect(entity.footstrikeType, 'pronada');
+      expect(entity.footstrikeType, FootstrikeType.pronated);
+      expect(entity.painPoints.single.name, 'Calcanhar');
       expect(entity.updatedAt, DateTime.utc(2026, 10, 1, 12));
+    });
+
+    test('ignores a footstrike type the app does not know', () {
+      final entity = PodologicalProfileModel.fromJson({
+        'footstrike_type': 'pronada',
+      }).toEntity();
+
+      expect(entity.footstrikeType, isNull);
+    });
+
+    test('podologicalProfileUpdateToJson sends the API field names', () {
+      expect(
+        podologicalProfileUpdateToJson(
+          const PodologicalProfileUpdate(
+            footstrikeType: FootstrikeType.supinated,
+            painPointIds: ['p1', 'p2'],
+            obs: 'corre 3x por semana',
+          ),
+        ),
+        {
+          'footstrike_type': 'supinated',
+          'pain_point_ids': ['p1', 'p2'],
+          'clinical_condition': null,
+          'obs': 'corre 3x por semana',
+        },
+      );
     });
   });
 }

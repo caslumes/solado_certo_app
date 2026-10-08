@@ -6,11 +6,16 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_stat
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/pain_point.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
@@ -18,6 +23,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final UpdateProfileUseCase _updateProfileUseCase;
   final GetAddressesUseCase _getAddressesUseCase;
   final GetPodologicalProfileUseCase _getPodologicalProfileUseCase;
+  final SavePodologicalProfileUseCase _savePodologicalProfileUseCase;
+  final GetPainPointsUseCase _getPainPointsUseCase;
+  final HasPodologicalConsentUseCase _hasPodologicalConsentUseCase;
   final GetOnboardingUseCase _getOnboardingUseCase;
   final ChangeOnboardingStepUseCase _changeOnboardingStepUseCase;
 
@@ -26,12 +34,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required UpdateProfileUseCase updateProfileUseCase,
     required GetAddressesUseCase getAddressesUseCase,
     required GetPodologicalProfileUseCase getPodologicalProfileUseCase,
+    required SavePodologicalProfileUseCase savePodologicalProfileUseCase,
+    required GetPainPointsUseCase getPainPointsUseCase,
+    required HasPodologicalConsentUseCase hasPodologicalConsentUseCase,
     required GetOnboardingUseCase getOnboardingUseCase,
     required ChangeOnboardingStepUseCase changeOnboardingStepUseCase,
   }) : _getProfileUseCase = getProfileUseCase,
        _updateProfileUseCase = updateProfileUseCase,
        _getAddressesUseCase = getAddressesUseCase,
        _getPodologicalProfileUseCase = getPodologicalProfileUseCase,
+       _savePodologicalProfileUseCase = savePodologicalProfileUseCase,
+       _getPainPointsUseCase = getPainPointsUseCase,
+       _hasPodologicalConsentUseCase = hasPodologicalConsentUseCase,
        _getOnboardingUseCase = getOnboardingUseCase,
        _changeOnboardingStepUseCase = changeOnboardingStepUseCase,
        super(OnboardingLoading()) {
@@ -39,6 +53,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<CompleteOnboardingEvent>(_onOnboardingCompleted);
     on<AdvanceOnboardingEvent>(_onOnboardingAdvanced);
     on<RetreatOnboardingEvent>(_onOnboardingRetreated);
+    on<SkipOnboardingStepEvent>(_onOnboardingStepSkipped);
+    on<SubmitPodologicalProfileStepEvent>(_onPodologicalProfileStepSubmitted);
     on<SubmitProfileStepEvent>(_onProfileStepSubmitted);
     on<ReloadAddressesEvent>(_onAddressesReloaded);
   }
@@ -48,11 +64,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     final profile = await _getProfileUseCase.execute();
     final addresses = await _getAddressesUseCase.execute();
     final podologicalProfile = await _getPodologicalProfileUseCase.execute();
+    final painPoints = await _getPainPointsUseCase.execute();
+    final hasPodologicalConsent = await _hasPodologicalConsentUseCase.execute();
     return OnboardingDraft(
       onboarding: onboarding,
       profile: profile,
       addresses: addresses,
       podologicalProfile: podologicalProfile,
+      painPoints: painPoints,
+      hasPodologicalConsent: hasPodologicalConsent,
     );
   }
 
@@ -82,6 +102,28 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     RetreatOnboardingEvent event,
     Emitter<OnboardingState> emit,
   ) => _changeStep(OnboardingAction.retreat, emit);
+
+  Future<void> _onOnboardingStepSkipped(
+    SkipOnboardingStepEvent event,
+    Emitter<OnboardingState> emit,
+  ) => _changeStep(OnboardingAction.skip, emit);
+
+  Future<void> _onPodologicalProfileStepSubmitted(
+    SubmitPodologicalProfileStepEvent event,
+    Emitter<OnboardingState> emit,
+  ) => _changeStep(
+    OnboardingAction.advance,
+    emit,
+    saveStep: (draft) async {
+      final podologicalProfile = await _savePodologicalProfileUseCase.execute(
+        event.update,
+      );
+      return draft.copyWith(
+        podologicalProfile: podologicalProfile,
+        hasPodologicalConsent: true,
+      );
+    },
+  );
 
   Future<void> _onProfileStepSubmitted(
     SubmitProfileStepEvent event,
@@ -197,6 +239,14 @@ class SubmitProfileStepEvent extends OnboardingEvent {
 
 class ReloadAddressesEvent extends OnboardingEvent {}
 
+class SkipOnboardingStepEvent extends OnboardingEvent {}
+
+class SubmitPodologicalProfileStepEvent extends OnboardingEvent {
+  final PodologicalProfileUpdate update;
+
+  SubmitPodologicalProfileStepEvent({required this.update});
+}
+
 class OnboardingState {}
 
 class OnboardingLoading extends OnboardingState {}
@@ -226,22 +276,30 @@ class OnboardingDraft {
   final ProfileEntity profile;
   final List<AddressEntity> addresses;
   final PodologicalProfileEntity podologicalProfile;
+  final List<PainPointEntity> painPoints;
+  final bool hasPodologicalConsent;
 
   const OnboardingDraft({
     required this.onboarding,
     required this.profile,
     required this.addresses,
     required this.podologicalProfile,
+    this.painPoints = const [],
+    this.hasPodologicalConsent = false,
   });
 
   OnboardingDraft copyWith({
     OnboardingEntity? onboarding,
     ProfileEntity? profile,
     List<AddressEntity>? addresses,
+    PodologicalProfileEntity? podologicalProfile,
+    bool? hasPodologicalConsent,
   }) => OnboardingDraft(
     onboarding: onboarding ?? this.onboarding,
     profile: profile ?? this.profile,
     addresses: addresses ?? this.addresses,
-    podologicalProfile: podologicalProfile,
+    podologicalProfile: podologicalProfile ?? this.podologicalProfile,
+    painPoints: painPoints,
+    hasPodologicalConsent: hasPodologicalConsent ?? this.hasPodologicalConsent,
   );
 }

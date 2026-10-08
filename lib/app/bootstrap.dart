@@ -12,6 +12,9 @@ import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onbo
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
@@ -61,6 +64,15 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<AddAddressUseCase>(
     () => AddAddressUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetPainPointsUseCase>(
+    () => GetPainPointsUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<HasPodologicalConsentUseCase>(
+    () => HasPodologicalConsentUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<SavePodologicalProfileUseCase>(
+    () => SavePodologicalProfileUseCase(getIt<ProfileRepositoryInterface>()),
   );
   getIt.registerLazySingleton<GetOnboardingUseCase>(
     () => GetOnboardingUseCase(getIt<OnboardingRepository>()),

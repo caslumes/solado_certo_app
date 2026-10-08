@@ -164,11 +164,12 @@ class _SignUpPageState extends State<SignUpPage> {
                                   return Text(
                                     failure.message,
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.error,
+                                        ),
                                   );
                                 },
                               ),
