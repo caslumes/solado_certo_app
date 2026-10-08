@@ -48,7 +48,7 @@ class OnboardingGate extends StatelessWidget {
         }
 
         if (state is OnboardingFinished) {
-          return const HomePage();
+          return const HomePage(isSignedIn: true);
         }
 
         return const Scaffold(body: Center(child: CircularProgressIndicator()));

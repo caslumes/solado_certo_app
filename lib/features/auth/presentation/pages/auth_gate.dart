@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -21,7 +21,10 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
+    return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (previous, current) => current is AuthAuthenticated,
+      listener: (context, state) =>
+          Navigator.of(context).popUntil((route) => route.isFirst),
       buildWhen: (previous, current) =>
           current is! AuthLoading && current is! AuthSignUpSuccess,
       builder: (context, state) {
@@ -46,7 +49,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (state is AuthUnauthenticated) {
-          return const SignInPage();
+          return const HomePage(isSignedIn: false);
         }
 
         return const SplashPage();
