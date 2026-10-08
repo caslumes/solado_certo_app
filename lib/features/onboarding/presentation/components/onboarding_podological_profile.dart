@@ -65,7 +65,7 @@ class OnboardingPodologicalProfile extends StatelessWidget {
                             onSubmit: (update) => onboardingBloc.add(
                               SubmitPodologicalProfileStepEvent(update: update),
                             ),
-                            actions: [
+                            leadingActions: [
                               ShoeTextButton(
                                 onPressed: isSaving
                                     ? null

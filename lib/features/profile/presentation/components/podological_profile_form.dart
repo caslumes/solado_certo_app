@@ -19,7 +19,8 @@ class PodologicalProfileForm extends StatefulWidget {
     required this.isSaving,
     required this.submitText,
     required this.onSubmit,
-    this.actions = const [],
+    this.leadingActions = const [],
+    this.trailingActions = const [],
   });
 
   final PodologicalProfileEntity profile;
@@ -29,7 +30,8 @@ class PodologicalProfileForm extends StatefulWidget {
   final String submitText;
   final ValueChanged<PodologicalProfileUpdate> onSubmit;
 
-  final List<Widget> actions;
+  final List<Widget> leadingActions;
+  final List<Widget> trailingActions;
 
   @override
   State<PodologicalProfileForm> createState() => _PodologicalProfileFormState();
@@ -166,7 +168,7 @@ class _PodologicalProfileFormState extends State<PodologicalProfileForm> {
                 ? null
                 : (value) => setState(() => _consented = value),
           ),
-          ...widget.actions,
+          ...widget.leadingActions,
           ShoeTextButton(
             isLoading: widget.isSaving,
             onPressed: _consented ? _submit : null,
@@ -175,6 +177,7 @@ class _PodologicalProfileFormState extends State<PodologicalProfileForm> {
               context,
             ).textTheme.headlineSmall?.copyWith(color: Colors.white),
           ),
+          ...widget.trailingActions,
         ],
       ),
     );

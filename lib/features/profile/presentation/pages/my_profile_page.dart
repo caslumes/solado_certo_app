@@ -187,7 +187,7 @@ class _ProfileContent extends StatelessWidget {
                 onSubmit: (update) => context.read<ProfileBloc>().add(
                   SavePodologicalProfileEvent(update: update),
                 ),
-                actions: [
+                trailingActions: [
                   if (data.hasPodologicalConsent)
                     ShoeTextButton(
                       onPressed: state.isSaving

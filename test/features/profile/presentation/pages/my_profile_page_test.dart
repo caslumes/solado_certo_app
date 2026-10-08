@@ -81,6 +81,13 @@ void main() {
     expect(revokeButton, findsNothing);
   });
 
+  testWidgets('places withdrawal below the save button', (tester) async {
+    await pumpPage(tester);
+
+    final save = tester.getTopLeft(find.text('SALVAR PERFIL PODOLÓGICO'));
+    expect(tester.getTopLeft(revokeButton).dy, greaterThan(save.dy));
+  });
+
   testWidgets('asks for confirmation before withdrawing consent', (
     tester,
   ) async {
