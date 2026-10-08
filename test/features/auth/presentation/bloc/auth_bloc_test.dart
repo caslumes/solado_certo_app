@@ -146,6 +146,19 @@ void main() {
         unauthenticatedWith<InvalidInputFailure>(),
       ],
     );
+
+    blocTest<AuthBloc, AuthState>(
+      'reports an existing account on 409',
+      setUp: () => when(
+        () => signUp.execute(any(), any(), any(), any()),
+      ).thenThrow(buildDioException(statusCode: 409)),
+      build: buildBloc,
+      act: (bloc) => bloc.add(event()),
+      expect: () => [
+        isA<AuthLoading>(),
+        unauthenticatedWith<AccountAlreadyExistsFailure>(),
+      ],
+    );
   });
 
   group('SignOutEvent', () {

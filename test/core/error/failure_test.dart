@@ -29,6 +29,10 @@ void main() {
       isA<InvalidInputFailure>(),
     );
     expect(
+      Failure.from(buildDioException(statusCode: 409)),
+      isA<ConflictFailure>(),
+    );
+    expect(
       Failure.from(buildDioException(statusCode: 503)),
       isA<ServerFailure>().having((f) => f.statusCode, 'statusCode', 503),
     );

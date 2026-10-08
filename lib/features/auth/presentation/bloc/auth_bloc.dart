@@ -49,7 +49,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthSignUpSuccess());
       emit(AuthUnauthenticated());
     } catch (e) {
-      emit(AuthUnauthenticated(failure: Failure.from(e)));
+      final failure = Failure.from(e);
+      emit(
+        AuthUnauthenticated(
+          failure: failure is ConflictFailure
+              ? AccountAlreadyExistsFailure()
+              : failure,
+        ),
+      );
     }
   }
 

@@ -5,6 +5,7 @@ import 'package:solado_certo_app/core/presentation/components/shoe_text_button.d
 import 'package:solado_certo_app/core/presentation/components/shoe_hypertext.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
+import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -60,7 +61,9 @@ class _SignUpPageState extends State<SignUpPage> {
             );
           Navigator.of(context).pop();
         }
-        if (state is AuthUnauthenticated && state.failure != null) {
+        if (state is AuthUnauthenticated &&
+            state.failure != null &&
+            state.failure is! AccountAlreadyExistsFailure) {
           ScaffoldMessenger.of(context)
             ..hideCurrentSnackBar()
             ..showSnackBar(SnackBar(content: Text(state.failure!.message)));
@@ -149,6 +152,25 @@ class _SignUpPageState extends State<SignUpPage> {
                                   AutofillHints.newPassword,
                                 ],
                                 onFieldSubmitted: (_) => _submit(),
+                              ),
+                              BlocBuilder<AuthBloc, AuthState>(
+                                builder: (context, state) {
+                                  final failure = state is AuthUnauthenticated
+                                      ? state.failure
+                                      : null;
+                                  if (failure is! AccountAlreadyExistsFailure) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return Text(
+                                    failure.message,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  );
+                                },
                               ),
                               BlocBuilder<AuthBloc, AuthState>(
                                 builder: (context, state) => ShoeTextButton(

@@ -17,6 +17,7 @@ sealed class Failure {
         final statusCode = error.response?.statusCode;
         if (statusCode == 401) return UnauthorizedFailure();
         if (statusCode == 400) return InvalidInputFailure();
+        if (statusCode == 409) return ConflictFailure();
         return ServerFailure(statusCode);
       default:
         return UnexpectedFailure(error);
@@ -45,6 +46,17 @@ final class InvalidCredentialsFailure extends Failure {
 final class InvalidInputFailure extends Failure {
   @override
   String get message => 'Verifique os dados informados.';
+}
+
+final class ConflictFailure extends Failure {
+  @override
+  String get message => 'Esses dados já estão em uso.';
+}
+
+final class AccountAlreadyExistsFailure extends Failure {
+  @override
+  String get message =>
+      'E-mail ou telefone já cadastrado. Faça login ou recupere sua senha.';
 }
 
 final class ServerFailure extends Failure {
