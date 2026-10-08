@@ -44,7 +44,11 @@ class MyProfilePage extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('Meu perfil', style: textTheme.bodyMedium),
+            iconTheme: Theme.of(context).iconTheme,
+            title: Text(
+              'Meu perfil'.toUpperCase(),
+              style: textTheme.bodyMedium,
+            ),
           ),
           body: switch (state) {
             ProfileLoaded() => _ProfileContent(
@@ -83,6 +87,7 @@ class _LoadError extends StatelessWidget {
               onPressed: () =>
                   context.read<ProfileBloc>().add(LoadProfileEvent()),
               text: 'Tentar novamente',
+              textStyle: _buttonTextStyle(context),
             ),
           ],
         ),
@@ -146,7 +151,6 @@ class _ProfileContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final data = state.data;
 
     return SingleChildScrollView(
@@ -158,13 +162,13 @@ class _ProfileContent extends StatelessWidget {
             spacing: 16.0,
             children: [
               const SizedBox.shrink(),
-              Text('Dados pessoais', style: textTheme.headlineSmall),
+              _SectionTitle('Dados pessoais'),
               _PersonalDataForm(
                 key: ObjectKey(data.profile),
                 profile: data.profile,
                 isSaving: state.isSaving,
               ),
-              Text('Endereços', style: textTheme.headlineSmall),
+              _SectionTitle('Endereços'),
               for (final address in data.addresses)
                 AddressEntry(address: address),
               ShoeTextButton(
@@ -172,8 +176,9 @@ class _ProfileContent extends StatelessWidget {
                     ? null
                     : () => _openAddressForm(context),
                 text: 'Adicionar endereço',
+                textStyle: _buttonTextStyle(context),
               ),
-              Text('Perfil podológico', style: textTheme.headlineSmall),
+              _SectionTitle('Perfil podológico'),
               PodologicalProfileForm(
                 key: ValueKey((
                   data.podologicalProfile,
@@ -194,10 +199,11 @@ class _ProfileContent extends StatelessWidget {
                           ? null
                           : () => _confirmRevoke(context),
                       text: 'Retirar consentimento',
+                      textStyle: _buttonTextStyle(context),
                     ),
                 ],
               ),
-              const SizedBox.shrink(),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -283,8 +289,29 @@ class _PersonalDataFormState extends State<_PersonalDataForm> {
             isLoading: widget.isSaving,
             onPressed: _submit,
             text: 'Salvar dados pessoais',
+            textStyle: _buttonTextStyle(context),
           ),
         ],
+      ),
+    );
+  }
+}
+
+TextStyle? _buttonTextStyle(BuildContext context) =>
+    Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white);
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        text.toUpperCase(),
+        style: Theme.of(context).textTheme.headlineSmall,
+        textAlign: TextAlign.center,
       ),
     );
   }

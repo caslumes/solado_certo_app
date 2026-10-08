@@ -67,8 +67,8 @@ void main() {
     await pumpPage(tester);
 
     expect(find.text('Maria Souza'), findsOneWidget);
-    expect(find.text('Endereços'), findsOneWidget);
-    expect(find.text('Perfil podológico'), findsOneWidget);
+    expect(find.text('ENDEREÇOS'), findsOneWidget);
+    expect(find.text('PERFIL PODOLÓGICO'), findsOneWidget);
     expect(revokeButton, findsOneWidget);
   });
 
