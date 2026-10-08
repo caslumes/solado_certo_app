@@ -173,38 +173,40 @@ class _SignUpPageState extends State<SignUpPage> {
                                   );
                                 },
                               ),
-                              BlocBuilder<AuthBloc, AuthState>(
-                                builder: (context, state) => ShoeTextButton(
-                                  isLoading: state is AuthLoading,
-                                  text: 'Criar Conta'.toUpperCase(),
-                                  textStyle: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(color: Colors.white),
-                                  onPressed: _submit,
-                                ),
-                              ),
                             ],
                           ),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 16.0),
-                      child: Column(
-                        children: [
-                          Text('Já tem uma conta?'),
-                          ShoeHypertext(
-                            text: 'Entrar'.toUpperCase(),
-                            onTap: () {
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
+              ),
+            ),
+            BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) => SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: ShoeTextButton(
+                  isLoading: state is AuthLoading,
+                  text: 'Criar Conta'.toUpperCase(),
+                  textStyle: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                  onPressed: _submit,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 16.0, 0, 16.0),
+              child: Column(
+                children: [
+                  Text('Já tem uma conta?'),
+                  ShoeHypertext(
+                    text: 'Entrar'.toUpperCase(),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
               ),
             ),
           ],

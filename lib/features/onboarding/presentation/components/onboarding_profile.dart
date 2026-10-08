@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
@@ -53,11 +54,23 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
   @override
   Widget build(BuildContext context) {
     final onboardingBloc = BlocProvider.of<OnboardingBloc>(context);
+    final buttonTextStyle = Theme.of(
+      context,
+    ).textTheme.headlineSmall?.copyWith(color: Colors.white);
 
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
+            child: Image(
+              image: AssetImage('assets/images/logo.png'),
+              width: MediaQuery.of(context).size.width * 0.2,
+            ),
+          ),
+          Container(color: AppColors.primaryColor, height: 5),
+          SizedBox(height: 16),
           Expanded(
             child: SingleChildScrollView(
               child: Center(
@@ -66,7 +79,7 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
                   child: Column(
                     children: [
                       Text(
-                        'Perfil',
+                        'Perfil'.toUpperCase(),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Padding(
@@ -108,26 +121,36 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
                           ),
                         ),
                       ),
-                      ShoeTextButton(
-                        onPressed: () {
-                          onboardingBloc.add(RetreatOnboardingEvent());
-                        },
-                        text: "Voltar",
-                      ),
-                      BlocBuilder<OnboardingBloc, OnboardingState>(
-                        builder: (context, state) => ShoeTextButton(
-                          isLoading:
-                              state is OnboardingInProgress && state.isSaving,
-                          onPressed: _submit,
-                          text: "Avançar",
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
             ),
           ),
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Column(
+              spacing: 16.0,
+              children: [
+                ShoeTextButton(
+                  onPressed: () {
+                    onboardingBloc.add(RetreatOnboardingEvent());
+                  },
+                  text: "Voltar".toUpperCase(),
+                  textStyle: buttonTextStyle,
+                ),
+                BlocBuilder<OnboardingBloc, OnboardingState>(
+                  builder: (context, state) => ShoeTextButton(
+                    isLoading: state is OnboardingInProgress && state.isSaving,
+                    onPressed: _submit,
+                    text: "Avançar".toUpperCase(),
+                    textStyle: buttonTextStyle,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 48),
         ],
       ),
     );

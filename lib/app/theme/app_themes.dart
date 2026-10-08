@@ -3,6 +3,7 @@ import 'package:solado_certo_app/app/theme/app_colors.dart';
 
 final primaryTheme = ThemeData(
   primaryColor: AppColors.primaryColor,
+  iconTheme: IconThemeData(color: AppColors.primaryColor),
   colorScheme: ColorScheme.fromSwatch().copyWith(
     primary: AppColors.primaryColor,
     secondary: AppColors.secondaryColor,

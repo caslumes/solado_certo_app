@@ -90,6 +90,7 @@ class _ShoeTextFormFieldState extends State<ShoeTextFormField> {
                       tooltip: _obscured ? 'Mostrar senha' : 'Ocultar senha',
                       icon: Icon(
                         _obscured ? Icons.visibility : Icons.visibility_off,
+                        color: AppColors.primaryColor,
                       ),
                       onPressed: () => setState(() => _obscured = !_obscured),
                     )

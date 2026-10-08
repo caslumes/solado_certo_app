@@ -18,11 +18,8 @@ class ShoeTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style =
-        (textStyle ??
-                Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Colors.white))
-            ?.copyWith(height: 2);
+        textStyle ??
+        Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white);
 
     return ShoeButton(
       onPressed: isLoading ? null : onPressed,
@@ -37,7 +34,14 @@ class ShoeTextButton extends StatelessWidget {
                 ),
               ),
             )
-          : Text(text.toUpperCase(), style: style),
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Text(
+                text.toUpperCase(),
+                style: style,
+                textAlign: TextAlign.center,
+              ),
+            ),
     );
   }
 }

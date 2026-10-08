@@ -18,62 +18,82 @@ class OnboardingPodologicalProfile extends StatelessWidget {
         final draft = (state as OnboardingInProgress).onboardingDraft;
         final isSaving = state.isSaving;
         final onboardingBloc = context.read<OnboardingBloc>();
+        final buttonTextStyle = Theme.of(
+          context,
+        ).textTheme.headlineSmall?.copyWith(color: Colors.white);
 
         return Scaffold(
-          body: SingleChildScrollView(
-            child: Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 16.0,
-                  children: [
-                    Center(
-                      child: Text(
-                        'Perfil Podológico',
-                        style: textTheme.headlineSmall,
-                      ),
-                    ),
-                    Text(
-                      'Etapa opcional. Essas informações ajudam a encontrar '
-                      'produtos adequados aos seus pés.',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.tertiaryColor,
-                      ),
-                    ),
-                    PodologicalProfileForm(
-                      profile: draft.podologicalProfile,
-                      painPoints: draft.painPoints,
-                      hasConsent: draft.hasPodologicalConsent,
-                      isSaving: isSaving,
-                      submitText: 'Salvar e avançar',
-                      onSubmit: (update) => onboardingBloc.add(
-                        SubmitPodologicalProfileStepEvent(update: update),
-                      ),
-                      actions: [
-                        ShoeTextButton(
-                          onPressed: isSaving
-                              ? null
-                              : () => onboardingBloc.add(
-                                  SkipOnboardingStepEvent(),
-                                ),
-                          text: 'Pular esta etapa',
-                        ),
-                        ShoeTextButton(
-                          onPressed: isSaving
-                              ? null
-                              : () => onboardingBloc.add(
-                                  RetreatOnboardingEvent(),
-                                ),
-                          text: 'Voltar',
-                        ),
-                      ],
-                    ),
-                    const SizedBox.shrink(),
-                  ],
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
+                child: Image(
+                  image: AssetImage('assets/images/logo.png'),
+                  width: MediaQuery.of(context).size.width * 0.2,
                 ),
               ),
-            ),
+              Container(color: AppColors.primaryColor, height: 5),
+              SizedBox(height: 16),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 16.0,
+                        children: [
+                          Center(
+                            child: Text(
+                              'Perfil Podológico'.toUpperCase(),
+                              style: textTheme.headlineSmall,
+                            ),
+                          ),
+                          Text(
+                            'Etapa opcional. Essas informações ajudam a encontrar '
+                            'produtos adequados aos seus pés.',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.tertiaryColor,
+                            ),
+                          ),
+                          PodologicalProfileForm(
+                            profile: draft.podologicalProfile,
+                            painPoints: draft.painPoints,
+                            hasConsent: draft.hasPodologicalConsent,
+                            isSaving: isSaving,
+                            submitText: 'Salvar e avançar'.toUpperCase(),
+                            onSubmit: (update) => onboardingBloc.add(
+                              SubmitPodologicalProfileStepEvent(update: update),
+                            ),
+                            actions: [
+                              ShoeTextButton(
+                                onPressed: isSaving
+                                    ? null
+                                    : () => onboardingBloc.add(
+                                        SkipOnboardingStepEvent(),
+                                      ),
+                                text: 'Pular esta etapa'.toUpperCase(),
+                                textStyle: buttonTextStyle,
+                              ),
+                              ShoeTextButton(
+                                onPressed: isSaving
+                                    ? null
+                                    : () => onboardingBloc.add(
+                                        RetreatOnboardingEvent(),
+                                      ),
+                                text: 'Voltar'.toUpperCase(),
+                                textStyle: buttonTextStyle,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 48),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

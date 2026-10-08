@@ -93,8 +93,9 @@ class _AddressFormPageState extends State<AddressFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: Theme.of(context).iconTheme,
         title: Text(
-          'Novo endereço',
+          'Novo endereço'.toUpperCase(),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
@@ -200,9 +201,12 @@ class _AddressFormPageState extends State<AddressFormPage> {
                   ShoeTextButton(
                     isLoading: _isSaving,
                     onPressed: _submit,
-                    text: 'Salvar endereço',
+                    text: 'Salvar endereço'.toUpperCase(),
+                    textStyle: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(color: Colors.white),
                   ),
-                  const SizedBox.shrink(),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),

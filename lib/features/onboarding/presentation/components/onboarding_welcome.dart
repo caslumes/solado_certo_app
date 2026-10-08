@@ -11,31 +11,50 @@ class OnboardingWelcome extends StatelessWidget {
   Widget build(BuildContext context) {
     final authBloc = BlocProvider.of<AuthBloc>(context);
     final onboardingBloc = BlocProvider.of<OnboardingBloc>(context);
+    final headlineStyle = Theme.of(context).textTheme.headlineSmall;
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Bem-vindo ao Solado Certo!',
-            style: Theme.of(context).textTheme.headlineSmall,
+      body: Center(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Image(image: AssetImage('assets/images/logo.png')),
+                      Text(
+                        'Bem-vindo ao\nSolado Certo!',
+                        style: headlineStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'O Solado Certo é o aplicativo que ajuda você a encontrar o calçado ideal para o seu estilo e conforto.',
+                        textAlign: TextAlign.justify,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ShoeTextButton(
+                onPressed: () {
+                  authBloc.add(SignOutEvent());
+                },
+                text: "Sair".toUpperCase(),
+                textStyle: headlineStyle?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(height: 16),
+              ShoeTextButton(
+                onPressed: () => onboardingBloc.add(AdvanceOnboardingEvent()),
+                text: "Começar cadastro".toUpperCase(),
+                textStyle: headlineStyle?.copyWith(color: Colors.white),
+              ),
+              const SizedBox(height: 48),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'O Solado Certo é um aplicativo que ajuda você a encontrar o calçado ideal para o seu estilo e conforto.',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          ShoeTextButton(
-            onPressed: () => onboardingBloc.add(AdvanceOnboardingEvent()),
-            text: "Avançar",
-          ),
-          ShoeTextButton(
-            onPressed: () {
-              authBloc.add(SignOutEvent());
-            },
-            text: "Sair",
-          ),
-        ],
+        ),
       ),
     );
   }

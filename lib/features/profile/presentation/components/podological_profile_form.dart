@@ -166,12 +166,15 @@ class _PodologicalProfileFormState extends State<PodologicalProfileForm> {
                 ? null
                 : (value) => setState(() => _consented = value),
           ),
+          ...widget.actions,
           ShoeTextButton(
             isLoading: widget.isSaving,
             onPressed: _consented ? _submit : null,
             text: widget.submitText,
+            textStyle: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.white),
           ),
-          ...widget.actions,
         ],
       ),
     );

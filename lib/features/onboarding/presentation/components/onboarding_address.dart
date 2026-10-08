@@ -32,6 +32,10 @@ class OnboardingAddress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onboardingBloc = BlocProvider.of<OnboardingBloc>(context);
+    final buttonTextStyle = Theme.of(
+      context,
+    ).textTheme.headlineSmall?.copyWith(color: Colors.white);
+
     return BlocBuilder<OnboardingBloc, OnboardingState>(
       builder: (context, state) {
         final addresses = (state is OnboardingInProgress)
@@ -40,6 +44,15 @@ class OnboardingAddress extends StatelessWidget {
         return Scaffold(
           body: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0.0, 15.0, 0.0, 15.0),
+                child: Image(
+                  image: AssetImage('assets/images/logo.png'),
+                  width: MediaQuery.of(context).size.width * 0.2,
+                ),
+              ),
+              Container(color: AppColors.primaryColor, height: 5),
+              SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
                   child: Center(
@@ -48,7 +61,7 @@ class OnboardingAddress extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            'Endereços',
+                            'Endereços'.toUpperCase(),
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           Padding(
@@ -82,24 +95,35 @@ class OnboardingAddress extends StatelessWidget {
                               ],
                             ),
                           ),
-                          ShoeTextButton(
-                            onPressed: () {
-                              onboardingBloc.add(RetreatOnboardingEvent());
-                            },
-                            text: "Voltar",
-                          ),
-                          ShoeTextButton(
-                            onPressed: () {
-                              onboardingBloc.add(AdvanceOnboardingEvent());
-                            },
-                            text: "Avançar",
-                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Column(
+                  spacing: 16.0,
+                  children: [
+                    ShoeTextButton(
+                      onPressed: () {
+                        onboardingBloc.add(RetreatOnboardingEvent());
+                      },
+                      text: "Voltar".toUpperCase(),
+                      textStyle: buttonTextStyle,
+                    ),
+                    ShoeTextButton(
+                      onPressed: () {
+                        onboardingBloc.add(AdvanceOnboardingEvent());
+                      },
+                      text: "Avançar".toUpperCase(),
+                      textStyle: buttonTextStyle,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 48),
             ],
           ),
         );
