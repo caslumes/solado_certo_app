@@ -72,85 +72,100 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
           Container(color: AppColors.primaryColor, height: 5),
           SizedBox(height: 16),
           Expanded(
-            child: SingleChildScrollView(
-              child: Center(
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  child: Column(
-                    children: [
-                      Text(
-                        'Perfil'.toUpperCase(),
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          0.0,
-                          16.0,
-                          0.0,
-                          16.0,
-                        ),
-                        child: Form(
-                          key: _formKey,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          child: Column(
-                            spacing: 16.0,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
                             children: [
-                              ShoeTextFormField(
-                                labelText: 'Nome',
-                                controller: _nameController,
-                                validator: FieldValidators.combine([
-                                  FieldValidators.required,
-                                  FieldValidators.maxLength(120),
-                                ]),
-                                textCapitalization: TextCapitalization.words,
+                              Text(
+                                'Perfil'.toUpperCase(),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
                               ),
-                              ShoeTextFormField(
-                                labelText: 'Email',
-                                controller: _emailController,
-                                readOnly: true,
-                              ),
-                              ShoeTextFormField(
-                                labelText: 'Telefone',
-                                controller: _phoneController,
-                                validator: FieldValidators.phone,
-                                keyboardType: TextInputType.phone,
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _submit(),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  0.0,
+                                  16.0,
+                                  0.0,
+                                  16.0,
+                                ),
+                                child: Form(
+                                  key: _formKey,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  child: Column(
+                                    spacing: 16.0,
+                                    children: [
+                                      ShoeTextFormField(
+                                        labelText: 'Nome',
+                                        controller: _nameController,
+                                        validator: FieldValidators.combine([
+                                          FieldValidators.required,
+                                          FieldValidators.maxLength(120),
+                                        ]),
+                                        textCapitalization:
+                                            TextCapitalization.words,
+                                      ),
+                                      ShoeTextFormField(
+                                        labelText: 'Email',
+                                        controller: _emailController,
+                                        readOnly: true,
+                                      ),
+                                      ShoeTextFormField(
+                                        labelText: 'Telefone',
+                                        controller: _phoneController,
+                                        validator: FieldValidators.phone,
+                                        keyboardType: TextInputType.phone,
+                                        textInputAction: TextInputAction.done,
+                                        onFieldSubmitted: (_) => _submit(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),
-                        ),
+                          Column(
+                            spacing: 16.0,
+                            children: [
+                              ShoeTextButton(
+                                onPressed: () {
+                                  onboardingBloc.add(RetreatOnboardingEvent());
+                                },
+                                text: "Voltar".toUpperCase(),
+                                textStyle: buttonTextStyle,
+                              ),
+                              BlocBuilder<OnboardingBloc, OnboardingState>(
+                                builder: (context, state) => ShoeTextButton(
+                                  isLoading:
+                                      state is OnboardingInProgress &&
+                                      state.isSaving,
+                                  onPressed: _submit,
+                                  text: "Avançar".toUpperCase(),
+                                  textStyle: buttonTextStyle,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Column(
-              spacing: 16.0,
-              children: [
-                ShoeTextButton(
-                  onPressed: () {
-                    onboardingBloc.add(RetreatOnboardingEvent());
-                  },
-                  text: "Voltar".toUpperCase(),
-                  textStyle: buttonTextStyle,
-                ),
-                BlocBuilder<OnboardingBloc, OnboardingState>(
-                  builder: (context, state) => ShoeTextButton(
-                    isLoading: state is OnboardingInProgress && state.isSaving,
-                    onPressed: _submit,
-                    text: "Avançar".toUpperCase(),
-                    textStyle: buttonTextStyle,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 48),
         ],
       ),
     );
