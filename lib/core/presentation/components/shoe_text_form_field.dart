@@ -14,6 +14,7 @@ class ShoeTextFormField extends StatefulWidget {
     this.autofillHints,
     this.textCapitalization = TextCapitalization.none,
     this.onFieldSubmitted,
+    this.readOnly = false,
   });
 
   final String? hintText;
@@ -26,6 +27,7 @@ class ShoeTextFormField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final TextCapitalization textCapitalization;
   final ValueChanged<String>? onFieldSubmitted;
+  final bool readOnly;
 
   @override
   State<ShoeTextFormField> createState() => _ShoeTextFormFieldState();
@@ -62,7 +64,14 @@ class _ShoeTextFormFieldState extends State<ShoeTextFormField> {
             autofillHints: widget.autofillHints,
             textCapitalization: widget.textCapitalization,
             onFieldSubmitted: widget.onFieldSubmitted,
-            style: Theme.of(context).textTheme.bodyMedium,
+            readOnly: widget.readOnly,
+            style: widget.readOnly
+                ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                  )
+                : Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(
               fillColor: AppColors.secondaryColor,
               hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(

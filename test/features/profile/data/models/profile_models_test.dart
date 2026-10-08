@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/features/profile/data/models/address_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/podological_profile_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/profile_model.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
 void main() {
   group('ProfileModel', () {
@@ -24,6 +26,53 @@ void main() {
         () => ProfileModel.fromJson({'name': 'Maria'}),
         throwsA(isA<TypeError>()),
       );
+    });
+  });
+
+  test('profileToJson sends the API field names', () {
+    final json = profileToJson(
+      ProfileEntity(
+        name: 'Maria',
+        email: 'maria@example.com',
+        phone: '19999999999',
+        avatarUrl: '',
+      ),
+    );
+
+    expect(json, {
+      'name': 'Maria',
+      'email': 'maria@example.com',
+      'phone': '19999999999',
+      'avatar_url': '',
+    });
+  });
+
+  test('newAddressToJson sends the API field names, nulls and country', () {
+    final json = newAddressToJson(
+      const NewAddress(
+        receiver: 'Maria',
+        zipCode: '13010111',
+        street: 'Rua A',
+        number: '10',
+        district: 'Centro',
+        city: 'Campinas',
+        state: 'SP',
+        isDefault: true,
+      ),
+    );
+
+    expect(json, {
+      'label': null,
+      'receiver': 'Maria',
+      'zip_code': '13010111',
+      'street': 'Rua A',
+      'number': '10',
+      'complement': null,
+      'district': 'Centro',
+      'city': 'Campinas',
+      'state': 'SP',
+      'country': 'BR',
+      'is_default': true,
     });
   });
 

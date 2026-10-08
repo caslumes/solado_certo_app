@@ -10,6 +10,7 @@ import 'package:solado_certo_app/features/onboarding/presentation/pages/onboardi
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:solado_certo_app/features/splash/presentation/pages/splash_page.dart';
 
 class AuthGate extends StatelessWidget {
@@ -25,6 +26,7 @@ class AuthGate extends StatelessWidget {
           return BlocProvider<OnboardingBloc>(
             create: (context) => OnboardingBloc(
               getProfileUseCase: getIt<GetProfileUseCase>(),
+              updateProfileUseCase: getIt<UpdateProfileUseCase>(),
               getAddressesUseCase: getIt<GetAddressesUseCase>(),
               getPodologicalProfileUseCase:
                   getIt<GetPodologicalProfileUseCase>(),

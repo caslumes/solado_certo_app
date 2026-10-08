@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
+import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 
 class OnboardingProfile extends StatefulWidget {
@@ -12,6 +13,7 @@ class OnboardingProfile extends StatefulWidget {
 }
 
 class _OnboardingProfileState extends State<OnboardingProfile> {
+  final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
@@ -35,6 +37,17 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
     _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    context.read<OnboardingBloc>().add(
+      SubmitProfileStepEvent(
+        name: _nameController.text.trim(),
+        phone: _phoneController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -64,23 +77,32 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
                           16.0,
                         ),
                         child: Form(
+                          key: _formKey,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
                           child: Column(
+                            spacing: 16.0,
                             children: [
                               ShoeTextFormField(
                                 labelText: 'Nome',
                                 controller: _nameController,
+                                validator: FieldValidators.combine([
+                                  FieldValidators.required,
+                                  FieldValidators.maxLength(120),
+                                ]),
                                 textCapitalization: TextCapitalization.words,
                               ),
                               ShoeTextFormField(
                                 labelText: 'Email',
                                 controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
+                                readOnly: true,
                               ),
                               ShoeTextFormField(
                                 labelText: 'Telefone',
                                 controller: _phoneController,
+                                validator: FieldValidators.phone,
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _submit(),
                               ),
                             ],
                           ),
@@ -92,11 +114,13 @@ class _OnboardingProfileState extends State<OnboardingProfile> {
                         },
                         text: "Voltar",
                       ),
-                      ShoeTextButton(
-                        onPressed: () {
-                          onboardingBloc.add(AdvanceOnboardingEvent());
-                        },
-                        text: "Avançar",
+                      BlocBuilder<OnboardingBloc, OnboardingState>(
+                        builder: (context, state) => ShoeTextButton(
+                          isLoading:
+                              state is OnboardingInProgress && state.isSaving,
+                          onPressed: _submit,
+                          text: "Avançar",
+                        ),
                       ),
                     ],
                   ),

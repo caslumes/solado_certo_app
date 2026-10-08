@@ -45,9 +45,8 @@ class ApiClient implements ClientInterface {
   static final ApiClient instance = ApiClient(getIt<FlutterSecureStorage>());
 
   @override
-  Future<void> delete(String url) {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Future<void> delete(String url) async {
+    await dio.delete(url);
   }
 
   @override
@@ -65,6 +64,12 @@ class ApiClient implements ClientInterface {
   @override
   Future<dynamic> put(String url, {Map<String, dynamic>? data}) async {
     Response response = await dio.put(url, data: data);
+    return response.data;
+  }
+
+  @override
+  Future<dynamic> patch(String url, {Map<String, dynamic>? data}) async {
+    Response response = await dio.patch(url, data: data);
     return response.data;
   }
 

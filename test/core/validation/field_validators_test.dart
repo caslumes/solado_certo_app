@@ -2,6 +2,37 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
 
 void main() {
+  group('zipCode', () {
+    test('accepts 8 digits with or without the mask', () {
+      expect(FieldValidators.zipCode('13010111'), isNull);
+      expect(FieldValidators.zipCode(' 13010-111 '), isNull);
+      expect(FieldValidators.zipCode('13.010-111'), isNull);
+    });
+
+    test('rejects empty, short and non-numeric values', () {
+      expect(FieldValidators.zipCode(''), 'Informe o CEP');
+      expect(FieldValidators.zipCode('1301011'), isNotNull);
+      expect(FieldValidators.zipCode('1301011a'), isNotNull);
+    });
+
+    test('strips the mask', () {
+      expect(FieldValidators.zipCodeDigits('13.010-111'), '13010111');
+    });
+  });
+
+  group('state', () {
+    test('accepts Brazilian states in any case', () {
+      expect(FieldValidators.state('SP'), isNull);
+      expect(FieldValidators.state(' rj '), isNull);
+    });
+
+    test('rejects empty and unknown states', () {
+      expect(FieldValidators.state(''), 'Informe a UF');
+      expect(FieldValidators.state('XX'), 'UF inválida');
+      expect(FieldValidators.state('SPA'), 'UF inválida');
+    });
+  });
+
   group('required', () {
     test('rejects null, empty and blank values', () {
       expect(FieldValidators.required(null), isNotNull);

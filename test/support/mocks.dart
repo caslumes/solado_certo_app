@@ -8,6 +8,7 @@ import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboard
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 
 class MockAuthRepository extends Mock implements AuthRepositoryInterface {}
 
@@ -18,6 +19,8 @@ class MockSignUpUseCase extends Mock implements SignUpUseCase {}
 class MockSignOutUseCase extends Mock implements SignOutUseCase {}
 
 class MockGetProfileUseCase extends Mock implements GetProfileUseCase {}
+
+class MockUpdateProfileUseCase extends Mock implements UpdateProfileUseCase {}
 
 class MockGetAddressesUseCase extends Mock implements GetAddressesUseCase {}
 

@@ -10,4 +10,11 @@ class ProfileEntity {
     required this.phone,
     required this.avatarUrl,
   });
+
+  ProfileEntity copyWith({String? name, String? phone}) => ProfileEntity(
+    name: name ?? this.name,
+    email: email,
+    phone: phone ?? this.phone,
+    avatarUrl: avatarUrl,
+  );
 }

@@ -10,9 +10,11 @@ import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboa
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/profile/data/repositories/api_profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
@@ -53,6 +55,12 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GetProfileUseCase>(
     () => GetProfileUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<UpdateProfileUseCase>(
+    () => UpdateProfileUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<AddAddressUseCase>(
+    () => AddAddressUseCase(getIt<ProfileRepositoryInterface>()),
   );
   getIt.registerLazySingleton<GetOnboardingUseCase>(
     () => GetOnboardingUseCase(getIt<OnboardingRepository>()),

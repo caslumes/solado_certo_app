@@ -41,6 +41,29 @@ abstract final class FieldValidators {
         : 'Informe DDD e número';
   }
 
+  static const _states = {
+    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', //
+    'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', //
+    'SP', 'SE', 'TO',
+  };
+
+  static String zipCodeDigits(String value) =>
+      value.replaceAll(RegExp(r'[\s.-]'), '');
+
+  static String? zipCode(String? value) {
+    final zipCode = zipCodeDigits(value?.trim() ?? '');
+    if (zipCode.isEmpty) return 'Informe o CEP';
+    return RegExp(r'^\d{8}$').hasMatch(zipCode)
+        ? null
+        : 'CEP deve ter 8 dígitos';
+  }
+
+  static String? state(String? value) {
+    final state = value?.trim().toUpperCase() ?? '';
+    if (state.isEmpty) return 'Informe a UF';
+    return _states.contains(state) ? null : 'UF inválida';
+  }
+
   static String? password(String? value) {
     final length = utf8.encode(value ?? '').length;
     if (length < 8) return 'A senha deve ter pelo menos 8 caracteres';

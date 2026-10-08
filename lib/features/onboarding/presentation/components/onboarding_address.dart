@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
+import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
 
 class OnboardingAddress extends StatelessWidget {
   const OnboardingAddress({super.key});
+
+  Future<void> _addAddress(
+    BuildContext context,
+    OnboardingInProgress state,
+  ) async {
+    final onboardingBloc = context.read<OnboardingBloc>();
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AddressFormPage(
+          initialReceiver: state.onboardingDraft.profile.name,
+          initialIsDefault: state.onboardingDraft.addresses.isEmpty,
+          onSubmit: getIt<AddAddressUseCase>().execute,
+        ),
+      ),
+    );
+    if (saved == true) onboardingBloc.add(ReloadAddressesEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +65,9 @@ class OnboardingAddress extends StatelessWidget {
                                   (e) => AddressEntry(address: e),
                                 )),
                                 ShoeButton(
-                                  onPressed: () {},
+                                  onPressed: state is OnboardingInProgress
+                                      ? () => _addAddress(context, state)
+                                      : null,
                                   filled: false,
                                   child: AddressContainer(
                                     child: Center(

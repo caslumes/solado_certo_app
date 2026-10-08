@@ -9,13 +9,16 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_acti
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
 
 void main() {
   late MockGetProfileUseCase getProfile;
+  late MockUpdateProfileUseCase updateProfile;
   late MockGetAddressesUseCase getAddresses;
   late MockGetPodologicalProfileUseCase getPodologicalProfile;
   late MockGetOnboardingUseCase getOnboarding;
@@ -23,6 +26,7 @@ void main() {
 
   OnboardingBloc buildBloc() => OnboardingBloc(
     getProfileUseCase: getProfile,
+    updateProfileUseCase: updateProfile,
     getAddressesUseCase: getAddresses,
     getPodologicalProfileUseCase: getPodologicalProfile,
     getOnboardingUseCase: getOnboarding,
@@ -32,7 +36,7 @@ void main() {
   OnboardingInProgress inProgressAt(OnboardingStep step) =>
       OnboardingInProgress(onboardingDraft: buildDraft(step: step));
 
-  Matcher inProgress({
+  TypeMatcher<OnboardingInProgress> inProgress({
     OnboardingStep? step,
     bool isSaving = false,
     TypeMatcher<Failure>? failure,
@@ -48,10 +52,12 @@ void main() {
   setUpAll(() {
     registerFallbackValue(OnboardingStep.welcome);
     registerFallbackValue(OnboardingAction.advance);
+    registerFallbackValue(buildProfile());
   });
 
   setUp(() {
     getProfile = MockGetProfileUseCase();
+    updateProfile = MockUpdateProfileUseCase();
     getAddresses = MockGetAddressesUseCase();
     getPodologicalProfile = MockGetPodologicalProfileUseCase();
     getOnboarding = MockGetOnboardingUseCase();
@@ -173,6 +179,113 @@ void main() {
         inProgress(step: OnboardingStep.profileConfig),
       ],
       verify: (_) => verify(() => changeStep.execute(any(), any())).called(1),
+    );
+  });
+
+  group('SubmitProfileStepEvent', () {
+    SubmitProfileStepEvent event() =>
+        SubmitProfileStepEvent(name: 'Maria Lima', phone: '19988887777');
+
+    late ProfileEntity sentProfile;
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'saves the profile before advancing and keeps the saved profile',
+      setUp: () {
+        when(() => updateProfile.execute(any())).thenAnswer((invocation) async {
+          sentProfile = invocation.positionalArguments.single as ProfileEntity;
+          return sentProfile;
+        });
+        when(() => changeStep.execute(any(), any())).thenAnswer((_) async {});
+        when(() => getOnboarding.execute()).thenAnswer(
+          (_) async => buildOnboarding(step: OnboardingStep.addressConfig),
+        );
+      },
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.profileConfig),
+      act: (bloc) => bloc.add(event()),
+      expect: () => [
+        inProgress(step: OnboardingStep.profileConfig, isSaving: true),
+        inProgress(step: OnboardingStep.addressConfig).having(
+          (s) => s.onboardingDraft.profile.name,
+          'profile name',
+          'Maria Lima',
+        ),
+      ],
+      verify: (_) {
+        expect(sentProfile.name, 'Maria Lima');
+        expect(sentProfile.phone, '19988887777');
+        expect(sentProfile.email, buildProfile().email);
+        verifyInOrder([
+          () => updateProfile.execute(any()),
+          () => changeStep.execute(
+            OnboardingStep.profileConfig,
+            OnboardingAction.advance,
+          ),
+        ]);
+      },
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'stays on the step and does not advance when saving the profile fails',
+      setUp: () => when(
+        () => updateProfile.execute(any()),
+      ).thenThrow(buildDioException(statusCode: 400)),
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.profileConfig),
+      act: (bloc) => bloc.add(event()),
+      expect: () => [
+        inProgress(step: OnboardingStep.profileConfig, isSaving: true),
+        inProgress(
+          step: OnboardingStep.profileConfig,
+          failure: isA<InvalidInputFailure>(),
+        ),
+      ],
+      verify: (_) => verifyNever(() => changeStep.execute(any(), any())),
+    );
+  });
+
+  group('ReloadAddressesEvent', () {
+    final address = AddressEntity(
+      id: 'a1',
+      receiver: 'Maria Souza',
+      zipCode: '13010111',
+      street: 'Rua A',
+      number: '10',
+      district: 'Centro',
+      city: 'Campinas',
+      state: 'SP',
+      country: 'BR',
+      isDefault: true,
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'replaces the addresses in the draft',
+      setUp: () =>
+          when(() => getAddresses.execute()).thenAnswer((_) async => [address]),
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.addressConfig),
+      act: (bloc) => bloc.add(ReloadAddressesEvent()),
+      expect: () => [
+        inProgress(
+          step: OnboardingStep.addressConfig,
+        ).having((s) => s.onboardingDraft.addresses, 'addresses', [address]),
+      ],
+    );
+
+    blocTest<OnboardingBloc, OnboardingState>(
+      'exposes the failure when the list cannot be loaded',
+      setUp: () => when(
+        () => getAddresses.execute(),
+      ).thenThrow(buildDioException(type: DioExceptionType.connectionError)),
+      build: buildBloc,
+      seed: () => inProgressAt(OnboardingStep.addressConfig),
+      act: (bloc) => bloc.add(ReloadAddressesEvent()),
+      expect: () => [
+        inProgress(
+          step: OnboardingStep.addressConfig,
+          failure: isA<NetworkFailure>(),
+        ),
+      ],
     );
   });
 

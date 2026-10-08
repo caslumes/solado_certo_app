@@ -1,5 +1,12 @@
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
+Map<String, dynamic> profileToJson(ProfileEntity profile) => {
+  'name': profile.name,
+  'email': profile.email,
+  'phone': profile.phone,
+  'avatar_url': profile.avatarUrl,
+};
+
 class ProfileModel {
   const ProfileModel({
     required this.name,

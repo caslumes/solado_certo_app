@@ -1,4 +1,19 @@
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
+
+Map<String, dynamic> newAddressToJson(NewAddress address) => {
+  'label': address.label,
+  'receiver': address.receiver,
+  'zip_code': address.zipCode,
+  'street': address.street,
+  'number': address.number,
+  'complement': address.complement,
+  'district': address.district,
+  'city': address.city,
+  'state': address.state,
+  'country': address.country,
+  'is_default': address.isDefault,
+};
 
 class AddressModel {
   const AddressModel({
