@@ -59,6 +59,11 @@ final class AccountAlreadyExistsFailure extends Failure {
       'E-mail ou telefone já cadastrado. Faça login ou recupere sua senha.';
 }
 
+final class PhoneAlreadyInUseFailure extends Failure {
+  @override
+  String get message => 'Este telefone já está cadastrado em outra conta.';
+}
+
 final class ServerFailure extends Failure {
   ServerFailure(this.statusCode);
 

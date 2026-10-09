@@ -75,12 +75,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _onSavePersonalData(
     SavePersonalDataEvent event,
     Emitter<ProfileState> emit,
-  ) => _save(emit, ProfileNotice.personalDataSaved, (data) async {
-    final profile = await _updateProfileUseCase.execute(
-      data.profile.copyWith(name: event.name, phone: event.phone),
-    );
-    return data.copyWith(profile: profile);
-  });
+  ) => _save(
+    emit,
+    ProfileNotice.personalDataSaved,
+    (data) async {
+      final profile = await _updateProfileUseCase.execute(
+        data.profile.copyWith(name: event.name, phone: event.phone),
+      );
+      return data.copyWith(profile: profile);
+    },
+    mapFailure: (failure) =>
+        failure is ConflictFailure ? PhoneAlreadyInUseFailure() : failure,
+  );
 
   Future<void> _onAddressesChanged(
     AddressesChangedEvent event,
@@ -115,8 +121,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   Future<void> _save(
     Emitter<ProfileState> emit,
     ProfileNotice notice,
-    Future<ProfileData> Function(ProfileData data) action,
-  ) async {
+    Future<ProfileData> Function(ProfileData data) action, {
+    Failure Function(Failure failure)? mapFailure,
+  }) async {
     final currentState = state;
     if (currentState is! ProfileLoaded || currentState.isSaving) return;
 
@@ -125,7 +132,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       emit(ProfileLoaded(data: await action(data), notice: notice));
     } catch (e) {
-      emit(ProfileLoaded(data: data, failure: Failure.from(e)));
+      final failure = Failure.from(e);
+      emit(
+        ProfileLoaded(
+          data: data,
+          failure: mapFailure?.call(failure) ?? failure,
+        ),
+      );
     }
   }
 }

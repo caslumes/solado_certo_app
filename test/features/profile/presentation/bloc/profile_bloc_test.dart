@@ -150,6 +150,23 @@ void main() {
         ).having((s) => s.data.profile.name, 'name', buildProfile().name),
       ],
     );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'reports a phone already used by another account on 409',
+      setUp: () => when(
+        () => updateProfile.execute(any()),
+      ).thenThrow(buildDioException(statusCode: 409)),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) =>
+          bloc.add(SavePersonalDataEvent(name: 'X', phone: '19988887777')),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(
+          failure: isA<PhoneAlreadyInUseFailure>(),
+        ).having((s) => s.data.profile.phone, 'phone', buildProfile().phone),
+      ],
+    );
   });
 
   blocTest<ProfileBloc, ProfileState>(
