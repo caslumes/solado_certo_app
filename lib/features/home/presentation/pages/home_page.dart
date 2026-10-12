@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
-import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
-import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
+import 'package:solado_certo_app/features/catalog/presentation/components/featured_items.dart';
+import 'package:solado_certo_app/features/catalog/presentation/components/search_bar.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
@@ -51,51 +51,85 @@ class HomePage extends StatelessWidget {
     );
 
     return Scaffold(
-      body: Column(
-        spacing: 16.0,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Row(
-              children: [
-                Image(
-                  image: const AssetImage('assets/images/logo.png'),
-                  width: MediaQuery.of(context).size.width * 0.5,
-                ),
-                const Spacer(),
-                isSignedIn
-                    ? IconButton(
-                        tooltip: 'Meu perfil',
-                        onPressed: () => _openProfile(context),
-                        icon: userImage,
-                      )
-                    : InkWell(
-                        onTap: () =>
-                            Navigator.of(context).pushNamed(AuthRoutes.signIn),
-                        child: Column(
-                          spacing: 8.0,
-                          children: [
-                            userImage,
-                            Text(
-                              'Entre na sua conta',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+      body: SingleChildScrollView(
+        child: Column(
+          spacing: 16.0,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  Image(
+                    image: const AssetImage('assets/images/logo.png'),
+                    width: MediaQuery.of(context).size.width * 0.5,
+                  ),
+                  const Spacer(),
+                  isSignedIn
+                      ? IconButton(
+                          tooltip: 'Meu perfil',
+                          onPressed: () => _openProfile(context),
+                          icon: userImage,
+                        )
+                      : InkWell(
+                          onTap: () => Navigator.of(
+                            context,
+                          ).pushNamed(AuthRoutes.signIn),
+                          child: Column(
+                            spacing: 8.0,
+                            children: [
+                              userImage,
+                              Text(
+                                'Entre na sua conta',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-              ],
-            ),
-          ),
-          Container(color: AppColors.primaryColor, height: 5),
-          if (isSignedIn)
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              child: ShoeTextButton(
-                text: 'Sair',
-                onPressed: () => context.read<AuthBloc>().add(SignOutEvent()),
+                ],
               ),
             ),
-        ],
+            Column(
+              children: [
+                Container(color: AppColors.primaryColor, height: 5),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    spacing: 16.0,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          color: AppColors.secondaryColor,
+                          height: 50,
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          color: AppColors.secondaryColor,
+                          height: 50,
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          color: AppColors.secondaryColor,
+                          height: 50,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(color: AppColors.primaryColor, height: 5),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ShoeSearchBar(),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: FeaturedItems(),
+            ),
+          ],
+        ),
       ),
     );
   }

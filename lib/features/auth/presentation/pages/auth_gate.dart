@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -49,7 +49,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (state is AuthUnauthenticated) {
-          return const HomePage(isSignedIn: false);
+          return const HomeShell(isSignedIn: false);
         }
 
         return const SplashPage();

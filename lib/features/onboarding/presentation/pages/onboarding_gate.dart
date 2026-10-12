@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:solado_certo_app/features/onboarding/presentation/pages/onboarding_page.dart';
 
@@ -48,7 +48,7 @@ class OnboardingGate extends StatelessWidget {
         }
 
         if (state is OnboardingFinished) {
-          return const HomePage(isSignedIn: true);
+          return const HomeShell(isSignedIn: true);
         }
 
         return const Scaffold(body: Center(child: CircularProgressIndicator()));

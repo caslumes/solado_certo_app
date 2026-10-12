@@ -15,6 +15,7 @@ class ShoeTextFormField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.onFieldSubmitted,
     this.readOnly = false,
+    this.suffixIcon,
   });
 
   final String? hintText;
@@ -28,6 +29,7 @@ class ShoeTextFormField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final ValueChanged<String>? onFieldSubmitted;
   final bool readOnly;
+  final Widget? suffixIcon;
 
   @override
   State<ShoeTextFormField> createState() => _ShoeTextFormFieldState();
@@ -85,16 +87,21 @@ class _ShoeTextFormFieldState extends State<ShoeTextFormField> {
                 borderRadius: BorderRadius.zero,
                 borderSide: BorderSide.none,
               ),
-              suffixIcon: isPassword
-                  ? IconButton(
-                      tooltip: _obscured ? 'Mostrar senha' : 'Ocultar senha',
-                      icon: Icon(
-                        _obscured ? Icons.visibility : Icons.visibility_off,
-                        color: AppColors.primaryColor,
-                      ),
-                      onPressed: () => setState(() => _obscured = !_obscured),
-                    )
-                  : null,
+              suffixIcon:
+                  widget.suffixIcon ??
+                  (isPassword
+                      ? IconButton(
+                          tooltip: _obscured
+                              ? 'Mostrar senha'
+                              : 'Ocultar senha',
+                          icon: Icon(
+                            _obscured ? Icons.visibility : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscured = !_obscured),
+                        )
+                      : null),
             ),
           ),
         ),

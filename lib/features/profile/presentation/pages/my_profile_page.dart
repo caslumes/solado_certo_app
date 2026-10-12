@@ -201,6 +201,14 @@ class _ProfileContent extends StatelessWidget {
                       text: 'Retirar consentimento',
                       textStyle: _buttonTextStyle(context),
                     ),
+                  ShoeTextButton(
+                    text: 'Sair'.toUpperCase(),
+                    onPressed: () =>
+                        context.read<AuthBloc>().add(SignOutEvent()),
+                    textStyle: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                  ),
                 ],
               ),
               const SizedBox(height: 32),

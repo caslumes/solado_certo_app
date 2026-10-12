@@ -137,6 +137,14 @@ void main() {
     );
   });
 
+  testWidgets('signs out', (tester) async {
+    await pumpPage(tester);
+
+    await tap(tester, find.text('SAIR'));
+
+    verify(() => authBloc.add(any(that: isA<SignOutEvent>()))).called(1);
+  });
+
   testWidgets('signs out when the session expired', (tester) async {
     whenListen(
       bloc,

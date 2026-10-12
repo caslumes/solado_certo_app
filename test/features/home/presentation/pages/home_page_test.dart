@@ -22,8 +22,6 @@ void main() {
     ),
   );
 
-  setUpAll(() => registerFallbackValue(SignOutEvent()));
-
   setUp(() {
     bloc = MockAuthBloc();
     when(() => bloc.state).thenReturn(AuthAuthenticated(user: buildProfile()));
@@ -36,13 +34,5 @@ void main() {
 
     expect(find.byTooltip('Meu perfil'), findsOneWidget);
     expect(find.text('Entre na sua conta'), findsNothing);
-  });
-
-  testWidgets('signs out', (tester) async {
-    await pumpHome(tester);
-
-    await tester.tap(find.text('SAIR'));
-
-    verify(() => bloc.add(any(that: isA<SignOutEvent>()))).called(1);
   });
 }
