@@ -10,6 +10,7 @@ import 'package:solado_certo_app/features/catalog/domain/enum/catalog_sort.dart'
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_options_cubit.dart';
+import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 
@@ -33,6 +34,11 @@ void main() {
                 getCatalogFilterOptionsUseCase:
                     getIt<GetCatalogFilterOptionsUseCase>(),
               )..load(),
+            ),
+            BlocProvider(
+              create: (_) => RecommendationsCubit(
+                getRecommendedItemsUseCase: MockGetRecommendedItemsUseCase(),
+              ),
             ),
           ],
           child: const HomePage(isSignedIn: true),

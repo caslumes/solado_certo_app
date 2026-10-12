@@ -69,6 +69,15 @@ void main() {
     expect(uri.queryParametersAll['condition'], ['501', '505']);
   });
 
+  test('asks for the items matching the profile', () async {
+    final uri = await requestedUri(
+      const CatalogFilters(forMe: true),
+      CatalogSort.relevance,
+    );
+
+    expect(uri.queryParameters['for_me'], 'true');
+  });
+
   test('reads the wrapped purposes list', () async {
     when(() => client.get('/catalog/purposes')).thenAnswer(
       (_) async => {

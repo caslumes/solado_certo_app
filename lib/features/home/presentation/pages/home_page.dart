@@ -5,7 +5,9 @@ import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_filters.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/category_shortcuts.dart';
+import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/featured_items.dart';
+import 'package:solado_certo_app/features/catalog/presentation/components/for_you_items.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/search_bar.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
@@ -24,8 +26,11 @@ class HomePage extends StatelessWidget {
 
   final bool isSignedIn;
 
-  void _openProfile(BuildContext context) {
-    Navigator.of(context).push(
+  /// Reloads "Para você" on return, since the podological profile or its
+  /// consent may have changed on the profile page.
+  Future<void> _openProfile(BuildContext context) async {
+    final recommendations = context.read<RecommendationsCubit>();
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => BlocProvider<ProfileBloc>(
           create: (_) => ProfileBloc(
@@ -44,6 +49,7 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+    if (!recommendations.isClosed) recommendations.load();
   }
 
   @override
@@ -111,6 +117,10 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: ForYouItems(),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16),

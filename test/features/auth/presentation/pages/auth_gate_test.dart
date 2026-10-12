@@ -51,6 +51,7 @@ void main() {
     states = StreamController<AuthState>();
     whenListen(bloc, states.stream, initialState: AuthInitial());
     registerCatalogFilterOptions();
+    registerRecommendedItems();
   });
 
   tearDown(() => states.close());

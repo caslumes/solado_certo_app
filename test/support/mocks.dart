@@ -8,7 +8,9 @@ import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
@@ -70,6 +72,19 @@ class MockGetCatalogFilterOptionsUseCase extends Mock
 
 class MockGetProductDetailUseCase extends Mock
     implements GetProductDetailUseCase {}
+
+class MockGetRecommendedItemsUseCase extends Mock
+    implements GetRecommendedItemsUseCase {}
+
+/// The home shell loads the "Para você" items through getIt when signed in.
+MockGetRecommendedItemsUseCase registerRecommendedItems({
+  List<CatalogItemEntity> items = const [],
+}) {
+  final useCase = MockGetRecommendedItemsUseCase();
+  when(useCase.execute).thenAnswer((_) async => items);
+  getIt.registerSingleton<GetRecommendedItemsUseCase>(useCase);
+  return useCase;
+}
 
 /// The home shell loads the catalog filter options through getIt.
 void registerCatalogFilterOptions() {

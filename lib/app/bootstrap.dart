@@ -11,6 +11,7 @@ import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_re
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
@@ -106,5 +107,8 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GetProductDetailUseCase>(
     () => GetProductDetailUseCase(getIt<CatalogRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetRecommendedItemsUseCase>(
+    () => GetRecommendedItemsUseCase(getIt<CatalogRepositoryInterface>()),
   );
 }

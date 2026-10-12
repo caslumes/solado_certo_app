@@ -99,5 +99,6 @@ Map<String, dynamic> catalogQueryParameters({
     if (filters.state != null) 'state': filters.state!,
     if (filters.purposes.isNotEmpty) 'purpose': filters.purposes.toList(),
     if (filters.conditions.isNotEmpty) 'condition': filters.conditions.toList(),
+    if (filters.forMe) 'for_me': 'true',
   };
 }

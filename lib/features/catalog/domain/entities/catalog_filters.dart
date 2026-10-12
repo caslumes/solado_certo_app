@@ -8,6 +8,10 @@ class CatalogFilters {
   final Set<String> purposes;
   final Set<String> conditions;
 
+  /// Only ads matching the buyer's podological profile; needs a login
+  /// and the profile consent.
+  final bool forMe;
+
   const CatalogFilters({
     this.query = '',
     this.categoryId,
@@ -17,6 +21,7 @@ class CatalogFilters {
     this.state,
     this.purposes = const {},
     this.conditions = const {},
+    this.forMe = false,
   });
 
   int get activeCount => [
@@ -39,6 +44,7 @@ class CatalogFilters {
     state: state,
     purposes: purposes,
     conditions: conditions,
+    forMe: forMe,
   );
 
   CatalogFilters withSheetFilters(CatalogFilters sheet) => CatalogFilters(
@@ -50,5 +56,6 @@ class CatalogFilters {
     state: sheet.state,
     purposes: sheet.purposes,
     conditions: sheet.conditions,
+    forMe: forMe,
   );
 }

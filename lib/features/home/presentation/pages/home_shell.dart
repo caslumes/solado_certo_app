@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_options_cubit.dart';
+import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
@@ -21,6 +23,33 @@ class _HomeShellState extends State<HomeShell> {
 
   int _selectedIndex = _catalogIndex;
 
+  late final _recommendationsCubit = RecommendationsCubit(
+    getRecommendedItemsUseCase: getIt<GetRecommendedItemsUseCase>(),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isSignedIn) _recommendationsCubit.load();
+  }
+
+  @override
+  void didUpdateWidget(HomeShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSignedIn == oldWidget.isSignedIn) return;
+    if (widget.isSignedIn) {
+      _recommendationsCubit.load();
+    } else {
+      _recommendationsCubit.hide();
+    }
+  }
+
+  @override
+  void dispose() {
+    _recommendationsCubit.close();
+    super.dispose();
+  }
+
   void _onDestinationSelected(int index) {
     if (index != _catalogIndex && !widget.isSignedIn) {
       Navigator.of(context).pushNamed(AuthRoutes.signIn);
@@ -31,10 +60,16 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CatalogOptionsCubit(
-        getCatalogFilterOptionsUseCase: getIt<GetCatalogFilterOptionsUseCase>(),
-      )..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => CatalogOptionsCubit(
+            getCatalogFilterOptionsUseCase:
+                getIt<GetCatalogFilterOptionsUseCase>(),
+          )..load(),
+        ),
+        BlocProvider.value(value: _recommendationsCubit),
+      ],
       child: Scaffold(
         body: IndexedStack(
           index: _selectedIndex,
