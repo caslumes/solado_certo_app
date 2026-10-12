@@ -83,4 +83,20 @@ void main() {
     expect(purposes.single.code, 'prevention');
     expect(purposes.single.name, 'Prevenção');
   });
+
+  test('gets one item by id', () async {
+    when(() => client.get('/catalog/items/603')).thenAnswer(
+      (_) async => {
+        'id': '603',
+        'title': 'Órtese corretora para joanete',
+        'price': '129.50',
+        'stock': 15,
+      },
+    );
+
+    final product = await repository.getItem('603');
+
+    expect(product.id, '603');
+    expect(product.price, 129.5);
+  });
 }

@@ -8,6 +8,7 @@ import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
@@ -66,6 +67,9 @@ class MockGetCatalogItemsUseCase extends Mock
 
 class MockGetCatalogFilterOptionsUseCase extends Mock
     implements GetCatalogFilterOptionsUseCase {}
+
+class MockGetProductDetailUseCase extends Mock
+    implements GetProductDetailUseCase {}
 
 /// The home shell loads the catalog filter options through getIt.
 void registerCatalogFilterOptions() {

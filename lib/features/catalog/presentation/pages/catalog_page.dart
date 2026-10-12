@@ -11,6 +11,7 @@ import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_opti
 import 'package:solado_certo_app/features/catalog/presentation/components/catalog_filter_sheet.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_card.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/search_bar.dart';
+import 'package:solado_certo_app/features/catalog/presentation/pages/product_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
   const CatalogPage({super.key});
@@ -309,8 +310,15 @@ class _Grid extends StatelessWidget {
               mainAxisSpacing: 16,
             ),
             itemCount: state.items.length,
-            itemBuilder: (context, index) =>
-                ProductCard(item: state.items[index]),
+            itemBuilder: (context, index) {
+              final item = state.items[index];
+              return ProductCard(
+                item: item,
+                onTap: () => Navigator.of(
+                  context,
+                ).push(ProductDetailPage.route(item.id)),
+              );
+            },
           ),
         ),
         SliverToBoxAdapter(child: _Footer(state: state)),

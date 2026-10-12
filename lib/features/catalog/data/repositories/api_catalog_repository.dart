@@ -2,11 +2,13 @@ import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/catalog/data/models/catalog_page_model.dart';
 import 'package:solado_certo_app/features/catalog/data/models/category_model.dart';
 import 'package:solado_certo_app/features/catalog/data/models/condition_model.dart';
+import 'package:solado_certo_app/features/catalog/data/models/product_detail_model.dart';
 import 'package:solado_certo_app/features/catalog/data/models/purpose_model.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_filters.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_page.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/category.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/condition.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/purpose.dart';
 import 'package:solado_certo_app/features/catalog/domain/enum/catalog_sort.dart';
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
@@ -35,6 +37,13 @@ class ApiCatalogRepository implements CatalogRepositoryInterface {
     return client
         .get(url)
         .then((response) => CatalogPageModel.fromJson(response).toEntity());
+  }
+
+  @override
+  Future<ProductDetailEntity> getItem(String id) {
+    return client
+        .get('/catalog/items/${Uri.encodeComponent(id)}')
+        .then((response) => ProductDetailModel.fromJson(response).toEntity());
   }
 
   @override

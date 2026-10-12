@@ -1,9 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.dart';
+import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({super.key, required this.item, this.onTap});
@@ -36,7 +36,7 @@ class ProductCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                _CoverImage(url: item.coverImageUrl),
+                ProductImage(url: item.coverImageUrl),
                 if (!item.isAvailable)
                   Align(
                     alignment: Alignment.topLeft,
@@ -73,30 +73,6 @@ class ProductCard extends StatelessWidget {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _CoverImage extends StatelessWidget {
-  const _CoverImage({required this.url});
-
-  final String? url;
-
-  @override
-  Widget build(BuildContext context) {
-    const placeholder = ColoredBox(
-      color: AppColors.secondaryColor,
-      child: Center(
-        child: Icon(Icons.image_outlined, color: AppColors.tertiaryColor),
-      ),
-    );
-    if (url == null || url!.isEmpty) return placeholder;
-
-    return CachedNetworkImage(
-      imageUrl: url!,
-      fit: BoxFit.cover,
-      placeholder: (_, _) => const ColoredBox(color: AppColors.secondaryColor),
-      errorWidget: (_, _, _) => placeholder,
     );
   }
 }

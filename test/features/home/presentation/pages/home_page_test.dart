@@ -86,8 +86,8 @@ void main() {
   ) async {
     await pumpHome(tester);
 
-    expect(find.text('Palmilhas sob medida'), findsNothing);
-    await tester.tap(find.text('Calçados ortopédicos'));
+    expect(find.text('PALMILHAS SOB MEDIDA'), findsNothing);
+    await tester.tap(find.text('CALÇADOS ORTOPÉDICOS'));
     await tester.pumpAndSettle();
 
     expect(find.byType(CatalogPage), findsOneWidget);

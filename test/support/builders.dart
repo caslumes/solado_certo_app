@@ -4,7 +4,10 @@ import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.d
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_page.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/category.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/condition.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/purpose.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
@@ -59,6 +62,45 @@ CatalogPageEntity buildCatalogPage({
   currentPage: page,
   totalItems: totalItems,
   hasNext: hasNext,
+);
+
+/// The dev seed's 603 without images, so widget tests load nothing from the
+/// network.
+ProductDetailEntity buildProductDetail({
+  int stock = 15,
+  bool prescriptionRequired = true,
+  String? contraindications = 'Pós-operatório recente.',
+  bool safetyInfoComplete = true,
+}) => ProductDetailEntity(
+  id: '603',
+  title: 'Órtese corretora para joanete',
+  description: 'Órtese noturna para alinhamento do hálux.',
+  price: 129.5,
+  stock: stock,
+  prescriptionRequired: prescriptionRequired,
+  side: 'left',
+  rigidity: 'rigid',
+  usageIndication: 'Uso noturno',
+  safetyAlerts: 'Uso apenas com orientação profissional.',
+  contraindications: contraindications,
+  purposes: const [PurposeEntity(code: 'correction', name: 'Correção')],
+  conditions: const [ConditionEntity(id: '504', name: 'Joanete')],
+  seller: SellerEntity(
+    id: '2',
+    name: 'Loja Pé Bem',
+    state: 'SP',
+    memberSince: DateTime(2026, 10, 1),
+  ),
+  shippingOptions: const [
+    ShippingOptionEntity(
+      id: '701',
+      name: 'PAC',
+      carrier: 'Correios',
+      price: 19.9,
+      deliveryDays: 7,
+    ),
+  ],
+  safetyInfoComplete: safetyInfoComplete,
 );
 
 const catalogFilterOptions = CatalogFilterOptions(

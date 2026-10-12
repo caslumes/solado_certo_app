@@ -17,6 +17,7 @@ sealed class Failure {
         final statusCode = error.response?.statusCode;
         if (statusCode == 401) return UnauthorizedFailure();
         if (statusCode == 400) return InvalidInputFailure();
+        if (statusCode == 404) return NotFoundFailure();
         if (statusCode == 409) return ConflictFailure();
         return ServerFailure(statusCode);
       default:
@@ -46,6 +47,11 @@ final class InvalidCredentialsFailure extends Failure {
 final class InvalidInputFailure extends Failure {
   @override
   String get message => 'Verifique os dados informados.';
+}
+
+final class NotFoundFailure extends Failure {
+  @override
+  String get message => 'O conteúdo procurado não foi encontrado.';
 }
 
 final class ConflictFailure extends Failure {

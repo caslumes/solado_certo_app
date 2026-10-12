@@ -29,6 +29,10 @@ void main() {
       isA<InvalidInputFailure>(),
     );
     expect(
+      Failure.from(buildDioException(statusCode: 404)),
+      isA<NotFoundFailure>(),
+    );
+    expect(
       Failure.from(buildDioException(statusCode: 409)),
       isA<ConflictFailure>(),
     );

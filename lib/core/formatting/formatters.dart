@@ -11,3 +11,8 @@ Future<void> initializeFormatting() async {
 final _currency = NumberFormat.currency(locale: appLocale, symbol: r'R$');
 
 String formatCurrency(num value) => _currency.format(value);
+
+final _monthYear = DateFormat.yMMMM(appLocale);
+
+/// Formats [date] as month and year, e.g. `outubro de 2026`.
+String formatMonthYear(DateTime date) => _monthYear.format(date);
