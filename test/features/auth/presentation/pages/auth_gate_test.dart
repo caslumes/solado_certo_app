@@ -50,6 +50,7 @@ void main() {
     bloc = MockAuthBloc();
     states = StreamController<AuthState>();
     whenListen(bloc, states.stream, initialState: AuthInitial());
+    registerCatalogFilterOptions();
   });
 
   tearDown(() => states.close());

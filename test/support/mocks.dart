@@ -1,8 +1,13 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
@@ -14,6 +19,8 @@ import 'package:solado_certo_app/features/profile/domain/usecases/save_podologic
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
+
+import 'builders.dart';
 
 class MockAuthRepository extends Mock implements AuthRepositoryInterface {}
 
@@ -50,3 +57,20 @@ class MockGetOnboardingUseCase extends Mock implements GetOnboardingUseCase {}
 
 class MockChangeOnboardingStepUseCase extends Mock
     implements ChangeOnboardingStepUseCase {}
+
+class MockCatalogRepository extends Mock
+    implements CatalogRepositoryInterface {}
+
+class MockGetCatalogItemsUseCase extends Mock
+    implements GetCatalogItemsUseCase {}
+
+class MockGetCatalogFilterOptionsUseCase extends Mock
+    implements GetCatalogFilterOptionsUseCase {}
+
+/// The home shell loads the catalog filter options through getIt.
+void registerCatalogFilterOptions() {
+  final useCase = MockGetCatalogFilterOptionsUseCase();
+  when(useCase.execute).thenAnswer((_) async => catalogFilterOptions);
+  getIt.registerSingleton<GetCatalogFilterOptionsUseCase>(useCase);
+  addTearDown(getIt.reset);
+}

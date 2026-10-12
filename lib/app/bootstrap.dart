@@ -6,6 +6,10 @@ import 'package:solado_certo_app/features/auth/data/repositories/api_auth_reposi
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/catalog/data/repositories/api_catalog_repository.dart';
+import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
@@ -40,6 +44,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<OnboardingRepository>(
     () => ApiOnboardingRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<CatalogRepositoryInterface>(
+    () => ApiCatalogRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -89,5 +96,11 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<ChangeOnboardingStepUseCase>(
     () => ChangeOnboardingStepUseCase(getIt<OnboardingRepository>()),
+  );
+  getIt.registerLazySingleton<GetCatalogItemsUseCase>(
+    () => GetCatalogItemsUseCase(getIt<CatalogRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetCatalogFilterOptionsUseCase>(
+    () => GetCatalogFilterOptionsUseCase(getIt<CatalogRepositoryInterface>()),
   );
 }

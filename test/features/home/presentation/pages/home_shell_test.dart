@@ -9,6 +9,8 @@ import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.d
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
 
+import '../../../../support/mocks.dart';
+
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
 void main() {
@@ -38,6 +40,7 @@ void main() {
   setUp(() {
     bloc = MockAuthBloc();
     when(() => bloc.state).thenReturn(AuthUnauthenticated());
+    registerCatalogFilterOptions();
   });
 
   testWidgets('starts on the catalog tab', (tester) async {

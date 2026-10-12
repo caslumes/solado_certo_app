@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/catalog_filters.dart';
+import 'package:solado_certo_app/features/catalog/presentation/components/category_shortcuts.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/featured_items.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/search_bar.dart';
+import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
@@ -91,38 +94,23 @@ class HomePage extends StatelessWidget {
             Column(
               children: [
                 Container(color: AppColors.primaryColor, height: 5),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    spacing: 16.0,
-                    children: [
-                      Expanded(
-                        child: Container(
-                          color: AppColors.secondaryColor,
-                          height: 50,
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          color: AppColors.secondaryColor,
-                          height: 50,
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          color: AppColors.secondaryColor,
-                          height: 50,
-                        ),
-                      ),
-                    ],
-                  ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: CategoryShortcuts(),
                 ),
                 Container(color: AppColors.primaryColor, height: 5),
               ],
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ShoeSearchBar(),
+              child: ShoeSearchBar(
+                onSubmitted: (query) => Navigator.of(context).push(
+                  CatalogPage.route(
+                    context,
+                    filters: CatalogFilters(query: query),
+                  ),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16),

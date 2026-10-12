@@ -41,7 +41,7 @@ abstract final class FieldValidators {
         : 'Informe DDD e número';
   }
 
-  static const _states = {
+  static const states = {
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', //
     'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', //
     'SP', 'SE', 'TO',
@@ -61,7 +61,7 @@ abstract final class FieldValidators {
   static String? state(String? value) {
     final state = value?.trim().toUpperCase() ?? '';
     if (state.isEmpty) return 'Informe a UF';
-    return _states.contains(state) ? null : 'UF inválida';
+    return states.contains(state) ? null : 'UF inválida';
   }
 
   static String? password(String? value) {

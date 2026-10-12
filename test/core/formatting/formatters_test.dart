@@ -2,10 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 
 void main() {
-  // pt_BR puts a non-breaking space between the symbol and the amount.
-  test('formats prices in Brazilian reais', () {
-    expect(formatCurrency(89.9), 'R\$ 89,90');
-    expect(formatCurrency(1234.5), 'R\$ 1.234,50');
-    expect(formatCurrency(0), 'R\$ 0,00');
+  test('formats prices in Brazilian reais, with a non-breaking space', () {
+    expect(formatCurrency(89.9), 'R\$\u00A089,90');
+    expect(formatCurrency(1234.5), 'R\$\u00A01.234,50');
+    expect(formatCurrency(0), 'R\$\u00A00,00');
   });
 }
