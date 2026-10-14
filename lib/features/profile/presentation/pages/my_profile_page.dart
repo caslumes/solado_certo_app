@@ -16,6 +16,7 @@ import 'package:solado_certo_app/features/profile/presentation/components/addres
 import 'package:solado_certo_app/features/profile/presentation/components/podological_profile_form.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/profile_avatar.dart';
 import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
+import 'package:solado_certo_app/features/seller/presentation/pages/my_ads_page.dart';
 
 class MyProfilePage extends StatelessWidget {
   const MyProfilePage({super.key, this.addAddress, this.pickPhoto});
@@ -257,11 +258,21 @@ class _SellerSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final textStyle = Theme.of(context).textTheme.bodySmall;
     if (isSeller) {
-      return Text(
-        'Sua conta de vendedor está ativa. Você pode anunciar palmilhas, '
-        'calçados, órteses e meias.',
-        style: textStyle,
-        textAlign: TextAlign.center,
+      return Column(
+        spacing: 16.0,
+        children: [
+          Text(
+            'Sua conta de vendedor está ativa. Você pode anunciar palmilhas, '
+            'calçados, órteses e meias.',
+            style: textStyle,
+            textAlign: TextAlign.center,
+          ),
+          ShoeTextButton(
+            onPressed: () => Navigator.of(context).push(MyAdsPage.route()),
+            text: 'Meus anúncios',
+            textStyle: _buttonTextStyle(context),
+          ),
+        ],
       );
     }
 

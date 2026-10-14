@@ -26,6 +26,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_us
 import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_status_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/get_my_ads_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/remove_ad_use_case.dart';
 
 import 'builders.dart';
 
@@ -67,6 +70,12 @@ class MockRemoveAvatarUseCase extends Mock implements RemoveAvatarUseCase {}
 class MockGetRolesUseCase extends Mock implements GetRolesUseCase {}
 
 class MockBecomeSellerUseCase extends Mock implements BecomeSellerUseCase {}
+
+class MockGetMyAdsUseCase extends Mock implements GetMyAdsUseCase {}
+
+class MockChangeAdStatusUseCase extends Mock implements ChangeAdStatusUseCase {}
+
+class MockRemoveAdUseCase extends Mock implements RemoveAdUseCase {}
 
 class MockGetOnboardingUseCase extends Mock implements GetOnboardingUseCase {}
 

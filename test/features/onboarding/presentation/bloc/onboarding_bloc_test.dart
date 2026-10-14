@@ -376,7 +376,7 @@ void main() {
         inProgress(step: OnboardingStep.podologicalProfile, isSaving: true),
         inProgress(
           step: OnboardingStep.podologicalProfile,
-          failure: isA<ServerFailure>(),
+          failure: isA<ForbiddenFailure>(),
         ),
       ],
       verify: (_) => verifyNever(() => changeStep.execute(any(), any())),

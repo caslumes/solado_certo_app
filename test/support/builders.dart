@@ -14,6 +14,8 @@ import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step
 import 'package:solado_certo_app/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
+import 'package:solado_certo_app/features/seller/domain/entities/seller_ad.dart';
+import 'package:solado_certo_app/features/seller/domain/enum/ad_status.dart';
 
 ProfileEntity buildProfile() => ProfileEntity(
   name: 'Maria Souza',
@@ -114,4 +116,21 @@ const catalogFilterOptions = CatalogFilterOptions(
   ],
   purposes: [PurposeEntity(code: 'prevention', name: 'Prevenção')],
   conditions: [ConditionEntity(id: '501', name: 'Fascite plantar')],
+);
+
+/// A seller's ad without a cover, so widget tests load nothing from the
+/// network.
+SellerAdEntity buildSellerAd({
+  String id = '601',
+  String? title,
+  AdStatus status = AdStatus.published,
+  int stock = 10,
+  List<String> missingFields = const [],
+}) => SellerAdEntity(
+  id: id,
+  title: title ?? 'Palmilha $id',
+  price: 89.9,
+  stock: stock,
+  status: status,
+  missingFields: missingFields,
 );

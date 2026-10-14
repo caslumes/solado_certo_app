@@ -32,6 +32,11 @@ import 'package:solado_certo_app/features/profile/domain/usecases/update_profile
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/profile/data/repositories/api_profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:solado_certo_app/features/seller/data/repositories/api_seller_repository.dart';
+import 'package:solado_certo_app/features/seller/domain/repositories/seller_repository.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_status_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/get_my_ads_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/remove_ad_use_case.dart';
 
 final getIt = GetIt.instance;
 
@@ -53,6 +58,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<CatalogRepositoryInterface>(
     () => ApiCatalogRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<SellerRepositoryInterface>(
+    () => ApiSellerRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -126,5 +134,14 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GetRecommendedItemsUseCase>(
     () => GetRecommendedItemsUseCase(getIt<CatalogRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetMyAdsUseCase>(
+    () => GetMyAdsUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ChangeAdStatusUseCase>(
+    () => ChangeAdStatusUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RemoveAdUseCase>(
+    () => RemoveAdUseCase(getIt<SellerRepositoryInterface>()),
   );
 }

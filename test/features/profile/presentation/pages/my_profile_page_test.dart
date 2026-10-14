@@ -178,6 +178,7 @@ void main() {
       await pumpPage(tester);
 
       expect(becomeSellerButton, findsNothing);
+      expect(find.text('MEUS ANÚNCIOS'), findsOneWidget);
       expect(
         find.textContaining('Sua conta de vendedor está ativa'),
         findsOneWidget,

@@ -37,6 +37,10 @@ void main() {
       isA<ConflictFailure>(),
     );
     expect(
+      Failure.from(buildDioException(statusCode: 403)),
+      isA<ForbiddenFailure>(),
+    );
+    expect(
       Failure.from(buildDioException(statusCode: 413)),
       isA<FileTooLargeFailure>(),
     );
@@ -57,6 +61,39 @@ void main() {
     expect(
       Failure.from(buildDioException(type: DioExceptionType.cancel)),
       isA<UnexpectedFailure>(),
+    );
+  });
+
+  test('reads the missing fields from a 422 body', () {
+    final requestOptions = RequestOptions(path: '/seller/ads/1/publish');
+    final failure = Failure.from(
+      DioException(
+        requestOptions: requestOptions,
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: 422,
+          data: {
+            'error': 'missing required fields',
+            'fields': ['price', 'images'],
+          },
+        ),
+      ),
+    );
+
+    expect(
+      failure,
+      isA<MissingFieldsFailure>().having((f) => f.fields, 'fields', [
+        'price',
+        'images',
+      ]),
+    );
+  });
+
+  test('a 422 without a field list has no fields', () {
+    expect(
+      Failure.from(buildDioException(statusCode: 422)),
+      isA<MissingFieldsFailure>().having((f) => f.fields, 'fields', isEmpty),
     );
   });
 }

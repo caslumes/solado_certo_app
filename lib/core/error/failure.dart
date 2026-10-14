@@ -17,10 +17,14 @@ sealed class Failure {
         final statusCode = error.response?.statusCode;
         if (statusCode == 401) return UnauthorizedFailure();
         if (statusCode == 400) return InvalidInputFailure();
+        if (statusCode == 403) return ForbiddenFailure();
         if (statusCode == 404) return NotFoundFailure();
         if (statusCode == 409) return ConflictFailure();
         if (statusCode == 413) return FileTooLargeFailure();
         if (statusCode == 415) return UnsupportedFileTypeFailure();
+        if (statusCode == 422) {
+          return MissingFieldsFailure.fromBody(error.response?.data);
+        }
         return ServerFailure(statusCode);
       default:
         return UnexpectedFailure(error);
@@ -49,6 +53,31 @@ final class InvalidCredentialsFailure extends Failure {
 final class InvalidInputFailure extends Failure {
   @override
   String get message => 'Verifique os dados informados.';
+}
+
+final class ForbiddenFailure extends Failure {
+  @override
+  String get message => 'Você não tem permissão para fazer isso.';
+}
+
+/// The backend refused to publish because required fields are empty.
+/// [fields] holds their JSON names, in form order.
+final class MissingFieldsFailure extends Failure {
+  const MissingFieldsFailure(this.fields);
+
+  factory MissingFieldsFailure.fromBody(Object? body) {
+    final fields = body is Map ? body['fields'] : null;
+    return MissingFieldsFailure([
+      if (fields is List)
+        for (final field in fields)
+          if (field is String) field,
+    ]);
+  }
+
+  final List<String> fields;
+
+  @override
+  String get message => 'Preencha os campos obrigatórios antes de publicar.';
 }
 
 final class NotFoundFailure extends Failure {
@@ -80,6 +109,13 @@ final class FileTooLargeFailure extends Failure {
 final class UnsupportedFileTypeFailure extends Failure {
   @override
   String get message => 'Envie uma imagem JPEG, PNG ou WebP.';
+}
+
+/// A 409 or 404 on an ad action: it changed or was removed elsewhere.
+final class AdOutdatedFailure extends Failure {
+  @override
+  String get message =>
+      'Este anúncio foi alterado em outro lugar. A lista foi atualizada.';
 }
 
 final class ServerFailure extends Failure {
