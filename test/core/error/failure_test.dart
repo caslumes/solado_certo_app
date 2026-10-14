@@ -37,6 +37,14 @@ void main() {
       isA<ConflictFailure>(),
     );
     expect(
+      Failure.from(buildDioException(statusCode: 413)),
+      isA<FileTooLargeFailure>(),
+    );
+    expect(
+      Failure.from(buildDioException(statusCode: 415)),
+      isA<UnsupportedFileTypeFailure>(),
+    );
+    expect(
       Failure.from(buildDioException(statusCode: 503)),
       isA<ServerFailure>().having((f) => f.statusCode, 'statusCode', 503),
     );

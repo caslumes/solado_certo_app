@@ -1,15 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/pain_point.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/user_role.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
@@ -23,6 +29,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetPainPointsUseCase _getPainPointsUseCase;
   final HasPodologicalConsentUseCase _hasPodologicalConsentUseCase;
   final RevokePodologicalConsentUseCase _revokePodologicalConsentUseCase;
+  final ChangeAvatarUseCase _changeAvatarUseCase;
+  final RemoveAvatarUseCase _removeAvatarUseCase;
+  final GetRolesUseCase _getRolesUseCase;
+  final BecomeSellerUseCase _becomeSellerUseCase;
 
   ProfileBloc({
     required GetProfileUseCase getProfileUseCase,
@@ -33,6 +43,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     required GetPainPointsUseCase getPainPointsUseCase,
     required HasPodologicalConsentUseCase hasPodologicalConsentUseCase,
     required RevokePodologicalConsentUseCase revokePodologicalConsentUseCase,
+    required ChangeAvatarUseCase changeAvatarUseCase,
+    required RemoveAvatarUseCase removeAvatarUseCase,
+    required GetRolesUseCase getRolesUseCase,
+    required BecomeSellerUseCase becomeSellerUseCase,
   }) : _getProfileUseCase = getProfileUseCase,
        _updateProfileUseCase = updateProfileUseCase,
        _getAddressesUseCase = getAddressesUseCase,
@@ -41,12 +55,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
        _getPainPointsUseCase = getPainPointsUseCase,
        _hasPodologicalConsentUseCase = hasPodologicalConsentUseCase,
        _revokePodologicalConsentUseCase = revokePodologicalConsentUseCase,
+       _changeAvatarUseCase = changeAvatarUseCase,
+       _removeAvatarUseCase = removeAvatarUseCase,
+       _getRolesUseCase = getRolesUseCase,
+       _becomeSellerUseCase = becomeSellerUseCase,
        super(ProfileLoading()) {
     on<LoadProfileEvent>(_onLoad);
     on<SavePersonalDataEvent>(_onSavePersonalData);
     on<AddressesChangedEvent>(_onAddressesChanged);
     on<SavePodologicalProfileEvent>(_onSavePodologicalProfile);
     on<RevokePodologicalConsentEvent>(_onRevokePodologicalConsent);
+    on<ChangeAvatarEvent>(_onChangeAvatar);
+    on<RemoveAvatarEvent>(_onRemoveAvatar);
+    on<BecomeSellerEvent>(_onBecomeSeller);
   }
 
   Future<void> _onLoad(
@@ -64,6 +85,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             painPoints: await _getPainPointsUseCase.execute(),
             hasPodologicalConsent: await _hasPodologicalConsentUseCase
                 .execute(),
+            roles: await _getRolesUseCase.execute(),
           ),
         ),
       );
@@ -118,6 +140,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     );
   });
 
+  Future<void> _onChangeAvatar(
+    ChangeAvatarEvent event,
+    Emitter<ProfileState> emit,
+  ) => _save(emit, ProfileNotice.avatarChanged, (data) async {
+    return data.copyWith(
+      profile: await _changeAvatarUseCase.execute(event.photo),
+    );
+  });
+
+  Future<void> _onRemoveAvatar(
+    RemoveAvatarEvent event,
+    Emitter<ProfileState> emit,
+  ) => _save(emit, ProfileNotice.avatarRemoved, (data) async {
+    return data.copyWith(profile: await _removeAvatarUseCase.execute());
+  });
+
+  Future<void> _onBecomeSeller(
+    BecomeSellerEvent event,
+    Emitter<ProfileState> emit,
+  ) => _save(emit, ProfileNotice.becameSeller, (data) async {
+    return data.copyWith(roles: await _becomeSellerUseCase.execute());
+  });
+
   Future<void> _save(
     Emitter<ProfileState> emit,
     ProfileNotice notice,
@@ -164,13 +209,26 @@ class SavePodologicalProfileEvent extends ProfileEvent {
 
 class RevokePodologicalConsentEvent extends ProfileEvent {}
 
+class ChangeAvatarEvent extends ProfileEvent {
+  final UploadFile photo;
+
+  ChangeAvatarEvent({required this.photo});
+}
+
+class RemoveAvatarEvent extends ProfileEvent {}
+
+class BecomeSellerEvent extends ProfileEvent {}
+
 enum ProfileNotice {
   personalDataSaved('Dados pessoais salvos.'),
   addressSaved('Endereço salvo.'),
   podologicalProfileSaved('Perfil podológico salvo.'),
   podologicalConsentRevoked(
     'Consentimento retirado. Seu perfil podológico foi excluído.',
-  );
+  ),
+  avatarChanged('Foto atualizada.'),
+  avatarRemoved('Foto removida.'),
+  becameSeller('Pronto! Agora você pode anunciar seus produtos.');
 
   const ProfileNotice(this.message);
 
@@ -207,6 +265,7 @@ class ProfileData {
   final PodologicalProfileEntity podologicalProfile;
   final List<PainPointEntity> painPoints;
   final bool hasPodologicalConsent;
+  final List<UserRole> roles;
 
   const ProfileData({
     required this.profile,
@@ -214,18 +273,23 @@ class ProfileData {
     required this.podologicalProfile,
     required this.painPoints,
     required this.hasPodologicalConsent,
+    required this.roles,
   });
+
+  bool get isSeller => roles.contains(UserRole.seller);
 
   ProfileData copyWith({
     ProfileEntity? profile,
     List<AddressEntity>? addresses,
     PodologicalProfileEntity? podologicalProfile,
     bool? hasPodologicalConsent,
+    List<UserRole>? roles,
   }) => ProfileData(
     profile: profile ?? this.profile,
     addresses: addresses ?? this.addresses,
     podologicalProfile: podologicalProfile ?? this.podologicalProfile,
     painPoints: painPoints,
     hasPodologicalConsent: hasPodologicalConsent ?? this.hasPodologicalConsent,
+    roles: roles ?? this.roles,
   );
 }

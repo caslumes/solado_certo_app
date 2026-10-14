@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/network/api_client.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
 
@@ -200,5 +201,67 @@ void main() {
     expect(adapter.requestsTo(refreshPath).last.data, {
       'refresh_token': 'refresh-1',
     });
+  });
+
+  group('upload', () {
+    const avatarPath = '/me/avatar';
+    const photo = UploadFile(bytes: [1, 2, 3], filename: 'foto.jpg');
+
+    test('sends the file and fields as multipart with the method', () async {
+      useServer((_) => (statusCode: 200, body: {'ok': true}));
+
+      final response = await client.upload(
+        avatarPath,
+        method: 'PUT',
+        field: 'avatar',
+        file: photo,
+        fields: {'alt_text': 'Frente'},
+      );
+
+      expect(response, {'ok': true});
+      final request = adapter.requests.single;
+      expect(request.method, 'PUT');
+      expect(request.contentType, startsWith('multipart/form-data'));
+      final formData = request.data as FormData;
+      expect(Map.fromEntries(formData.fields), {'alt_text': 'Frente'});
+      expect(formData.files.single.key, 'avatar');
+      expect(formData.files.single.value.filename, 'foto.jpg');
+      expect(formData.files.single.value.length, 3);
+    });
+
+    test('sends the file again after refreshing the token', () async {
+      useServer((request) {
+        if (request.path == refreshPath) {
+          return (
+            statusCode: 200,
+            body: {
+              'access_token': 'new-access',
+              'refresh_token': 'new-refresh',
+            },
+          );
+        }
+        final authorized =
+            request.headers['Authorization'] == 'Bearer new-access';
+        return authorized
+            ? (statusCode: 200, body: {'ok': true})
+            : (statusCode: 401, body: {'error': 'expired'});
+      });
+
+      final response = await client.upload(
+        avatarPath,
+        field: 'avatar',
+        file: photo,
+      );
+
+      // Resending the same FormData would throw "already finalized".
+      expect(response, {'ok': true});
+      expect(adapter.requestsTo(avatarPath), hasLength(2));
+    });
+  });
+
+  test('delete returns the response body', () async {
+    useServer((_) => (statusCode: 200, body: {'avatar_url': ''}));
+
+    expect(await client.delete('/me/avatar'), {'avatar_url': ''});
   });
 }

@@ -82,24 +82,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'swipes back from sign-in to the home page on iOS',
-    (tester) async {
-      await openSignIn(tester);
+  testWidgets('swipes back from sign-in to the home page on iOS', (
+    tester,
+  ) async {
+    await openSignIn(tester);
 
-      final gesture = await tester.startGesture(const Offset(5, 300));
-      await gesture.moveBy(const Offset(50, 0));
-      await tester.pump();
-      await gesture.moveBy(const Offset(400, 0));
-      await tester.pump();
-      await gesture.up();
-      await tester.pumpAndSettle();
+    final gesture = await tester.startGesture(const Offset(5, 300));
+    await gesture.moveBy(const Offset(50, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(400, 0));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
 
-      expect(find.byType(SignInPage), findsNothing);
-      expect(find.text('Entre na sua conta'), findsOneWidget);
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-  );
+    expect(find.byType(SignInPage), findsNothing);
+    expect(find.text('Entre na sua conta'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('keeps the sign-in form and its input through a failed sign-in', (
     tester,

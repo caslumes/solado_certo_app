@@ -3,11 +3,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/pain_point.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 import 'package:solado_certo_app/features/profile/domain/enum/footstrike_type.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/user_role.dart';
 import 'package:solado_certo_app/features/profile/presentation/bloc/profile_bloc.dart';
 
 import '../../../../support/builders.dart';
@@ -22,6 +24,12 @@ void main() {
   late MockGetPainPointsUseCase getPainPoints;
   late MockHasPodologicalConsentUseCase hasPodologicalConsent;
   late MockRevokePodologicalConsentUseCase revokeConsent;
+  late MockChangeAvatarUseCase changeAvatar;
+  late MockRemoveAvatarUseCase removeAvatar;
+  late MockGetRolesUseCase getRoles;
+  late MockBecomeSellerUseCase becomeSeller;
+
+  const photo = UploadFile(bytes: [1, 2, 3], filename: 'foto.jpg');
 
   ProfileBloc buildBloc() => ProfileBloc(
     getProfileUseCase: getProfile,
@@ -32,6 +40,10 @@ void main() {
     getPainPointsUseCase: getPainPoints,
     hasPodologicalConsentUseCase: hasPodologicalConsent,
     revokePodologicalConsentUseCase: revokeConsent,
+    changeAvatarUseCase: changeAvatar,
+    removeAvatarUseCase: removeAvatar,
+    getRolesUseCase: getRoles,
+    becomeSellerUseCase: becomeSeller,
   );
 
   ProfileData buildData({bool hasConsent = true}) => ProfileData(
@@ -43,6 +55,7 @@ void main() {
     ),
     painPoints: const [PainPointEntity(id: 'p1', name: 'Calcanhar')],
     hasPodologicalConsent: hasConsent,
+    roles: const [UserRole.buyer],
   );
 
   TypeMatcher<ProfileLoaded> loaded({
@@ -56,6 +69,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(buildProfile());
+    registerFallbackValue(photo);
     registerFallbackValue(
       const PodologicalProfileUpdate(footstrikeType: FootstrikeType.neutral),
     );
@@ -70,11 +84,15 @@ void main() {
     getPainPoints = MockGetPainPointsUseCase();
     hasPodologicalConsent = MockHasPodologicalConsentUseCase();
     revokeConsent = MockRevokePodologicalConsentUseCase();
+    changeAvatar = MockChangeAvatarUseCase();
+    removeAvatar = MockRemoveAvatarUseCase();
+    getRoles = MockGetRolesUseCase();
+    becomeSeller = MockBecomeSellerUseCase();
   });
 
   group('LoadProfileEvent', () {
     blocTest<ProfileBloc, ProfileState>(
-      'loads the profile, addresses, podological profile and consent',
+      'loads the profile, addresses, podological profile, consent and roles',
       setUp: () {
         when(
           () => getProfile.execute(),
@@ -87,12 +105,17 @@ void main() {
         when(
           () => hasPodologicalConsent.execute(),
         ).thenAnswer((_) async => true);
+        when(
+          () => getRoles.execute(),
+        ).thenAnswer((_) async => [UserRole.buyer, UserRole.seller]);
       },
       build: buildBloc,
       act: (bloc) => bloc.add(LoadProfileEvent()),
       expect: () => [
         isA<ProfileLoading>(),
-        loaded().having((s) => s.data.hasPodologicalConsent, 'consent', isTrue),
+        loaded()
+            .having((s) => s.data.hasPodologicalConsent, 'consent', isTrue)
+            .having((s) => s.data.isSeller, 'is seller', isTrue),
       ],
     );
 
@@ -250,6 +273,112 @@ void main() {
               'footstrike',
               FootstrikeType.pronated,
             ),
+      ],
+    );
+  });
+
+  group('ChangeAvatarEvent', () {
+    blocTest<ProfileBloc, ProfileState>(
+      'uploads the photo and shows the new avatar',
+      setUp: () => when(() => changeAvatar.execute(any())).thenAnswer(
+        (_) async => ProfileEntity(
+          name: 'Maria Souza',
+          email: 'maria@example.com',
+          phone: '19999999999',
+          avatarUrl: '/files/public/avatars/a.jpg',
+        ),
+      ),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) => bloc.add(ChangeAvatarEvent(photo: photo)),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(notice: ProfileNotice.avatarChanged).having(
+          (s) => s.data.profile.avatarUrl,
+          'avatar',
+          '/files/public/avatars/a.jpg',
+        ),
+      ],
+      verify: (_) => verify(() => changeAvatar.execute(photo)).called(1),
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'explains a rejected file type and keeps the old avatar',
+      setUp: () => when(
+        () => changeAvatar.execute(any()),
+      ).thenThrow(buildDioException(statusCode: 415)),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) => bloc.add(ChangeAvatarEvent(photo: photo)),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(
+          failure: isA<UnsupportedFileTypeFailure>(),
+        ).having((s) => s.data.profile.avatarUrl, 'avatar', ''),
+      ],
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'explains a file over the size limit',
+      setUp: () => when(
+        () => changeAvatar.execute(any()),
+      ).thenThrow(buildDioException(statusCode: 413)),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) => bloc.add(ChangeAvatarEvent(photo: photo)),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(failure: isA<FileTooLargeFailure>()),
+      ],
+    );
+  });
+
+  blocTest<ProfileBloc, ProfileState>(
+    'RemoveAvatarEvent clears the avatar',
+    setUp: () => when(
+      () => removeAvatar.execute(),
+    ).thenAnswer((_) async => buildProfile()),
+    build: buildBloc,
+    seed: () => ProfileLoaded(data: buildData()),
+    act: (bloc) => bloc.add(RemoveAvatarEvent()),
+    expect: () => [
+      loaded(isSaving: true),
+      loaded(
+        notice: ProfileNotice.avatarRemoved,
+      ).having((s) => s.data.profile.avatarUrl, 'avatar', ''),
+    ],
+  );
+
+  group('BecomeSellerEvent', () {
+    blocTest<ProfileBloc, ProfileState>(
+      'adds the seller role',
+      setUp: () => when(
+        () => becomeSeller.execute(),
+      ).thenAnswer((_) async => [UserRole.buyer, UserRole.seller]),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) => bloc.add(BecomeSellerEvent()),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(
+          notice: ProfileNotice.becameSeller,
+        ).having((s) => s.data.isSeller, 'is seller', isTrue),
+      ],
+    );
+
+    blocTest<ProfileBloc, ProfileState>(
+      'stays a buyer when the request fails',
+      setUp: () => when(
+        () => becomeSeller.execute(),
+      ).thenThrow(buildDioException(statusCode: 500)),
+      build: buildBloc,
+      seed: () => ProfileLoaded(data: buildData()),
+      act: (bloc) => bloc.add(BecomeSellerEvent()),
+      expect: () => [
+        loaded(isSaving: true),
+        loaded(
+          failure: isA<ServerFailure>(),
+        ).having((s) => s.data.isSeller, 'is seller', isFalse),
       ],
     );
   });

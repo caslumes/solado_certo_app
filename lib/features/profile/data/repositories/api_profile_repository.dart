@@ -1,9 +1,11 @@
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/profile/data/models/address_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/consent_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/pain_point_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/podological_profile_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/profile_model.dart';
+import 'package:solado_certo_app/features/profile/data/models/roles_model.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/consent.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/pain_point.dart';
@@ -11,6 +13,7 @@ import 'package:solado_certo_app/features/profile/domain/entities/new_address.da
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/user_role.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 
 class ApiProfileRepository implements ProfileRepositoryInterface {
@@ -30,6 +33,32 @@ class ApiProfileRepository implements ProfileRepositoryInterface {
     return client
         .patch('/me/profile', data: profileToJson(profile))
         .then((response) => ProfileModel.fromJson(response).toEntity());
+  }
+
+  @override
+  Future<ProfileEntity> changeAvatar(UploadFile photo) {
+    return client
+        .upload('/me/avatar', method: 'PUT', field: 'avatar', file: photo)
+        .then((response) => ProfileModel.fromJson(response).toEntity());
+  }
+
+  @override
+  Future<ProfileEntity> removeAvatar() {
+    return client
+        .delete('/me/avatar')
+        .then((response) => ProfileModel.fromJson(response).toEntity());
+  }
+
+  @override
+  Future<List<UserRole>> getRoles() {
+    return client.get('/me/roles').then((response) => rolesFromJson(response));
+  }
+
+  @override
+  Future<List<UserRole>> becomeSeller() {
+    return client
+        .post('/me/roles/seller')
+        .then((response) => rolesFromJson(response));
   }
 
   @override

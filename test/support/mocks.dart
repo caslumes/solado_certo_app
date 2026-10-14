@@ -14,6 +14,8 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommende
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
@@ -21,6 +23,8 @@ import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podolog
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 
 import 'builders.dart';
@@ -55,6 +59,14 @@ class MockHasPodologicalConsentUseCase extends Mock
 
 class MockRevokePodologicalConsentUseCase extends Mock
     implements RevokePodologicalConsentUseCase {}
+
+class MockChangeAvatarUseCase extends Mock implements ChangeAvatarUseCase {}
+
+class MockRemoveAvatarUseCase extends Mock implements RemoveAvatarUseCase {}
+
+class MockGetRolesUseCase extends Mock implements GetRolesUseCase {}
+
+class MockBecomeSellerUseCase extends Mock implements BecomeSellerUseCase {}
 
 class MockGetOnboardingUseCase extends Mock implements GetOnboardingUseCase {}
 

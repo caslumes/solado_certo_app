@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/image_picking.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
@@ -12,12 +14,14 @@ import 'package:solado_certo_app/features/profile/domain/usecases/add_address_us
 import 'package:solado_certo_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/address_entry.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/podological_profile_form.dart';
+import 'package:solado_certo_app/features/profile/presentation/components/profile_avatar.dart';
 import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
 
 class MyProfilePage extends StatelessWidget {
-  const MyProfilePage({super.key, this.addAddress});
+  const MyProfilePage({super.key, this.addAddress, this.pickPhoto});
 
   final Future<void> Function(NewAddress address)? addAddress;
+  final Future<UploadFile?> Function()? pickPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,7 @@ class MyProfilePage extends StatelessWidget {
             ProfileLoaded() => _ProfileContent(
               state: state,
               addAddress: addAddress ?? getIt<AddAddressUseCase>().execute,
+              pickPhoto: pickPhoto ?? pickImageFromGallery,
             ),
             ProfileLoadFailure(:final failure) => _LoadError(failure: failure),
             _ => const Center(child: CircularProgressIndicator()),
@@ -97,10 +102,21 @@ class _LoadError extends StatelessWidget {
 }
 
 class _ProfileContent extends StatelessWidget {
-  const _ProfileContent({required this.state, required this.addAddress});
+  const _ProfileContent({
+    required this.state,
+    required this.addAddress,
+    required this.pickPhoto,
+  });
 
   final ProfileLoaded state;
   final Future<void> Function(NewAddress address) addAddress;
+  final Future<UploadFile?> Function() pickPhoto;
+
+  Future<void> _changeAvatar(BuildContext context) async {
+    final profileBloc = context.read<ProfileBloc>();
+    final photo = await pickPhoto();
+    if (photo != null) profileBloc.add(ChangeAvatarEvent(photo: photo));
+  }
 
   Future<void> _openAddressForm(BuildContext context) async {
     final profileBloc = context.read<ProfileBloc>();
@@ -162,6 +178,15 @@ class _ProfileContent extends StatelessWidget {
             spacing: 16.0,
             children: [
               const SizedBox.shrink(),
+              Center(
+                child: ProfileAvatar(
+                  url: data.profile.avatarUrl,
+                  isSaving: state.isSaving,
+                  onChange: () => _changeAvatar(context),
+                  onRemove: () =>
+                      context.read<ProfileBloc>().add(RemoveAvatarEvent()),
+                ),
+              ),
               _SectionTitle('Dados pessoais'),
               _PersonalDataForm(
                 key: ObjectKey(data.profile),
@@ -178,6 +203,8 @@ class _ProfileContent extends StatelessWidget {
                 text: 'Adicionar endereço',
                 textStyle: _buttonTextStyle(context),
               ),
+              _SectionTitle('Vender'),
+              _SellerSection(isSeller: data.isSeller, isSaving: state.isSaving),
               _SectionTitle('Perfil podológico'),
               PodologicalProfileForm(
                 key: ValueKey((
@@ -216,6 +243,45 @@ class _ProfileContent extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SellerSection extends StatelessWidget {
+  const _SellerSection({required this.isSeller, required this.isSaving});
+
+  final bool isSeller;
+  final bool isSaving;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodySmall;
+    if (isSeller) {
+      return Text(
+        'Sua conta de vendedor está ativa. Você pode anunciar palmilhas, '
+        'calçados, órteses e meias.',
+        style: textStyle,
+        textAlign: TextAlign.center,
+      );
+    }
+
+    return Column(
+      spacing: 16.0,
+      children: [
+        Text(
+          'Anuncie palmilhas, calçados, órteses e meias para outros '
+          'usuários. Você continua podendo comprar normalmente.',
+          style: textStyle,
+          textAlign: TextAlign.center,
+        ),
+        ShoeTextButton(
+          onPressed: isSaving
+              ? null
+              : () => context.read<ProfileBloc>().add(BecomeSellerEvent()),
+          text: 'Quero vender',
+          textStyle: _buttonTextStyle(context),
+        ),
+      ],
     );
   }
 }

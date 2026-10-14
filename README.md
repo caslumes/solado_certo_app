@@ -4,7 +4,7 @@ Flutter app for Solado Certo, a mobile marketplace where users buy and advertise
 
 ## Requirements
 
-- Flutter (stable channel; developed with Flutter 3.44, Dart SDK `^3.8.1` per `pubspec.yaml`)
+- Flutter (stable channel; developed with Flutter 3.47, which `pubspec.lock` needs since some dependencies require Dart 3.13; Dart SDK `^3.8.1` per `pubspec.yaml`)
 - Chrome, for the quickest way to run it; or an Android emulator / device
 - The backend running locally (see its README; it serves on `http://localhost:3000`)
 

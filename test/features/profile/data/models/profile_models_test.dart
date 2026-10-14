@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/features/profile/data/models/address_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/podological_profile_model.dart';
 import 'package:solado_certo_app/features/profile/data/models/profile_model.dart';
+import 'package:solado_certo_app/features/profile/data/models/roles_model.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/podological_profile_update.dart';
 import 'package:solado_certo_app/features/profile/domain/enum/footstrike_type.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
+import 'package:solado_certo_app/features/profile/domain/enum/user_role.dart';
 
 void main() {
   group('ProfileModel', () {
@@ -31,13 +33,13 @@ void main() {
     });
   });
 
-  test('profileToJson sends the API field names', () {
+  test('profileToJson sends the API field names, without the avatar', () {
     final json = profileToJson(
       ProfileEntity(
         name: 'Maria',
         email: 'maria@example.com',
         phone: '19999999999',
-        avatarUrl: '',
+        avatarUrl: '/files/public/avatars/a.png',
       ),
     );
 
@@ -45,8 +47,16 @@ void main() {
       'name': 'Maria',
       'email': 'maria@example.com',
       'phone': '19999999999',
-      'avatar_url': '',
     });
+  });
+
+  test('rolesFromJson keeps the known roles', () {
+    expect(
+      rolesFromJson({
+        'roles': ['buyer', 'seller', 'auditor'],
+      }),
+      [UserRole.buyer, UserRole.seller],
+    );
   });
 
   test('newAddressToJson sends the API field names, nulls and country', () {

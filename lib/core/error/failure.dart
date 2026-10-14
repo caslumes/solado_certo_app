@@ -19,6 +19,8 @@ sealed class Failure {
         if (statusCode == 400) return InvalidInputFailure();
         if (statusCode == 404) return NotFoundFailure();
         if (statusCode == 409) return ConflictFailure();
+        if (statusCode == 413) return FileTooLargeFailure();
+        if (statusCode == 415) return UnsupportedFileTypeFailure();
         return ServerFailure(statusCode);
       default:
         return UnexpectedFailure(error);
@@ -68,6 +70,16 @@ final class AccountAlreadyExistsFailure extends Failure {
 final class PhoneAlreadyInUseFailure extends Failure {
   @override
   String get message => 'Este telefone já está cadastrado em outra conta.';
+}
+
+final class FileTooLargeFailure extends Failure {
+  @override
+  String get message => 'O arquivo deve ter no máximo 5 MB.';
+}
+
+final class UnsupportedFileTypeFailure extends Failure {
+  @override
+  String get message => 'Envie uma imagem JPEG, PNG ou WebP.';
 }
 
 final class ServerFailure extends Failure {

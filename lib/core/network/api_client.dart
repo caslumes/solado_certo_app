@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solado_certo_app/core/config/envs.dart';
 import 'package:solado_certo_app/core/network/client.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
 
@@ -45,8 +46,9 @@ class ApiClient implements ClientInterface {
   static final ApiClient instance = ApiClient(getIt<FlutterSecureStorage>());
 
   @override
-  Future<void> delete(String url) async {
-    await dio.delete(url);
+  Future<dynamic> delete(String url) async {
+    Response response = await dio.delete(url);
+    return response.data;
   }
 
   @override
@@ -72,6 +74,28 @@ class ApiClient implements ClientInterface {
     Response response = await dio.patch(url, data: data);
     return response.data;
   }
+
+  @override
+  Future<dynamic> upload(
+    String url, {
+    String method = 'POST',
+    required String field,
+    required UploadFile file,
+    Map<String, String>? fields,
+  }) async {
+    final formData = FormData.fromMap({
+      ...?fields,
+      field: MultipartFile.fromBytes(file.bytes, filename: file.filename),
+    });
+    Response response = await dio.request(
+      url,
+      data: formData,
+      options: Options(method: method, sendTimeout: _uploadTimeout),
+    );
+    return response.data;
+  }
+
+  static const _uploadTimeout = Duration(seconds: 60);
 
   static const _retriedKey = 'retried_after_refresh';
 
@@ -131,6 +155,10 @@ class ApiClient implements ClientInterface {
     final requestOptions = e.requestOptions;
     requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
     requestOptions.extra[_retriedKey] = true;
+    // A multipart body is a stream that can only be sent once.
+    if (requestOptions.data case final FormData formData) {
+      requestOptions.data = formData.clone();
+    }
     try {
       final retryResponse = await dio.fetch(requestOptions);
       return handler.resolve(retryResponse);
