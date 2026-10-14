@@ -15,7 +15,7 @@ import 'package:solado_certo_app/features/catalog/presentation/pages/product_det
 class CartPage extends StatelessWidget {
   const CartPage({super.key, this.onCheckout});
 
-  /// Starts checkout; null until the checkout flow exists.
+  /// Opens checkout with the cart on screen.
   final VoidCallback? onCheckout;
 
   @override

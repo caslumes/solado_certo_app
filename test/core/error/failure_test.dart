@@ -161,4 +161,43 @@ void main() {
       isA<MissingFieldsFailure>().having((f) => f.fields, 'fields', isEmpty),
     );
   });
+
+  group('checkout bodies', () {
+    Failure from(int statusCode, Map<String, dynamic> body) =>
+        Failure.from(buildDioException(statusCode: statusCode, data: body));
+
+    test('409 prices and cart changed', () {
+      expect(
+        from(409, {'error': 'prices changed'}),
+        isA<PricesChangedFailure>(),
+      );
+      expect(from(409, {'error': 'cart changed'}), isA<CartChangedFailure>());
+    });
+
+    test('422 shipping option required lists the items', () {
+      expect(
+        from(422, {
+          'error': 'shipping option required',
+          'advertisement_ids': ['601', '602'],
+        }),
+        isA<ShippingRequiredFailure>().having(
+          (f) => f.advertisementIds,
+          'advertisementIds',
+          ['601', '602'],
+        ),
+      );
+    });
+
+    test('422 empty cart', () {
+      expect(from(422, {'error': 'cart is empty'}), isA<EmptyCartFailure>());
+    });
+
+    test('404 address not found', () {
+      expect(
+        from(404, {'error': 'address not found'}),
+        isA<AddressNotFoundFailure>(),
+      );
+      expect(from(404, {'error': 'order not found'}), isA<NotFoundFailure>());
+    });
+  });
 }

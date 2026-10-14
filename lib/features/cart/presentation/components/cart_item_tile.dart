@@ -3,7 +3,6 @@ import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_quantity_stepper.dart';
 import 'package:solado_certo_app/features/cart/domain/entities/cart.dart';
-import 'package:solado_certo_app/features/cart/domain/enum/cart_item_problem.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 
 /// The most units of one product a cart takes, as the backend allows.
@@ -98,7 +97,7 @@ class CartItemTile extends StatelessWidget {
                       color: AppColors.warningColor,
                     ),
                   ),
-                if (problem != null) _ProblemChip(item: item, problem: problem),
+                if (problem != null) _ProblemChip(item: item),
                 Row(
                   children: [
                     if (busy)
@@ -135,28 +134,18 @@ class CartItemTile extends StatelessWidget {
 }
 
 class _ProblemChip extends StatelessWidget {
-  const _ProblemChip({required this.item, required this.problem});
+  const _ProblemChip({required this.item});
 
   final CartItemEntity item;
-  final CartItemProblem problem;
 
   @override
   Widget build(BuildContext context) {
-    final text = switch (problem) {
-      CartItemProblem.insufficientStock =>
-        item.stock == 1
-            ? 'Só há 1 unidade disponível'
-            : 'Só há ${item.stock} unidades disponíveis',
-      CartItemProblem.unavailable => 'Indisponível no momento',
-      CartItemProblem.outOfStock => problem.label,
-    };
-
     return DecoratedBox(
       decoration: const BoxDecoration(color: AppColors.warningBackgroundColor),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         child: Text(
-          text,
+          item.problemDescription!,
           style: Theme.of(
             context,
           ).textTheme.bodySmall?.copyWith(color: AppColors.warningColor),

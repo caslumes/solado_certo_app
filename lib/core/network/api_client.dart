@@ -58,8 +58,16 @@ class ApiClient implements ClientInterface {
   }
 
   @override
-  Future<dynamic> post(String url, {Map<String, dynamic>? data}) async {
-    Response response = await dio.post(url, data: data);
+  Future<dynamic> post(
+    String url, {
+    Map<String, dynamic>? data,
+    Map<String, String>? headers,
+  }) async {
+    Response response = await dio.post(
+      url,
+      data: data,
+      options: Options(headers: headers),
+    );
     return response.data;
   }
 

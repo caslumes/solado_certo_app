@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
+import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
+import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
+import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -166,5 +172,57 @@ void main() {
     await selectTab(tester, 'Pedidos');
 
     expect(find.byType(SignInPage), findsOneWidget);
+  });
+
+  testWidgets('checks out from the cart and opens the orders tab', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final getAddresses = MockGetAddressesUseCase();
+    final preview = MockPreviewCheckoutUseCase();
+    final checkout = MockCheckoutUseCase();
+    registerFallbackValue(const CheckoutSelection(addressId: '', shipping: {}));
+    when(getAddresses.execute).thenAnswer((_) async => [buildAddress()]);
+    when(
+      () => preview.execute(any()),
+    ).thenAnswer((_) async => buildCheckoutPlan());
+    when(
+      () => checkout.execute(any(), any()),
+    ).thenAnswer((_) async => buildCheckoutResult());
+    getIt
+      ..registerSingleton<GetAddressesUseCase>(getAddresses)
+      ..registerSingleton<PreviewCheckoutUseCase>(preview)
+      ..registerSingleton<CheckoutUseCase>(checkout)
+      ..registerSingleton<AddAddressUseCase>(MockAddAddressUseCase());
+    when(() => cartBloc.state).thenReturn(
+      CartLoaded(
+        cart: buildCart({
+          's1': [buildCartItem()],
+        }),
+      ),
+    );
+    await pumpShell(tester, isSignedIn: true);
+    await selectTab(tester, 'Carrinho');
+
+    await tester.tap(find.text('CONTINUAR'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CheckoutPage), findsOneWidget);
+
+    await tester.tap(find.text('PRÓXIMO'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('PRÓXIMO'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CONFIRMAR PEDIDO'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('VER MEUS PEDIDOS'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CheckoutPage), findsNothing);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      2,
+    );
   });
 }

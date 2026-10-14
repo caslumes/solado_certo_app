@@ -86,4 +86,14 @@ class CartItemEntity {
   });
 
   bool get isAvailable => problem == null;
+
+  String? get problemDescription => switch (problem) {
+    null => null,
+    CartItemProblem.insufficientStock =>
+      stock == 1
+          ? 'Só há 1 unidade disponível'
+          : 'Só há $stock unidades disponíveis',
+    CartItemProblem.unavailable => 'Indisponível no momento',
+    CartItemProblem.outOfStock => CartItemProblem.outOfStock.label,
+  };
 }

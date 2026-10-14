@@ -264,4 +264,18 @@ void main() {
 
     expect(await client.delete('/me/avatar'), {'avatar_url': ''});
   });
+
+  test('post sends extra headers', () async {
+    useServer((_) => (statusCode: 201, body: {'id': 'checkout-1'}));
+
+    await client.post(
+      '/checkout',
+      data: {'address_id': 'a1'},
+      headers: {'Idempotency-Key': 'key-1'},
+    );
+
+    final request = adapter.requests.single;
+    expect(request.headers['Idempotency-Key'], 'key-1');
+    expect(request.headers['Authorization'], 'Bearer old-access');
+  });
 }

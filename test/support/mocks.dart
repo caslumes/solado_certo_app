@@ -16,9 +16,12 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_it
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
+import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_repository.dart';
+import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
@@ -156,3 +159,13 @@ MockCartBloc buildCartBloc([CartState? state]) {
   when(() => bloc.state).thenReturn(state ?? CartInactive());
   return bloc;
 }
+
+class MockCheckoutRepository extends Mock
+    implements CheckoutRepositoryInterface {}
+
+class MockPreviewCheckoutUseCase extends Mock
+    implements PreviewCheckoutUseCase {}
+
+class MockCheckoutUseCase extends Mock implements CheckoutUseCase {}
+
+class MockAddAddressUseCase extends Mock implements AddAddressUseCase {}

@@ -18,13 +18,11 @@ sealed class Failure {
         if (statusCode == 401) return UnauthorizedFailure();
         if (statusCode == 400) return InvalidInputFailure();
         if (statusCode == 403) return ForbiddenFailure();
-        if (statusCode == 404) return NotFoundFailure();
+        if (statusCode == 404) return _notFound(error.response?.data);
         if (statusCode == 409) return _conflict(error.response?.data);
         if (statusCode == 413) return FileTooLargeFailure();
         if (statusCode == 415) return UnsupportedFileTypeFailure();
-        if (statusCode == 422) {
-          return MissingFieldsFailure.fromBody(error.response?.data);
-        }
+        if (statusCode == 422) return _unprocessable(error.response?.data);
         return ServerFailure(statusCode);
       default:
         return UnexpectedFailure(error);
@@ -34,15 +32,27 @@ sealed class Failure {
   String get message;
 }
 
+Object? _errorCode(Object? body) => body is Map ? body['error'] : null;
+
+Failure _notFound(Object? body) => switch (_errorCode(body)) {
+  'address not found' => AddressNotFoundFailure(),
+  _ => NotFoundFailure(),
+};
+
 /// Some 409s carry an `error` code that says which conflict happened.
-Failure _conflict(Object? body) {
-  final error = body is Map ? body['error'] : null;
-  return switch (error) {
-    'out of stock' => OutOfStockFailure.fromBody(body),
-    'cannot buy your own advertisement' => OwnAdvertisementFailure(),
-    _ => ConflictFailure(),
-  };
-}
+Failure _conflict(Object? body) => switch (_errorCode(body)) {
+  'out of stock' => OutOfStockFailure.fromBody(body),
+  'cannot buy your own advertisement' => OwnAdvertisementFailure(),
+  'prices changed' => PricesChangedFailure(),
+  'cart changed' => CartChangedFailure(),
+  _ => ConflictFailure(),
+};
+
+Failure _unprocessable(Object? body) => switch (_errorCode(body)) {
+  'shipping option required' => ShippingRequiredFailure.fromBody(body),
+  'cart is empty' => EmptyCartFailure(),
+  _ => MissingFieldsFailure.fromBody(body),
+};
 
 final class NetworkFailure extends Failure {
   @override
@@ -189,6 +199,49 @@ final class ProductUnavailableFailure extends Failure {
 final class OwnAdvertisementFailure extends Failure {
   @override
   String get message => 'Você não pode comprar um anúncio seu.';
+}
+
+/// A 409 at checkout: prices changed since the items were added. The cart
+/// now has the current prices, and confirming again goes through.
+final class PricesChangedFailure extends Failure {
+  @override
+  String get message => 'Alguns preços mudaram. Confira o carrinho.';
+}
+
+/// A 409 at checkout: the cart was changed elsewhere during checkout.
+final class CartChangedFailure extends Failure {
+  @override
+  String get message => 'Seu carrinho mudou. Confira os itens.';
+}
+
+/// A 422 at checkout: these items have no valid shipping option chosen.
+final class ShippingRequiredFailure extends Failure {
+  const ShippingRequiredFailure(this.advertisementIds);
+
+  factory ShippingRequiredFailure.fromBody(Object? body) {
+    final ids = body is Map ? body['advertisement_ids'] : null;
+    return ShippingRequiredFailure([
+      if (ids is List)
+        for (final id in ids)
+          if (id is String) id,
+    ]);
+  }
+
+  final List<String> advertisementIds;
+
+  @override
+  String get message => 'Escolha o frete de todos os itens.';
+}
+
+final class EmptyCartFailure extends Failure {
+  @override
+  String get message => 'Seu carrinho está vazio.';
+}
+
+/// A 404 at checkout: the chosen address was deleted.
+final class AddressNotFoundFailure extends Failure {
+  @override
+  String get message => 'Este endereço não está mais disponível.';
 }
 
 final class ServerFailure extends Failure {

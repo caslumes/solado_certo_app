@@ -9,6 +9,7 @@ import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
+import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 
 class HomeShell extends StatefulWidget {
@@ -23,6 +24,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   static const _catalogIndex = 0;
   static const _cartIndex = 1;
+  static const _ordersIndex = 2;
 
   int _selectedIndex = _catalogIndex;
 
@@ -69,6 +71,18 @@ class _HomeShellState extends State<HomeShell> {
     setState(() => _selectedIndex = index);
   }
 
+  void _openCheckout() {
+    final state = context.read<CartBloc>().state;
+    if (state is! CartLoaded) return;
+    Navigator.of(context).push(
+      CheckoutPage.route(
+        cart: state.cart,
+        onViewOrders: () => setState(() => _selectedIndex = _ordersIndex),
+        onKeepShopping: () => setState(() => _selectedIndex = _catalogIndex),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -86,7 +100,7 @@ class _HomeShellState extends State<HomeShell> {
           index: _selectedIndex,
           children: [
             HomePage(isSignedIn: widget.isSignedIn),
-            const CartPage(),
+            CartPage(onCheckout: _openCheckout),
             const _ComingSoonTab(title: 'Pedidos'),
           ],
         ),
