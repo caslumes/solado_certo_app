@@ -1,3 +1,4 @@
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
@@ -5,6 +6,10 @@ import 'package:solado_certo_app/features/auth/domain/repositories/auth_reposito
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/cart/domain/repositories/cart_repository.dart';
+import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/add_to_cart_cubit.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
@@ -127,4 +132,27 @@ void registerCatalogFilterOptions() {
   when(useCase.execute).thenAnswer((_) async => catalogFilterOptions);
   getIt.registerSingleton<GetCatalogFilterOptionsUseCase>(useCase);
   addTearDown(getIt.reset);
+}
+
+class MockCartRepository extends Mock implements CartRepositoryInterface {}
+
+class MockGetCartUseCase extends Mock implements GetCartUseCase {}
+
+class MockAddToCartUseCase extends Mock implements AddToCartUseCase {}
+
+class MockChangeCartItemQuantityUseCase extends Mock
+    implements ChangeCartItemQuantityUseCase {}
+
+class MockRemoveCartItemUseCase extends Mock implements RemoveCartItemUseCase {}
+
+class MockCartBloc extends MockBloc<CartEvent, CartState> implements CartBloc {}
+
+class MockAddToCartCubit extends MockCubit<AddToCartState>
+    implements AddToCartCubit {}
+
+/// A cart bloc that stays in [state]; the app provides one above every page.
+MockCartBloc buildCartBloc([CartState? state]) {
+  final bloc = MockCartBloc();
+  when(() => bloc.state).thenReturn(state ?? CartInactive());
+  return bloc;
 }

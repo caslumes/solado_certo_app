@@ -7,6 +7,8 @@ import 'package:solado_certo_app/app/router.dart';
 import 'package:solado_certo_app/app/theme/app_themes.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/auth_gate.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
@@ -26,6 +28,14 @@ class App extends StatelessWidget {
             signOutUseCase: getIt<SignOutUseCase>(),
             signUpUseCase: getIt<SignUpUseCase>(),
           )..add(CheckAuthEvent()),
+        ),
+        BlocProvider<CartBloc>(
+          create: (_) => CartBloc(
+            getCartUseCase: getIt<GetCartUseCase>(),
+            changeCartItemQuantityUseCase:
+                getIt<ChangeCartItemQuantityUseCase>(),
+            removeCartItemUseCase: getIt<RemoveCartItemUseCase>(),
+          ),
         ),
       ],
       child: MaterialApp(

@@ -5,7 +5,13 @@ import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_quantity_stepper.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
+import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
+import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/add_to_cart_cubit.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:solado_certo_app/features/cart/presentation/components/cart_item_tile.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/product_image.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
@@ -23,11 +29,19 @@ class ProductDetailPage extends StatelessWidget {
 
   static Route<void> route(String productId) {
     return MaterialPageRoute(
-      builder: (_) => BlocProvider(
-        create: (_) => ProductDetailCubit(
-          getProductDetailUseCase: getIt<GetProductDetailUseCase>(),
-          productId: productId,
-        )..load(),
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => ProductDetailCubit(
+              getProductDetailUseCase: getIt<GetProductDetailUseCase>(),
+              productId: productId,
+            )..load(),
+          ),
+          BlocProvider(
+            create: (_) =>
+                AddToCartCubit(addToCartUseCase: getIt<AddToCartUseCase>()),
+          ),
+        ],
         child: const ProductDetailPage(),
       ),
     );
@@ -55,7 +69,7 @@ class ProductDetailPage extends StatelessWidget {
           ),
         },
         bottomNavigationBar: state is ProductDetailLoaded
-            ? const _AddToCartBar()
+            ? _AddToCartBar(product: state.product)
             : null,
       ),
     );
@@ -101,18 +115,68 @@ class _LoadFailure extends StatelessWidget {
   }
 }
 
-/// The cart arrives in Slice 5; until then the button is disabled.
-class _AddToCartBar extends StatelessWidget {
-  const _AddToCartBar();
+/// Quantity and "Adicionar ao carrinho" (RF-012). Signed-out visitors are
+/// sent to sign in; the new cart goes to the app's [CartBloc].
+class _AddToCartBar extends StatefulWidget {
+  const _AddToCartBar({required this.product});
+
+  final ProductDetailEntity product;
+
+  @override
+  State<_AddToCartBar> createState() => _AddToCartBarState();
+}
+
+class _AddToCartBarState extends State<_AddToCartBar> {
+  int _quantity = 1;
+
+  void _add() {
+    if (context.read<CartBloc>().state is CartInactive) {
+      Navigator.of(context).pushNamed(AuthRoutes.signIn);
+      return;
+    }
+    context.read<AddToCartCubit>().add(widget.product.id, _quantity);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: const ShoeTextButton(
-          onPressed: null,
-          text: 'Adicionar ao carrinho',
+    final stock = widget.product.stock;
+
+    return BlocConsumer<AddToCartCubit, AddToCartState>(
+      listener: (context, state) {
+        final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+        switch (state) {
+          case AddToCartSuccess(:final cart):
+            context.read<CartBloc>().add(CartUpdatedEvent(cart: cart));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Produto adicionado ao carrinho.')),
+            );
+          case AddToCartFailure(:final failure):
+            messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+          case AddToCartIdle() || AddToCartInProgress():
+        }
+      },
+      builder: (context, state) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: stock == 0
+              ? const ShoeTextButton(onPressed: null, text: 'Esgotado')
+              : Row(
+                  spacing: 12.0,
+                  children: [
+                    ShoeQuantityStepper(
+                      value: _quantity,
+                      max: stock.clamp(1, maxCartItemQuantity),
+                      onChanged: (value) => setState(() => _quantity = value),
+                    ),
+                    Expanded(
+                      child: ShoeTextButton(
+                        onPressed: _add,
+                        isLoading: state is AddToCartInProgress,
+                        text: 'Adicionar ao carrinho',
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

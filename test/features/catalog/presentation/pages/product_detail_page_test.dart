@@ -5,16 +5,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/add_to_cart_cubit.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/product_detail_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/product_detail_page.dart';
 
 import '../../../../support/builders.dart';
+import '../../../../support/mocks.dart';
 
 class MockProductDetailCubit extends MockCubit<ProductDetailState>
     implements ProductDetailCubit {}
 
 void main() {
   late MockProductDetailCubit cubit;
+  late MockCartBloc cartBloc;
+  late MockAddToCartCubit addToCart;
 
   /// Uses a tall view so the whole page is built without scrolling.
   Future<void> pumpPage(WidgetTester tester, ProductDetailState state) {
@@ -23,10 +28,15 @@ void main() {
     addTearDown(tester.view.reset);
     when(() => cubit.state).thenReturn(state);
     return tester.pumpWidget(
-      MaterialApp(
-        home: BlocProvider<ProductDetailCubit>.value(
-          value: cubit,
-          child: const ProductDetailPage(),
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<CartBloc>.value(value: cartBloc),
+          BlocProvider<ProductDetailCubit>.value(value: cubit),
+          BlocProvider<AddToCartCubit>.value(value: addToCart),
+        ],
+        child: MaterialApp(
+          home: const ProductDetailPage(),
+          routes: {'/sign-in': (_) => const Text('Entrar')},
         ),
       ),
     );
@@ -37,6 +47,10 @@ void main() {
   setUp(() {
     cubit = MockProductDetailCubit();
     when(() => cubit.load()).thenAnswer((_) async {});
+    cartBloc = buildCartBloc(CartLoaded(cart: buildCart({})));
+    addToCart = MockAddToCartCubit();
+    when(() => addToCart.state).thenReturn(AddToCartIdle());
+    when(() => addToCart.add(any(), any())).thenAnswer((_) async {});
   });
 
   testWidgets('shows the product, its attributes, seller and shipping', (
@@ -102,9 +116,10 @@ void main() {
     );
 
     expect(find.text('Esgotado'), findsOneWidget);
+    expect(find.text('ADICIONAR AO CARRINHO'), findsNothing);
     final button = tester.widget<FilledButton>(
       find.ancestor(
-        of: find.text('ADICIONAR AO CARRINHO'),
+        of: find.text('ESGOTADO'),
         matching: find.byType(FilledButton),
       ),
     );
@@ -130,5 +145,101 @@ void main() {
     await tester.tap(find.text('TENTAR NOVAMENTE'));
 
     verify(() => cubit.load()).called(1);
+  });
+
+  group('add to cart', () {
+    setUpAll(() => registerFallbackValue(LoadCartEvent()));
+
+    testWidgets('adds the chosen quantity', (tester) async {
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+
+      await tester.tap(find.byTooltip('Aumentar quantidade'));
+      await tester.pump();
+      await tester.tap(find.text('ADICIONAR AO CARRINHO'));
+
+      verify(() => addToCart.add('603', 2)).called(1);
+    });
+
+    testWidgets('limits the quantity to the stock', (tester) async {
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail(stock: 2)),
+      );
+
+      await tester.tap(find.byTooltip('Aumentar quantidade'));
+      await tester.pump();
+
+      expect(find.text('2'), findsOneWidget);
+      final plus = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.add),
+      );
+      expect(plus.onPressed, isNull);
+    });
+
+    testWidgets('asks a signed-out visitor to sign in', (tester) async {
+      cartBloc = buildCartBloc();
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+
+      await tester.tap(find.text('ADICIONAR AO CARRINHO'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Entrar'), findsOneWidget);
+      verifyNever(() => addToCart.add(any(), any()));
+    });
+
+    testWidgets('hands the new cart to the cart bloc', (tester) async {
+      final cart = buildCart({
+        's1': [buildCartItem(id: '603')],
+      });
+      whenListen(
+        addToCart,
+        Stream<AddToCartState>.fromIterable([
+          AddToCartInProgress(),
+          AddToCartSuccess(cart: cart),
+        ]),
+        initialState: AddToCartIdle(),
+      );
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+      await tester.pump();
+
+      verify(
+        () => cartBloc.add(
+          any(
+            that: isA<CartUpdatedEvent>().having((e) => e.cart, 'cart', cart),
+          ),
+        ),
+      ).called(1);
+      expect(find.text('Produto adicionado ao carrinho.'), findsOneWidget);
+    });
+
+    testWidgets('shows why it could not add', (tester) async {
+      whenListen(
+        addToCart,
+        Stream<AddToCartState>.fromIterable([
+          AddToCartFailure(failure: OwnAdvertisementFailure()),
+        ]),
+        initialState: AddToCartIdle(),
+      );
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('Você não pode comprar um anúncio seu.'),
+        findsOneWidget,
+      );
+      verifyNever(() => cartBloc.add(any()));
+    });
   });
 }

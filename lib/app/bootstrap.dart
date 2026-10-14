@@ -6,6 +6,9 @@ import 'package:solado_certo_app/features/auth/data/repositories/api_auth_reposi
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
+import 'package:solado_certo_app/features/cart/data/repositories/api_cart_repository.dart';
+import 'package:solado_certo_app/features/cart/domain/repositories/cart_repository.dart';
+import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
 import 'package:solado_certo_app/features/catalog/data/repositories/api_catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
@@ -64,6 +67,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<SellerRepositoryInterface>(
     () => ApiSellerRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<CartRepositoryInterface>(
+    () => ApiCartRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -161,5 +167,17 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<ReorderAdImagesUseCase>(
     () => ReorderAdImagesUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetCartUseCase>(
+    () => GetCartUseCase(getIt<CartRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<AddToCartUseCase>(
+    () => AddToCartUseCase(getIt<CartRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ChangeCartItemQuantityUseCase>(
+    () => ChangeCartItemQuantityUseCase(getIt<CartRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RemoveCartItemUseCase>(
+    () => RemoveCartItemUseCase(getIt<CartRepositoryInterface>()),
   );
 }

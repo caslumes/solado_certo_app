@@ -7,6 +7,8 @@ import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_opti
 import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 
 class HomeShell extends StatefulWidget {
@@ -20,6 +22,7 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   static const _catalogIndex = 0;
+  static const _cartIndex = 1;
 
   int _selectedIndex = _catalogIndex;
 
@@ -30,7 +33,10 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
-    if (widget.isSignedIn) _recommendationsCubit.load();
+    if (widget.isSignedIn) {
+      _recommendationsCubit.load();
+      context.read<CartBloc>().add(LoadCartEvent());
+    }
   }
 
   @override
@@ -39,8 +45,11 @@ class _HomeShellState extends State<HomeShell> {
     if (widget.isSignedIn == oldWidget.isSignedIn) return;
     if (widget.isSignedIn) {
       _recommendationsCubit.load();
+      context.read<CartBloc>().add(LoadCartEvent());
     } else {
       _recommendationsCubit.hide();
+      context.read<CartBloc>().add(ClearCartEvent());
+      setState(() => _selectedIndex = _catalogIndex);
     }
   }
 
@@ -55,6 +64,8 @@ class _HomeShellState extends State<HomeShell> {
       Navigator.of(context).pushNamed(AuthRoutes.signIn);
       return;
     }
+    // Stock and prices may have changed since the cart was loaded.
+    if (index == _cartIndex) context.read<CartBloc>().add(LoadCartEvent());
     setState(() => _selectedIndex = index);
   }
 
@@ -75,7 +86,7 @@ class _HomeShellState extends State<HomeShell> {
           index: _selectedIndex,
           children: [
             HomePage(isSignedIn: widget.isSignedIn),
-            const _ComingSoonTab(title: 'Carrinho'),
+            const CartPage(),
             const _ComingSoonTab(title: 'Pedidos'),
           ],
         ),
@@ -95,8 +106,8 @@ class _HomeShellState extends State<HomeShell> {
                   : FontWeight.normal,
             ),
           ),
-          destinations: const [
-            NavigationDestination(
+          destinations: [
+            const NavigationDestination(
               icon: Icon(
                 Icons.storefront_outlined,
                 color: AppColors.tertiaryColor,
@@ -104,15 +115,18 @@ class _HomeShellState extends State<HomeShell> {
               selectedIcon: Icon(Icons.storefront, color: Colors.white),
               label: 'Catálogo',
             ),
-            NavigationDestination(
-              icon: Icon(
-                Icons.shopping_cart_outlined,
+            const NavigationDestination(
+              icon: _CartIcon(
+                icon: Icons.shopping_cart_outlined,
                 color: AppColors.tertiaryColor,
               ),
-              selectedIcon: Icon(Icons.shopping_cart, color: Colors.white),
+              selectedIcon: _CartIcon(
+                icon: Icons.shopping_cart,
+                color: Colors.white,
+              ),
               label: 'Carrinho',
             ),
-            NavigationDestination(
+            const NavigationDestination(
               icon: Icon(
                 Icons.receipt_long_outlined,
                 color: AppColors.tertiaryColor,
@@ -123,6 +137,30 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The cart icon with the number of units in the cart.
+class _CartIcon extends StatelessWidget {
+  const _CartIcon({required this.icon, required this.color});
+
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = context.select<CartBloc, int>(
+      (bloc) => switch (bloc.state) {
+        CartLoaded(:final cart) => cart.unitCount,
+        _ => 0,
+      },
+    );
+
+    return Badge(
+      isLabelVisible: count > 0,
+      label: Text(count > 99 ? '99+' : '$count'),
+      child: Icon(icon, color: color),
     );
   }
 }

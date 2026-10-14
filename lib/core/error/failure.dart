@@ -19,7 +19,7 @@ sealed class Failure {
         if (statusCode == 400) return InvalidInputFailure();
         if (statusCode == 403) return ForbiddenFailure();
         if (statusCode == 404) return NotFoundFailure();
-        if (statusCode == 409) return ConflictFailure();
+        if (statusCode == 409) return _conflict(error.response?.data);
         if (statusCode == 413) return FileTooLargeFailure();
         if (statusCode == 415) return UnsupportedFileTypeFailure();
         if (statusCode == 422) {
@@ -32,6 +32,16 @@ sealed class Failure {
   }
 
   String get message;
+}
+
+/// Some 409s carry an `error` code that says which conflict happened.
+Failure _conflict(Object? body) {
+  final error = body is Map ? body['error'] : null;
+  return switch (error) {
+    'out of stock' => OutOfStockFailure.fromBody(body),
+    'cannot buy your own advertisement' => OwnAdvertisementFailure(),
+    _ => ConflictFailure(),
+  };
 }
 
 final class NetworkFailure extends Failure {
@@ -122,6 +132,63 @@ final class AdOutdatedFailure extends Failure {
 final class TooManyPhotosFailure extends Failure {
   @override
   String get message => 'Um anúncio pode ter no máximo 6 fotos.';
+}
+
+/// A 409 when the buyer asks for more units than the ads have.
+final class OutOfStockFailure extends Failure {
+  const OutOfStockFailure(this.items);
+
+  factory OutOfStockFailure.fromBody(Object? body) {
+    final items = body is Map ? body['items'] : null;
+    return OutOfStockFailure([
+      if (items is List)
+        for (final item in items)
+          if (item is Map)
+            StockShortage(
+              advertisementId: item['advertisement_id'] as String,
+              requested: item['requested'] as int,
+              available: item['available'] as int,
+            ),
+    ]);
+  }
+
+  final List<StockShortage> items;
+
+  @override
+  String get message {
+    if (items.length == 1) {
+      final available = items.single.available;
+      return switch (available) {
+        0 => 'Este produto está esgotado.',
+        1 => 'Só há 1 unidade disponível.',
+        _ => 'Só há $available unidades disponíveis.',
+      };
+    }
+    return 'Alguns produtos não têm estoque suficiente.';
+  }
+}
+
+class StockShortage {
+  final String advertisementId;
+  final int requested;
+  final int available;
+
+  const StockShortage({
+    required this.advertisementId,
+    required this.requested,
+    required this.available,
+  });
+}
+
+/// A 404 on a cart item: the ad was removed or the item left the cart.
+final class ProductUnavailableFailure extends Failure {
+  @override
+  String get message => 'Este produto não está mais disponível.';
+}
+
+final class OwnAdvertisementFailure extends Failure {
+  @override
+  String get message => 'Você não pode comprar um anúncio seu.';
 }
 
 final class ServerFailure extends Failure {

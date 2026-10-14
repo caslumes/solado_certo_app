@@ -90,6 +90,71 @@ void main() {
     );
   });
 
+  group('409 bodies', () {
+    test('out of stock lists the items', () {
+      final failure = Failure.from(
+        buildDioException(
+          statusCode: 409,
+          data: {
+            'error': 'out of stock',
+            'items': [
+              {'advertisement_id': '601', 'requested': 3, 'available': 1},
+            ],
+          },
+        ),
+      );
+
+      expect(failure, isA<OutOfStockFailure>());
+      final items = (failure as OutOfStockFailure).items;
+      expect(items.single.advertisementId, '601');
+      expect(items.single.requested, 3);
+      expect(items.single.available, 1);
+      expect(failure.message, 'Só há 1 unidade disponível.');
+    });
+
+    test('out of stock messages', () {
+      StockShortage shortage(int available) => StockShortage(
+        advertisementId: '601',
+        requested: 5,
+        available: available,
+      );
+
+      expect(
+        OutOfStockFailure([shortage(0)]).message,
+        'Este produto está esgotado.',
+      );
+      expect(
+        OutOfStockFailure([shortage(3)]).message,
+        'Só há 3 unidades disponíveis.',
+      );
+      expect(
+        OutOfStockFailure([shortage(0), shortage(1)]).message,
+        'Alguns produtos não têm estoque suficiente.',
+      );
+    });
+
+    test('buying your own ad', () {
+      expect(
+        Failure.from(
+          buildDioException(
+            statusCode: 409,
+            data: {'error': 'cannot buy your own advertisement'},
+          ),
+        ),
+        isA<OwnAdvertisementFailure>(),
+      );
+    });
+
+    test('any other 409 is a conflict', () {
+      expect(
+        Failure.from(
+          buildDioException(statusCode: 409, data: {'error': 'something else'}),
+        ),
+        isA<ConflictFailure>(),
+      );
+    });
+  });
+
   test('a 422 without a field list has no fields', () {
     expect(
       Failure.from(buildDioException(statusCode: 422)),

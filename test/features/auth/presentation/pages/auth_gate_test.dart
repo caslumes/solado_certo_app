@@ -11,6 +11,7 @@ import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart'
 import 'package:solado_certo_app/features/auth/presentation/pages/auth_gate.dart';
 import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
+import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
@@ -34,8 +35,11 @@ void main() {
   late StreamController<AuthState> states;
 
   Future<void> pumpGate(WidgetTester tester) => tester.pumpWidget(
-    BlocProvider<AuthBloc>.value(
-      value: bloc,
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: bloc),
+        BlocProvider<CartBloc>.value(value: buildCartBloc()),
+      ],
       child: MaterialApp(home: const AuthGate(), routes: AuthRoutes.routes),
     ),
   );
