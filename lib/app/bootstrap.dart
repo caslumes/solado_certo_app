@@ -34,9 +34,12 @@ import 'package:solado_certo_app/features/profile/data/repositories/api_profile_
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 import 'package:solado_certo_app/features/seller/data/repositories/api_seller_repository.dart';
 import 'package:solado_certo_app/features/seller/domain/repositories/seller_repository.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/ad_images_use_cases.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_status_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/get_ad_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/get_my_ads_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/remove_ad_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/save_ad_use_case.dart';
 
 final getIt = GetIt.instance;
 
@@ -143,5 +146,20 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<RemoveAdUseCase>(
     () => RemoveAdUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAdUseCase>(
+    () => GetAdUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<SaveAdUseCase>(
+    () => SaveAdUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<AddAdImageUseCase>(
+    () => AddAdImageUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RemoveAdImageUseCase>(
+    () => RemoveAdImageUseCase(getIt<SellerRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ReorderAdImagesUseCase>(
+    () => ReorderAdImagesUseCase(getIt<SellerRepositoryInterface>()),
   );
 }

@@ -17,6 +17,8 @@ class ShoeTextFormField extends StatefulWidget {
     this.onChanged,
     this.readOnly = false,
     this.suffixIcon,
+    this.forceErrorText,
+    this.maxLines = 1,
   });
 
   final String? hintText;
@@ -32,6 +34,11 @@ class ShoeTextFormField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final bool readOnly;
   final Widget? suffixIcon;
+
+  /// An error shown regardless of [validator], e.g. a field the server
+  /// reported as missing.
+  final String? forceErrorText;
+  final int maxLines;
 
   @override
   State<ShoeTextFormField> createState() => _ShoeTextFormFieldState();
@@ -70,6 +77,9 @@ class _ShoeTextFormFieldState extends State<ShoeTextFormField> {
             onFieldSubmitted: widget.onFieldSubmitted,
             onChanged: widget.onChanged,
             readOnly: widget.readOnly,
+            forceErrorText: widget.forceErrorText,
+            maxLines: widget.maxLines,
+            minLines: 1,
             style: widget.readOnly
                 ? Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(

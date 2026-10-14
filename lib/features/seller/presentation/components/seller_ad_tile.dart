@@ -9,13 +9,14 @@ import 'package:solado_certo_app/features/seller/domain/enum/ad_status.dart';
 /// One of the seller's ads with its status chips and actions.
 ///
 /// Publishing and reactivating are offered only when no required field is
-/// missing, since the backend would refuse them (422).
+/// missing, since the backend would refuse them (422); editing fills them.
 class SellerAdTile extends StatelessWidget {
   const SellerAdTile({
     super.key,
     required this.ad,
     required this.isBusy,
     required this.isEnabled,
+    required this.onEdit,
     required this.onChangeStatus,
     required this.onRemove,
   });
@@ -23,6 +24,7 @@ class SellerAdTile extends StatelessWidget {
   final SellerAdEntity ad;
   final bool isBusy;
   final bool isEnabled;
+  final VoidCallback onEdit;
   final void Function(AdStatusAction action) onChangeStatus;
   final VoidCallback onRemove;
 
@@ -90,10 +92,16 @@ class SellerAdTile extends StatelessWidget {
                 : PopupMenuButton<_AdMenuItem>(
                     enabled: isEnabled,
                     tooltip: 'Ações do anúncio',
-                    onSelected: (item) => item == _AdMenuItem.remove
-                        ? onRemove()
-                        : onChangeStatus(action!),
+                    onSelected: (item) => switch (item) {
+                      _AdMenuItem.edit => onEdit(),
+                      _AdMenuItem.changeStatus => onChangeStatus(action!),
+                      _AdMenuItem.remove => onRemove(),
+                    },
                     itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: _AdMenuItem.edit,
+                        child: Text('Editar'),
+                      ),
                       if (canChangeStatus)
                         PopupMenuItem(
                           value: _AdMenuItem.changeStatus,
@@ -112,7 +120,7 @@ class SellerAdTile extends StatelessWidget {
   }
 }
 
-enum _AdMenuItem { changeStatus, remove }
+enum _AdMenuItem { edit, changeStatus, remove }
 
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.label, this.isWarning = false});

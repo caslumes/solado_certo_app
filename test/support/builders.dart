@@ -40,6 +40,7 @@ OnboardingDraft buildDraft({OnboardingStep step = OnboardingStep.welcome}) =>
 DioException buildDioException({
   int? statusCode,
   DioExceptionType type = DioExceptionType.badResponse,
+  Object? data,
 }) {
   final requestOptions = RequestOptions(path: '/test');
   return DioException(
@@ -47,7 +48,11 @@ DioException buildDioException({
     type: type,
     response: statusCode == null
         ? null
-        : Response(requestOptions: requestOptions, statusCode: statusCode),
+        : Response(
+            requestOptions: requestOptions,
+            statusCode: statusCode,
+            data: data,
+          ),
   );
 }
 

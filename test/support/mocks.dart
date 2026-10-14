@@ -26,9 +26,12 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_us
 import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/ad_images_use_cases.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_status_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/get_ad_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/get_my_ads_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/remove_ad_use_case.dart';
+import 'package:solado_certo_app/features/seller/domain/usecases/save_ad_use_case.dart';
 
 import 'builders.dart';
 
@@ -76,6 +79,17 @@ class MockGetMyAdsUseCase extends Mock implements GetMyAdsUseCase {}
 class MockChangeAdStatusUseCase extends Mock implements ChangeAdStatusUseCase {}
 
 class MockRemoveAdUseCase extends Mock implements RemoveAdUseCase {}
+
+class MockGetAdUseCase extends Mock implements GetAdUseCase {}
+
+class MockSaveAdUseCase extends Mock implements SaveAdUseCase {}
+
+class MockAddAdImageUseCase extends Mock implements AddAdImageUseCase {}
+
+class MockRemoveAdImageUseCase extends Mock implements RemoveAdImageUseCase {}
+
+class MockReorderAdImagesUseCase extends Mock
+    implements ReorderAdImagesUseCase {}
 
 class MockGetOnboardingUseCase extends Mock implements GetOnboardingUseCase {}
 

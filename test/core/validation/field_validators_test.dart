@@ -113,4 +113,36 @@ void main() {
       expect(validator('abc'), isNull);
     });
   });
+
+  group('decimal', () {
+    test('normalizes money typed in pt-BR or with a point', () {
+      expect(FieldValidators.parseDecimal('89,9'), '89.9');
+      expect(FieldValidators.parseDecimal(' 89.90 '), '89.90');
+      expect(FieldValidators.parseDecimal('1.234,56'), '1234.56');
+      expect(FieldValidators.parseDecimal('12'), '12');
+    });
+
+    test('rejects what the API would refuse', () {
+      expect(FieldValidators.parseDecimal('89,999'), isNull);
+      expect(FieldValidators.parseDecimal('-1'), isNull);
+      expect(FieldValidators.parseDecimal('abc'), isNull);
+      expect(FieldValidators.parseDecimal('123456789'), isNull);
+    });
+
+    test('lets an empty value pass', () {
+      expect(FieldValidators.decimal(''), isNull);
+      expect(FieldValidators.decimal('9,90'), isNull);
+      expect(FieldValidators.decimal('9,9,9'), isNotNull);
+    });
+  });
+
+  test('intRange accepts whole numbers inside the range', () {
+    final validator = FieldValidators.intRange(0, 90);
+    expect(validator('0'), isNull);
+    expect(validator('90'), isNull);
+    expect(validator('91'), isNotNull);
+    expect(validator('-1'), isNotNull);
+    expect(validator('1,5'), isNotNull);
+    expect(validator(''), isNotNull);
+  });
 }

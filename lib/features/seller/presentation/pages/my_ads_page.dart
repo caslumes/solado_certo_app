@@ -12,6 +12,7 @@ import 'package:solado_certo_app/features/seller/domain/usecases/get_my_ads_use_
 import 'package:solado_certo_app/features/seller/domain/usecases/remove_ad_use_case.dart';
 import 'package:solado_certo_app/features/seller/presentation/bloc/my_ads_bloc.dart';
 import 'package:solado_certo_app/features/seller/presentation/components/seller_ad_tile.dart';
+import 'package:solado_certo_app/features/seller/presentation/pages/ad_form_page.dart';
 
 /// The tabs, in order. Removed ads are not listed by the backend.
 const _tabs = [
@@ -21,7 +22,13 @@ const _tabs = [
 ];
 
 class MyAdsPage extends StatelessWidget {
-  const MyAdsPage({super.key});
+  const MyAdsPage({super.key, this.openForm});
+
+  /// Opens the ad form (new when the id is null); replaced in tests.
+  final Future<void> Function(BuildContext context, String? adId)? openForm;
+
+  static Future<void> _openForm(BuildContext context, String? adId) =>
+      Navigator.of(context).push(AdFormPage.route(adId: adId));
 
   static Route<void> route() {
     return MaterialPageRoute(
@@ -90,15 +97,31 @@ class MyAdsPage extends StatelessWidget {
                     state: state,
                     ads: state.withStatus(status),
                     emptyText: emptyText,
+                    onEdit: (adId) => _edit(context, adId),
                   ),
               ],
             ),
             MyAdsLoadFailure(:final failure) => _LoadError(failure: failure),
             MyAdsLoading() => const Center(child: CircularProgressIndicator()),
           },
+          floatingActionButton: state is MyAdsLoaded
+              ? FloatingActionButton.extended(
+                  onPressed: () => _edit(context, null),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Novo anúncio'),
+                )
+              : null,
         ),
       ),
     );
+  }
+
+  /// The list is reloaded on return, since the form may have saved,
+  /// published or changed photos.
+  Future<void> _edit(BuildContext context, String? adId) async {
+    final bloc = context.read<MyAdsBloc>();
+    await (openForm ?? _openForm)(context, adId);
+    if (!bloc.isClosed) bloc.add(LoadMyAdsEvent());
   }
 
   static String _failureMessage(Failure failure) => switch (failure) {
@@ -113,11 +136,13 @@ class _AdList extends StatelessWidget {
     required this.state,
     required this.ads,
     required this.emptyText,
+    required this.onEdit,
   });
 
   final MyAdsLoaded state;
   final List<SellerAdEntity> ads;
   final String emptyText;
+  final ValueChanged<String> onEdit;
 
   Future<void> _confirmRemove(BuildContext context, SellerAdEntity ad) async {
     final bloc = context.read<MyAdsBloc>();
@@ -183,6 +208,7 @@ class _AdList extends StatelessWidget {
                   ad: ad,
                   isBusy: state.busyAdId == ad.id,
                   isEnabled: state.busyAdId == null,
+                  onEdit: () => onEdit(ad.id),
                   onChangeStatus: (action) => bloc.add(
                     ChangeAdStatusEvent(adId: ad.id, action: action),
                   ),

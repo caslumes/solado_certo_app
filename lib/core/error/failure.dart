@@ -115,7 +115,13 @@ final class UnsupportedFileTypeFailure extends Failure {
 final class AdOutdatedFailure extends Failure {
   @override
   String get message =>
-      'Este anúncio foi alterado em outro lugar. A lista foi atualizada.';
+      'Este anúncio foi alterado em outro lugar. Confira e tente de novo.';
+}
+
+/// A 409 when adding a photo: the ad already has the maximum.
+final class TooManyPhotosFailure extends Failure {
+  @override
+  String get message => 'Um anúncio pode ter no máximo 6 fotos.';
 }
 
 final class ServerFailure extends Failure {

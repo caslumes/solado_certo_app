@@ -10,26 +10,13 @@ import 'package:solado_certo_app/features/catalog/domain/entities/product_detail
 import 'package:solado_certo_app/features/catalog/domain/entities/product_image.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
+import 'package:solado_certo_app/features/catalog/domain/enum/product_attributes.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/product_detail_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_safety_section.dart';
 
 final _rating = NumberFormat('0.0', appLocale);
-
-/// Labels for the `side` codes the backend stores.
-const _sideLabels = {
-  'both': 'Ambos os pés',
-  'left': 'Pé esquerdo',
-  'right': 'Pé direito',
-};
-
-/// Labels for the `rigidity` codes the backend stores.
-const _rigidityLabels = {
-  'flexible': 'Flexível',
-  'semi_rigid': 'Semirrígido',
-  'rigid': 'Rígido',
-};
 
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key});
@@ -343,10 +330,10 @@ class _Attributes extends StatelessWidget {
     final side = product.side;
     final rigidity = product.rigidity;
     final rows = <(String, String)>[
-      if (side != null) ('Lado', _sideLabels[side] ?? side),
+      if (side != null) ('Lado', sideLabels[side] ?? side),
       if (product.size != null) ('Tamanho', product.size!),
       if (product.material != null) ('Material', product.material!),
-      if (rigidity != null) ('Rigidez', _rigidityLabels[rigidity] ?? rigidity),
+      if (rigidity != null) ('Rigidez', rigidityLabels[rigidity] ?? rigidity),
     ];
     if (rows.isEmpty) return const SizedBox.shrink();
 

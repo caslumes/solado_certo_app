@@ -19,6 +19,7 @@ class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 void main() {
   late MockMyAdsBloc bloc;
   late MockAuthBloc authBloc;
+  late List<String?> openedForms;
 
   final ads = [
     buildSellerAd(id: '601', title: 'Palmilha esportiva'),
@@ -39,7 +40,7 @@ void main() {
           BlocProvider<AuthBloc>.value(value: authBloc),
           BlocProvider<MyAdsBloc>.value(value: bloc),
         ],
-        child: const MyAdsPage(),
+        child: MyAdsPage(openForm: (_, adId) async => openedForms.add(adId)),
       ),
     ),
   );
@@ -63,10 +64,12 @@ void main() {
   });
 
   setUp(() {
+    openedForms = [];
     bloc = MockMyAdsBloc();
     authBloc = MockAuthBloc();
     when(() => authBloc.state).thenReturn(AuthUnauthenticated());
     when(() => bloc.state).thenReturn(MyAdsLoaded(ads: ads));
+    when(() => bloc.isClosed).thenReturn(false);
   });
 
   testWidgets('counts the ads per tab and lists the published ones', (
@@ -214,6 +217,27 @@ void main() {
 
     await tap(tester, find.text('TENTAR NOVAMENTE'));
 
+    verify(() => bloc.add(any(that: isA<LoadMyAdsEvent>()))).called(1);
+  });
+
+  testWidgets('opens the form for a new ad and reloads on return', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    await tap(tester, find.text('Novo anúncio'));
+
+    expect(openedForms, [null]);
+    verify(() => bloc.add(any(that: isA<LoadMyAdsEvent>()))).called(1);
+  });
+
+  testWidgets('opens the form to edit an ad', (tester) async {
+    await pumpPage(tester);
+
+    await openMenu(tester, 'Palmilha esportiva');
+    await tap(tester, find.text('Editar'));
+
+    expect(openedForms, ['601']);
     verify(() => bloc.add(any(that: isA<LoadMyAdsEvent>()))).called(1);
   });
 }

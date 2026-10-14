@@ -98,4 +98,19 @@ void main() {
     expect(category.children.single.name, 'Sob medida');
     expect(leaf.children, isEmpty);
   });
+
+  test('CategoryModel reads the required attributes (RF-031)', () {
+    final category = CategoryModel.fromJson({
+      'id': '303',
+      'name': 'Meias terapêuticas',
+      'required_attributes': ['size', 'material'],
+    }).toEntity();
+    final old = CategoryModel.fromJson({
+      'id': '302',
+      'name': 'Calçados ortopédicos',
+    }).toEntity();
+
+    expect(category.requiredAttributes, ['size', 'material']);
+    expect(old.requiredAttributes, isEmpty);
+  });
 }
