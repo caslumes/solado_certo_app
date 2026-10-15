@@ -20,6 +20,10 @@ import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
+import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
@@ -169,3 +173,22 @@ class MockPreviewCheckoutUseCase extends Mock
 class MockCheckoutUseCase extends Mock implements CheckoutUseCase {}
 
 class MockAddAddressUseCase extends Mock implements AddAddressUseCase {}
+
+class MockOrderRepository extends Mock implements OrderRepositoryInterface {}
+
+class MockGetOrdersUseCase extends Mock implements GetOrdersUseCase {}
+
+class MockGetOrderUseCase extends Mock implements GetOrderUseCase {}
+
+class MockCancelOrderUseCase extends Mock implements CancelOrderUseCase {}
+
+/// The home shell creates the Pedidos tab's bloc through getIt.
+MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
+  final useCase = MockGetOrdersUseCase();
+  when(() => useCase.execute(any())).thenAnswer(
+    (_) async =>
+        OrdersPageEntity(items: orders, currentPage: 1, hasNext: false),
+  );
+  getIt.registerSingleton<GetOrdersUseCase>(useCase);
+  return useCase;
+}

@@ -12,6 +12,7 @@ import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
@@ -272,20 +273,45 @@ OrderEntity buildOrder({
   String id = 'o1',
   String number = 'SC-20261014-ABC123',
   String seller = 's1',
+  OrderStatus status = OrderStatus.awaitingPayment,
+  List<OrderItemEntity>? items,
 }) => OrderEntity(
   id: id,
   number: number,
-  status: OrderStatus.awaitingPayment,
+  status: status,
   sellerId: seller,
   sellerName: 'Loja $seller',
   address: shippingAddress,
-  items: [buildOrderItem()],
+  items: items ?? [buildOrderItem()],
   subtotal: 89.9,
   shippingTotal: 19.9,
   discountTotal: 0,
   total: 109.8,
-  createdAt: DateTime.utc(2026, 10, 14, 12),
+  createdAt: DateTime(2026, 10, 14, 9, 5),
 );
+
+/// An order awaiting payment, or cancelled by the buyer when [cancelled].
+OrderDetailEntity buildOrderDetail({bool cancelled = false}) =>
+    OrderDetailEntity(
+      order: buildOrder(
+        status: cancelled ? OrderStatus.cancelled : OrderStatus.awaitingPayment,
+      ),
+      history: [
+        OrderStatusChangeEntity(
+          to: OrderStatus.awaitingPayment,
+          reason: 'checkout',
+          createdAt: DateTime(2026, 10, 14, 9, 5),
+        ),
+        if (cancelled)
+          OrderStatusChangeEntity(
+            from: OrderStatus.awaitingPayment,
+            to: OrderStatus.cancelled,
+            reason: 'buyer_cancelled',
+            createdAt: DateTime(2026, 10, 14, 10, 30),
+          ),
+      ],
+      canCancel: !cancelled,
+    );
 
 CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {
   final created = orders ?? [buildOrder()];

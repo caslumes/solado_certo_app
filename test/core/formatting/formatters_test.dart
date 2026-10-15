@@ -13,4 +13,12 @@ void main() {
   test('formats month and year in Portuguese', () {
     expect(formatMonthYear(DateTime(2026, 10, 12)), 'outubro de 2026');
   });
+
+  test('formats dates and times in the device time zone', () {
+    final date = DateTime(2026, 10, 4, 9, 5);
+
+    expect(formatDate(date), '04/10/2026');
+    expect(formatDateTime(date), '04/10/2026 às 09:05');
+    expect(formatDate(date.toUtc()), '04/10/2026');
+  });
 }

@@ -56,6 +56,7 @@ void main() {
     whenListen(bloc, states.stream, initialState: AuthInitial());
     registerCatalogFilterOptions();
     registerRecommendedItems();
+    registerOrders();
   });
 
   tearDown(() => states.close());

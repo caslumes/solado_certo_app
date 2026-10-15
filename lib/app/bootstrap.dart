@@ -19,6 +19,9 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_it
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboarding_repository.dart';
+import 'package:solado_certo_app/features/orders/data/repositories/api_order_repository.dart';
+import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
+import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
@@ -76,6 +79,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<CheckoutRepositoryInterface>(
     () => ApiCheckoutRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<OrderRepositoryInterface>(
+    () => ApiOrderRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -191,5 +197,14 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<CheckoutUseCase>(
     () => CheckoutUseCase(getIt<CheckoutRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetOrdersUseCase>(
+    () => GetOrdersUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetOrderUseCase>(
+    () => GetOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CancelOrderUseCase>(
+    () => CancelOrderUseCase(getIt<OrderRepositoryInterface>()),
   );
 }

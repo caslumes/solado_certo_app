@@ -14,6 +14,7 @@ import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 
@@ -26,6 +27,7 @@ void main() {
   late MockAuthBloc bloc;
   late MockGetRecommendedItemsUseCase recommendations;
   late MockCartBloc cartBloc;
+  late MockGetOrdersUseCase orders;
 
   Future<void> pumpShell(WidgetTester tester, {required bool isSignedIn}) =>
       tester.pumpWidget(
@@ -56,6 +58,7 @@ void main() {
     when(() => bloc.state).thenReturn(AuthUnauthenticated());
     registerCatalogFilterOptions();
     recommendations = registerRecommendedItems();
+    orders = registerOrders();
     cartBloc = buildCartBloc();
     registerFallbackValue(LoadCartEvent());
   });
@@ -111,7 +114,21 @@ void main() {
 
     await selectTab(tester, 'Pedidos');
 
-    expect(find.text('Em breve'), findsOneWidget);
+    expect(find.byType(MyOrdersPage), findsOneWidget);
+    expect(find.text('Você ainda não fez pedidos'), findsOneWidget);
+  });
+
+  testWidgets('loads the orders every time their tab is opened', (
+    tester,
+  ) async {
+    await pumpShell(tester, isSignedIn: true);
+    verifyNever(() => orders.execute(any()));
+
+    await selectTab(tester, 'Pedidos');
+    await selectTab(tester, 'Catálogo');
+    await selectTab(tester, 'Pedidos');
+
+    verify(() => orders.execute(1)).called(2);
   });
 
   testWidgets('loads the cart when signed in and again on its tab', (
@@ -224,5 +241,6 @@ void main() {
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       2,
     );
+    verify(() => orders.execute(1)).called(1);
   });
 }

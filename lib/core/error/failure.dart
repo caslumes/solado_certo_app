@@ -45,6 +45,7 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'cannot buy your own advertisement' => OwnAdvertisementFailure(),
   'prices changed' => PricesChangedFailure(),
   'cart changed' => CartChangedFailure(),
+  'invalid status transition' => OrderStatusChangedFailure(),
   _ => ConflictFailure(),
 };
 
@@ -212,6 +213,14 @@ final class PricesChangedFailure extends Failure {
 final class CartChangedFailure extends Failure {
   @override
   String get message => 'Seu carrinho mudou. Confira os itens.';
+}
+
+/// A 409 on an order action: its status changed and the action no longer
+/// applies, e.g. cancelling an order that was already paid.
+final class OrderStatusChangedFailure extends Failure {
+  @override
+  String get message =>
+      'A situação deste pedido mudou. Confira e tente de novo.';
 }
 
 /// A 422 at checkout: these items have no valid shipping option chosen.

@@ -11,6 +11,9 @@ import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart'
 import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
+import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.isSignedIn});
@@ -30,6 +33,9 @@ class _HomeShellState extends State<HomeShell> {
 
   late final _recommendationsCubit = RecommendationsCubit(
     getRecommendedItemsUseCase: getIt<GetRecommendedItemsUseCase>(),
+  );
+  late final _ordersBloc = OrdersBloc(
+    getOrdersUseCase: getIt<GetOrdersUseCase>(),
   );
 
   @override
@@ -51,6 +57,7 @@ class _HomeShellState extends State<HomeShell> {
     } else {
       _recommendationsCubit.hide();
       context.read<CartBloc>().add(ClearCartEvent());
+      _ordersBloc.add(ClearOrdersEvent());
       setState(() => _selectedIndex = _catalogIndex);
     }
   }
@@ -58,6 +65,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void dispose() {
     _recommendationsCubit.close();
+    _ordersBloc.close();
     super.dispose();
   }
 
@@ -66,8 +74,9 @@ class _HomeShellState extends State<HomeShell> {
       Navigator.of(context).pushNamed(AuthRoutes.signIn);
       return;
     }
-    // Stock and prices may have changed since the cart was loaded.
+    // Stock, prices and order statuses may have changed since last time.
     if (index == _cartIndex) context.read<CartBloc>().add(LoadCartEvent());
+    if (index == _ordersIndex) _ordersBloc.add(LoadOrdersEvent());
     setState(() => _selectedIndex = index);
   }
 
@@ -77,7 +86,7 @@ class _HomeShellState extends State<HomeShell> {
     Navigator.of(context).push(
       CheckoutPage.route(
         cart: state.cart,
-        onViewOrders: () => setState(() => _selectedIndex = _ordersIndex),
+        onViewOrders: () => _onDestinationSelected(_ordersIndex),
         onKeepShopping: () => setState(() => _selectedIndex = _catalogIndex),
       ),
     );
@@ -94,6 +103,7 @@ class _HomeShellState extends State<HomeShell> {
           )..load(),
         ),
         BlocProvider.value(value: _recommendationsCubit),
+        BlocProvider.value(value: _ordersBloc),
       ],
       child: Scaffold(
         body: IndexedStack(
@@ -101,7 +111,7 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             HomePage(isSignedIn: widget.isSignedIn),
             CartPage(onCheckout: _openCheckout),
-            const _ComingSoonTab(title: 'Pedidos'),
+            const MyOrdersPage(),
           ],
         ),
         bottomNavigationBar: NavigationBar(
@@ -175,28 +185,6 @@ class _CartIcon extends StatelessWidget {
       isLabelVisible: count > 0,
       label: Text(count > 99 ? '99+' : '$count'),
       child: Icon(icon, color: color),
-    );
-  }
-}
-
-class _ComingSoonTab extends StatelessWidget {
-  const _ComingSoonTab({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8.0,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            Text('Em breve', style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-      ),
     );
   }
 }

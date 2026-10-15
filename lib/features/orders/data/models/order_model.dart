@@ -1,5 +1,6 @@
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 
 OrderEntity orderFromJson(Map<String, dynamic> json) => OrderEntity(
@@ -47,4 +48,32 @@ ShippingAddressEntity shippingAddressFromJson(Map<String, dynamic> json) =>
       district: json['district'] as String,
       city: json['city'] as String,
       state: json['state'] as String,
+    );
+
+OrdersPageEntity ordersPageFromJson(Map<String, dynamic> json) =>
+    OrdersPageEntity(
+      items: [
+        for (final order in json['items'] as List? ?? const [])
+          orderFromJson(order),
+      ],
+      currentPage: json['current_page'] as int,
+      hasNext: json['has_next'] as bool,
+    );
+
+OrderDetailEntity orderDetailFromJson(Map<String, dynamic> json) =>
+    OrderDetailEntity(
+      order: orderFromJson(json),
+      history: [
+        for (final change in json['history'] as List? ?? const [])
+          OrderStatusChangeEntity(
+            from: switch (change['from']) {
+              final String from => OrderStatus.fromApi(from),
+              _ => null,
+            },
+            to: OrderStatus.fromApi(change['to'] as String),
+            reason: change['reason'] as String?,
+            createdAt: DateTime.parse(change['created_at'] as String),
+          ),
+      ],
+      canCancel: json['can_cancel'] as bool? ?? false,
     );

@@ -200,4 +200,16 @@ void main() {
       expect(from(404, {'error': 'order not found'}), isA<NotFoundFailure>());
     });
   });
+
+  test('409 invalid status transition on an order', () {
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 409,
+          data: {'error': 'invalid status transition'},
+        ),
+      ),
+      isA<OrderStatusChangedFailure>(),
+    );
+  });
 }

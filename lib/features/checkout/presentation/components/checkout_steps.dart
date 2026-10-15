@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
-import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
 import 'package:solado_certo_app/features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/amount_row.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 
 /// Step 1: where the orders go.
@@ -124,7 +125,7 @@ class CheckoutShippingStep extends StatelessWidget {
           ],
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: _AmountRow(
+            child: AmountRow(
               label: 'Frete deste vendedor',
               value: state.shippingFor(group),
             ),
@@ -166,15 +167,15 @@ class CheckoutReviewStep extends StatelessWidget {
           _PlannedOrderCard(order: order),
           const SizedBox(height: 12),
         ],
-        _AmountRow(label: 'Subtotal', value: plan.subtotal),
-        _AmountRow(label: 'Frete', value: plan.shippingTotal),
-        _AmountRow(
+        AmountRow(label: 'Subtotal', value: plan.subtotal),
+        AmountRow(label: 'Frete', value: plan.shippingTotal),
+        AmountRow(
           label: 'Desconto',
           value: plan.discountTotal,
           isDiscount: true,
         ),
         const Divider(),
-        _AmountRow(label: 'Total', value: plan.total, emphasized: true),
+        AmountRow(label: 'Total', value: plan.total, emphasized: true),
         const SizedBox(height: 8),
         Text(
           'O pagamento é feito depois de confirmar o pedido.',
@@ -207,15 +208,15 @@ class _PlannedOrderCard extends StatelessWidget {
             Text('Pedido de ${order.sellerName}', style: textTheme.bodyMedium),
             for (final item in order.items) _ItemLine(item: item),
             const Divider(),
-            _AmountRow(label: 'Subtotal', value: order.subtotal),
-            _AmountRow(label: 'Frete', value: order.shippingTotal),
+            AmountRow(label: 'Subtotal', value: order.subtotal),
+            AmountRow(label: 'Frete', value: order.shippingTotal),
             if (order.discountTotal > 0)
-              _AmountRow(
+              AmountRow(
                 label: 'Desconto',
                 value: order.discountTotal,
                 isDiscount: true,
               ),
-            _AmountRow(label: 'Total do pedido', value: order.total),
+            AmountRow(label: 'Total do pedido', value: order.total),
           ],
         ),
       ),
@@ -252,39 +253,6 @@ class _ItemLine extends StatelessWidget {
           ),
         ),
         Text(formatCurrency(item.subtotal), style: textTheme.bodyLarge),
-      ],
-    );
-  }
-}
-
-class _AmountRow extends StatelessWidget {
-  const _AmountRow({
-    required this.label,
-    required this.value,
-    this.emphasized = false,
-    this.isDiscount = false,
-  });
-
-  final String label;
-  final double value;
-  final bool emphasized;
-  final bool isDiscount;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final style = emphasized ? textTheme.bodyMedium : textTheme.bodyLarge;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: style),
-        Text(
-          isDiscount && value > 0
-              ? '- ${formatCurrency(value)}'
-              : formatCurrency(value),
-          style: style,
-        ),
       ],
     );
   }
@@ -357,13 +325,7 @@ class CheckoutWarning extends StatelessWidget {
   }
 }
 
-String shippingOptionName(ShippingOptionEntity option) =>
-    option.carrier == null ? option.name : '${option.name} (${option.carrier})';
-
-String deliveryTime(int days) =>
-    days == 1 ? 'Até 1 dia útil' : 'Até $days dias úteis';
-
-String formatAddress(AddressEntity address) => _address(
+String formatAddress(AddressEntity address) => formatAddressLines(
   street: address.street,
   number: address.number,
   complement: address.complement,
@@ -372,31 +334,3 @@ String formatAddress(AddressEntity address) => _address(
   state: address.state,
   zipCode: address.zipCode,
 );
-
-String formatShippingAddress(ShippingAddressEntity address) => _address(
-  street: address.street,
-  number: address.number,
-  complement: address.complement,
-  district: address.district,
-  city: address.city,
-  state: address.state,
-  zipCode: address.zipCode,
-);
-
-String _address({
-  required String street,
-  required String number,
-  required String? complement,
-  required String district,
-  required String city,
-  required String state,
-  required String zipCode,
-}) {
-  final cep = zipCode.length == 8
-      ? '${zipCode.substring(0, 5)}-${zipCode.substring(5)}'
-      : zipCode;
-  final line = complement == null
-      ? '$street, $number'
-      : '$street, $number, $complement';
-  return '$line\n$district, $city - $state\nCEP $cep';
-}
