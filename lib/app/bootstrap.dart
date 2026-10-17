@@ -22,6 +22,9 @@ import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboa
 import 'package:solado_certo_app/features/orders/data/repositories/api_order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
+import 'package:solado_certo_app/features/payments/data/repositories/api_payment_repository.dart';
+import 'package:solado_certo_app/features/payments/domain/repositories/payment_repository.dart';
+import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
@@ -82,6 +85,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<OrderRepositoryInterface>(
     () => ApiOrderRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<PaymentRepositoryInterface>(
+    () => ApiPaymentRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -206,5 +212,11 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<CancelOrderUseCase>(
     () => CancelOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CreatePaymentUseCase>(
+    () => CreatePaymentUseCase(getIt<PaymentRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetPaymentsUseCase>(
+    () => GetPaymentsUseCase(getIt<PaymentRepositoryInterface>()),
   );
 }

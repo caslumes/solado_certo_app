@@ -145,4 +145,62 @@ void main() {
     expect(validator('1,5'), isNotNull);
     expect(validator(''), isNotNull);
   });
+
+  group('cpf', () {
+    test('accepts valid CPFs with or without the mask', () {
+      expect(FieldValidators.cpf('529.982.247-25'), isNull);
+      expect(FieldValidators.cpf(' 11144477735 '), isNull);
+    });
+
+    test('rejects empty values, wrong check digits and repeated digits', () {
+      expect(FieldValidators.cpf(''), 'Informe seu CPF');
+      expect(FieldValidators.cpf('529.982.247-24'), 'CPF inválido');
+      expect(FieldValidators.cpf('5299822472'), 'CPF inválido');
+      expect(FieldValidators.cpf('111.111.111-11'), 'CPF inválido');
+      expect(FieldValidators.cpf('529a982b247c25'), 'CPF inválido');
+    });
+  });
+
+  group('card', () {
+    test('number needs 13 to 19 digits, spaces allowed', () {
+      expect(FieldValidators.cardNumber('4444 4444 4444 4444'), isNull);
+      expect(FieldValidators.cardNumber(''), 'Informe o número do cartão');
+      expect(FieldValidators.cardNumber('4444'), 'Número de cartão inválido');
+      expect(
+        FieldValidators.cardNumber('4444-4444-4444-4444'),
+        'Número de cartão inválido',
+      );
+    });
+
+    test('reads the expiry as MM/AA or MM/AAAA', () {
+      expect(FieldValidators.parseCardExpiry('5/30'), (
+        month: '05',
+        year: '2030',
+      ));
+      expect(FieldValidators.parseCardExpiry('12 / 2031'), (
+        month: '12',
+        year: '2031',
+      ));
+      expect(FieldValidators.parseCardExpiry('13/30'), isNull);
+      expect(FieldValidators.parseCardExpiry('0530'), isNull);
+    });
+
+    test('a card is valid until the end of its expiry month', () {
+      final validator = FieldValidators.cardExpiry(
+        () => DateTime(2026, 10, 15),
+      );
+      expect(validator('10/26'), isNull);
+      expect(validator('01/27'), isNull);
+      expect(validator('09/26'), 'Cartão vencido');
+      expect(validator('1026'), 'Use o formato MM/AA');
+      expect(validator(''), 'Informe a validade');
+    });
+
+    test('CVV has 3 or 4 digits', () {
+      expect(FieldValidators.cvv('123'), isNull);
+      expect(FieldValidators.cvv('1234'), isNull);
+      expect(FieldValidators.cvv('12'), 'CVV inválido');
+      expect(FieldValidators.cvv(''), 'Informe o CVV');
+    });
+  });
 }

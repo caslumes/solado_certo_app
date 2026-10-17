@@ -233,7 +233,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('CONFIRMAR PEDIDO'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('VER MEUS PEDIDOS'));
+    await tester.tap(find.text('Ver meus pedidos'));
     await tester.pumpAndSettle();
 
     expect(find.byType(CheckoutPage), findsNothing);

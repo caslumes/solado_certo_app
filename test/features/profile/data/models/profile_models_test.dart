@@ -17,12 +17,26 @@ void main() {
         'email': 'maria@example.com',
         'phone': '19999999999',
         'avatar_url': 'https://example.com/a.png',
+        'has_tax_id': true,
       }).toEntity();
 
       expect(entity.name, 'Maria Souza');
+      expect(entity.hasTaxId, isTrue);
+      expect(entity.copyWith(name: 'Maria S.').hasTaxId, isTrue);
       expect(entity.email, 'maria@example.com');
       expect(entity.phone, '19999999999');
       expect(entity.avatarUrl, 'https://example.com/a.png');
+    });
+
+    test('a profile without has_tax_id has no CPF', () {
+      final entity = ProfileModel.fromJson({
+        'name': 'Maria Souza',
+        'email': 'maria@example.com',
+        'phone': '19999999999',
+        'avatar_url': '',
+      }).toEntity();
+
+      expect(entity.hasTaxId, isFalse);
     });
 
     test('rejects a payload with a missing required field', () {

@@ -24,6 +24,7 @@ import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
+import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
@@ -192,3 +193,7 @@ MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
   getIt.registerSingleton<GetOrdersUseCase>(useCase);
   return useCase;
 }
+
+class MockCreatePaymentUseCase extends Mock implements CreatePaymentUseCase {}
+
+class MockGetPaymentsUseCase extends Mock implements GetPaymentsUseCase {}

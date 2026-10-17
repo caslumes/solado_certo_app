@@ -14,6 +14,9 @@ import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
+import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
+import 'package:solado_certo_app/features/payments/domain/enum/payment_status.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
@@ -275,6 +278,7 @@ OrderEntity buildOrder({
   String seller = 's1',
   OrderStatus status = OrderStatus.awaitingPayment,
   List<OrderItemEntity>? items,
+  double subtotal = 89.9,
 }) => OrderEntity(
   id: id,
   number: number,
@@ -283,35 +287,49 @@ OrderEntity buildOrder({
   sellerName: 'Loja $seller',
   address: shippingAddress,
   items: items ?? [buildOrderItem()],
-  subtotal: 89.9,
+  subtotal: subtotal,
   shippingTotal: 19.9,
   discountTotal: 0,
   total: 109.8,
   createdAt: DateTime(2026, 10, 14, 9, 5),
 );
 
-/// An order awaiting payment, or cancelled by the buyer when [cancelled].
-OrderDetailEntity buildOrderDetail({bool cancelled = false}) =>
-    OrderDetailEntity(
-      order: buildOrder(
-        status: cancelled ? OrderStatus.cancelled : OrderStatus.awaitingPayment,
+/// An order awaiting payment, cancelled by the buyer when [cancelled] or
+/// paid when [paid].
+OrderDetailEntity buildOrderDetail({
+  bool cancelled = false,
+  bool paid = false,
+}) => OrderDetailEntity(
+  order: buildOrder(
+    status: cancelled
+        ? OrderStatus.cancelled
+        : paid
+        ? OrderStatus.paid
+        : OrderStatus.awaitingPayment,
+  ),
+  history: [
+    OrderStatusChangeEntity(
+      to: OrderStatus.awaitingPayment,
+      reason: 'checkout',
+      createdAt: DateTime(2026, 10, 14, 9, 5),
+    ),
+    if (cancelled)
+      OrderStatusChangeEntity(
+        from: OrderStatus.awaitingPayment,
+        to: OrderStatus.cancelled,
+        reason: 'buyer_cancelled',
+        createdAt: DateTime(2026, 10, 14, 10, 30),
       ),
-      history: [
-        OrderStatusChangeEntity(
-          to: OrderStatus.awaitingPayment,
-          reason: 'checkout',
-          createdAt: DateTime(2026, 10, 14, 9, 5),
-        ),
-        if (cancelled)
-          OrderStatusChangeEntity(
-            from: OrderStatus.awaitingPayment,
-            to: OrderStatus.cancelled,
-            reason: 'buyer_cancelled',
-            createdAt: DateTime(2026, 10, 14, 10, 30),
-          ),
-      ],
-      canCancel: !cancelled,
-    );
+    if (paid)
+      OrderStatusChangeEntity(
+        from: OrderStatus.awaitingPayment,
+        to: OrderStatus.paid,
+        reason: 'payment_captured',
+        createdAt: DateTime(2026, 10, 15, 10, 0),
+      ),
+  ],
+  canCancel: !cancelled && !paid,
+);
 
 CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {
   final created = orders ?? [buildOrder()];
@@ -321,3 +339,38 @@ CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {
     total: created.fold(0.0, (total, order) => total + order.total),
   );
 }
+
+/// A payment of [buildOrder]'s o1: a pending Pix with its code by default.
+PaymentEntity buildPayment({
+  String id = 'p1',
+  PaymentMethod method = PaymentMethod.pix,
+  PaymentStatus status = PaymentStatus.pending,
+  double? amount,
+  String? failureReason,
+  String? failureMessage,
+}) => PaymentEntity(
+  id: id,
+  orderId: 'o1',
+  method: method,
+  status: status,
+  amount: amount ?? (method == PaymentMethod.pix ? 105.3 : 109.8),
+  dueDate: method == PaymentMethod.creditCard ? null : DateTime(2026, 10, 17),
+  failureReason: failureReason,
+  failureMessage: failureMessage,
+  pix: method == PaymentMethod.pix
+      ? PixChargeEntity(
+          payload: '00020101021226820014br.gov.bcb.pix',
+          expiresAt: DateTime(2026, 10, 17, 23, 59),
+        )
+      : null,
+  boletoUrl: method == PaymentMethod.boleto
+      ? 'https://sandbox.asaas.com/b/pdf/1'
+      : null,
+  card: method == PaymentMethod.creditCard
+      ? const CardSummaryEntity(last4: '4444', brand: 'MASTERCARD')
+      : null,
+  capturedAt: status == PaymentStatus.captured
+      ? DateTime(2026, 10, 15, 10, 0)
+      : null,
+  createdAt: DateTime(2026, 10, 15, 9, 30),
+);

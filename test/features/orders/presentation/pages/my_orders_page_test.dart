@@ -13,6 +13,7 @@ import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
+import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -173,9 +174,12 @@ void main() {
     when(
       () => cancelOrder.execute('o1'),
     ).thenAnswer((_) async => buildOrderDetail(cancelled: true));
+    final getPayments = MockGetPaymentsUseCase();
+    when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
     getIt
       ..registerSingleton<GetOrderUseCase>(getOrder)
-      ..registerSingleton<CancelOrderUseCase>(cancelOrder);
+      ..registerSingleton<CancelOrderUseCase>(cancelOrder)
+      ..registerSingleton<GetPaymentsUseCase>(getPayments);
     addTearDown(getIt.reset);
     when(() => getOrders.execute(1)).thenAnswer(
       (_) async => OrdersPageEntity(
@@ -190,7 +194,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(OrderDetailPage), findsOneWidget);
 
-    await tester.tap(find.text('CANCELAR PEDIDO'));
+    await tester.tap(find.text('Cancelar pedido'));
     await tester.pumpAndSettle();
     await tester.tap(
       find.descendant(

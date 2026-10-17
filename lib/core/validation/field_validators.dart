@@ -91,6 +91,80 @@ abstract final class FieldValidators {
     return states.contains(state) ? null : 'UF inválida';
   }
 
+  static String digits(String value) => value.replaceAll(RegExp(r'\D'), '');
+
+  /// Accepts a CPF with or without punctuation and checks its two check
+  /// digits.
+  static String? cpf(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return 'Informe seu CPF';
+    final cpf = digits(text);
+    if (!RegExp(r'^[\d.\s-]+$').hasMatch(text) ||
+        cpf.length != 11 ||
+        RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) {
+      return 'CPF inválido';
+    }
+
+    int checkDigit(int length) {
+      var sum = 0;
+      for (var i = 0; i < length; i++) {
+        sum += int.parse(cpf[i]) * (length + 1 - i);
+      }
+      final rest = sum * 10 % 11;
+      return rest == 10 ? 0 : rest;
+    }
+
+    return checkDigit(9) == int.parse(cpf[9]) &&
+            checkDigit(10) == int.parse(cpf[10])
+        ? null
+        : 'CPF inválido';
+  }
+
+  static String? cardNumber(String? value) {
+    final number = (value ?? '').replaceAll(' ', '');
+    if (number.isEmpty) return 'Informe o número do cartão';
+    return RegExp(r'^\d{13,19}$').hasMatch(number)
+        ? null
+        : 'Número de cartão inválido';
+  }
+
+  /// Reads an expiry typed as `MM/AA` or `MM/AAAA` into a two-digit month and
+  /// a four-digit year, or returns null.
+  static ({String month, String year})? parseCardExpiry(String value) {
+    final match = RegExp(
+      r'^(\d{1,2})\s*/\s*(\d{2}|\d{4})$',
+    ).firstMatch(value.trim());
+    if (match == null) return null;
+    final month = int.parse(match.group(1)!);
+    if (month < 1 || month > 12) return null;
+    final year = match.group(2)!;
+    return (
+      month: month.toString().padLeft(2, '0'),
+      year: year.length == 2 ? '20$year' : year,
+    );
+  }
+
+  /// A card is valid until the end of its expiry month.
+  static FieldValidator cardExpiry([DateTime Function() now = DateTime.now]) =>
+      (value) {
+        final text = value?.trim() ?? '';
+        if (text.isEmpty) return 'Informe a validade';
+        final expiry = parseCardExpiry(text);
+        if (expiry == null) return 'Use o formato MM/AA';
+        final today = now();
+        final year = int.parse(expiry.year);
+        final month = int.parse(expiry.month);
+        return year < today.year || (year == today.year && month < today.month)
+            ? 'Cartão vencido'
+            : null;
+      };
+
+  static String? cvv(String? value) {
+    final cvv = value?.trim() ?? '';
+    if (cvv.isEmpty) return 'Informe o CVV';
+    return RegExp(r'^\d{3,4}$').hasMatch(cvv) ? null : 'CVV inválido';
+  }
+
   static String? password(String? value) {
     final length = utf8.encode(value ?? '').length;
     if (length < 8) return 'A senha deve ter pelo menos 8 caracteres';

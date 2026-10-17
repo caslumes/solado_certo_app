@@ -2,33 +2,56 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
+import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
+import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 
 class OrderDetailCubit extends Cubit<OrderDetailState> {
   final GetOrderUseCase _getOrderUseCase;
   final CancelOrderUseCase _cancelOrderUseCase;
+  final GetPaymentsUseCase _getPaymentsUseCase;
   final String orderId;
 
   OrderDetailCubit({
     required GetOrderUseCase getOrderUseCase,
     required CancelOrderUseCase cancelOrderUseCase,
+    required GetPaymentsUseCase getPaymentsUseCase,
     required this.orderId,
   }) : _getOrderUseCase = getOrderUseCase,
        _cancelOrderUseCase = cancelOrderUseCase,
+       _getPaymentsUseCase = getPaymentsUseCase,
        super(OrderDetailLoading());
 
-  /// A refresh keeps the order on screen, even when it fails.
+  /// A refresh keeps the order on screen, even when it fails. The payments
+  /// are loaded first: checking a pending one may mark the order paid.
+  /// Without them the order is still shown.
   Future<void> load() async {
     final current = state;
     if (current is! OrderDetailLoaded) emit(OrderDetailLoading());
+    List<PaymentEntity>? payments;
+    try {
+      payments = await _getPaymentsUseCase.execute(orderId);
+    } catch (_) {}
     try {
       final detail = await _getOrderUseCase.execute(orderId);
-      if (!isClosed) emit(OrderDetailLoaded(detail: detail));
+      if (isClosed) return;
+      emit(
+        OrderDetailLoaded(
+          detail: detail,
+          payments:
+              payments ??
+              (current is OrderDetailLoaded ? current.payments : const []),
+        ),
+      );
     } catch (e) {
       if (isClosed) return;
       final failure = Failure.from(e);
       emit(
         current is OrderDetailLoaded
-            ? OrderDetailLoaded(detail: current.detail, failure: failure)
+            ? OrderDetailLoaded(
+                detail: current.detail,
+                payments: current.payments,
+                failure: failure,
+              )
             : OrderDetailLoadFailure(failure: failure),
       );
     }
@@ -40,11 +63,23 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     final current = state;
     if (current is! OrderDetailLoaded || current.cancelling) return;
 
-    emit(OrderDetailLoaded(detail: current.detail, cancelling: true));
+    emit(
+      OrderDetailLoaded(
+        detail: current.detail,
+        payments: current.payments,
+        cancelling: true,
+      ),
+    );
     try {
       final detail = await _cancelOrderUseCase.execute(orderId);
       if (isClosed) return;
-      emit(OrderDetailLoaded(detail: detail, notice: 'Pedido cancelado.'));
+      emit(
+        OrderDetailLoaded(
+          detail: detail,
+          payments: current.payments,
+          notice: 'Pedido cancelado.',
+        ),
+      );
     } catch (e) {
       final failure = Failure.from(e);
       var detail = current.detail;
@@ -53,7 +88,14 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
           detail = await _getOrderUseCase.execute(orderId);
         } catch (_) {}
       }
-      if (!isClosed) emit(OrderDetailLoaded(detail: detail, failure: failure));
+      if (isClosed) return;
+      emit(
+        OrderDetailLoaded(
+          detail: detail,
+          payments: current.payments,
+          failure: failure,
+        ),
+      );
     }
   }
 }
@@ -70,12 +112,16 @@ class OrderDetailLoadFailure extends OrderDetailState {
 
 class OrderDetailLoaded extends OrderDetailState {
   final OrderDetailEntity detail;
+
+  /// The order's payment attempts, newest first.
+  final List<PaymentEntity> payments;
   final bool cancelling;
   final Failure? failure;
   final String? notice;
 
   OrderDetailLoaded({
     required this.detail,
+    this.payments = const [],
     this.cancelling = false,
     this.failure,
     this.notice,

@@ -212,4 +212,37 @@ void main() {
       isA<OrderStatusChangedFailure>(),
     );
   });
+
+  test('maps payment errors by their code', () {
+    Failure fromBody(int status, String error) => Failure.from(
+      buildDioException(statusCode: status, data: {'error': error}),
+    );
+
+    expect(
+      fromBody(409, 'order payment window expired'),
+      isA<PaymentExpiredFailure>(),
+    );
+    expect(
+      fromBody(409, 'another payment of this order is in progress'),
+      isA<PaymentInProgressFailure>(),
+    );
+    expect(
+      fromBody(409, 'tax id already registered'),
+      isA<TaxIdInUseFailure>(),
+    );
+    expect(
+      fromBody(
+        409,
+        'invalid status transition: only an order awaiting payment can be '
+        'paid, this one is paid',
+      ),
+      isA<OrderStatusChangedFailure>(),
+    );
+    expect(fromBody(422, 'tax id required'), isA<TaxIdRequiredFailure>());
+    expect(
+      fromBody(503, 'payment gateway unavailable'),
+      isA<GatewayUnavailableFailure>(),
+    );
+    expect(fromBody(503, 'other'), isA<ServerFailure>());
+  });
 }

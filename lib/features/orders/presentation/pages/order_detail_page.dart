@@ -15,9 +15,12 @@ import 'package:solado_certo_app/features/orders/presentation/bloc/order_detail_
 import 'package:solado_certo_app/features/orders/presentation/components/amount_row.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
+import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
+import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
+import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
 
-/// One order with its items, address, totals and status history (RF-019).
-/// The buyer can cancel it while it awaits payment.
+/// One order with its items, address, totals, payments and status history
+/// (RF-019). The buyer can pay or cancel it while it awaits payment.
 class OrderDetailPage extends StatelessWidget {
   const OrderDetailPage({super.key, this.onChanged});
 
@@ -34,11 +37,18 @@ class OrderDetailPage extends StatelessWidget {
         create: (_) => OrderDetailCubit(
           getOrderUseCase: getIt<GetOrderUseCase>(),
           cancelOrderUseCase: getIt<CancelOrderUseCase>(),
+          getPaymentsUseCase: getIt<GetPaymentsUseCase>(),
           orderId: orderId,
         )..load(),
         child: OrderDetailPage(onChanged: onChanged),
       ),
     );
+  }
+
+  Future<void> _pay(BuildContext context, OrderEntity order) async {
+    final cubit = context.read<OrderDetailCubit>();
+    await Navigator.of(context).push(PaymentPage.route(order));
+    cubit.load();
   }
 
   Future<void> _confirmCancel(BuildContext context) async {
@@ -94,7 +104,10 @@ class OrderDetailPage extends StatelessWidget {
           title: Text('Pedido'.toUpperCase(), style: textTheme.bodyMedium),
         ),
         body: switch (state) {
-          OrderDetailLoaded(:final detail) => _Detail(detail: detail),
+          OrderDetailLoaded(:final detail, :final payments) => _Detail(
+            detail: detail,
+            payments: payments,
+          ),
           OrderDetailLoadFailure(:final failure) => _LoadError(
             failure: failure,
           ),
@@ -104,14 +117,31 @@ class OrderDetailPage extends StatelessWidget {
         },
         bottomNavigationBar: switch (state) {
           OrderDetailLoaded(:final detail, :final cancelling)
-              when detail.canCancel =>
+              when detail.order.status == OrderStatus.awaitingPayment ||
+                  detail.canCancel =>
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: ShoeTextButton(
-                  isLoading: cancelling,
-                  onPressed: () => _confirmCancel(context),
-                  text: 'Cancelar pedido',
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: 8.0,
+                  children: [
+                    if (detail.order.status == OrderStatus.awaitingPayment)
+                      ShoeTextButton(
+                        onPressed: cancelling
+                            ? null
+                            : () => _pay(context, detail.order),
+                        text: 'Pagar',
+                      ),
+                    if (detail.canCancel)
+                      TextButton(
+                        onPressed: cancelling
+                            ? null
+                            : () => _confirmCancel(context),
+                        child: const Text('Cancelar pedido'),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -128,9 +158,10 @@ class OrderDetailPage extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.detail});
+  const _Detail({required this.detail, required this.payments});
 
   final OrderDetailEntity detail;
+  final List<PaymentEntity> payments;
 
   @override
   Widget build(BuildContext context) {
@@ -182,6 +213,11 @@ class _Detail extends StatelessWidget {
           ),
           const Divider(),
           AmountRow(label: 'Total', value: order.total, emphasized: true),
+          if (payments.isNotEmpty) ...[
+            const Divider(height: 32),
+            Text('Pagamento', style: textTheme.bodyMedium),
+            for (final payment in payments) _PaymentRow(payment: payment),
+          ],
           const Divider(height: 32),
           Text('Histórico', style: textTheme.bodyMedium),
           const SizedBox(height: 8),
@@ -234,6 +270,45 @@ class _ItemRow extends StatelessWidget {
             ),
           ),
           Text(formatCurrency(item.subtotal), style: textTheme.bodyLarge),
+        ],
+      ),
+    );
+  }
+}
+
+/// One payment attempt: method, status and amount.
+class _PaymentRow extends StatelessWidget {
+  const _PaymentRow({required this.payment});
+
+  final PaymentEntity payment;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final method = switch (payment.card) {
+      final card? => '${payment.method.label} final ${card.last4}',
+      null => payment.method.label,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(method, style: textTheme.bodyLarge),
+                Text(
+                  '${payment.statusLabel} · '
+                  '${formatDateTime(payment.capturedAt ?? payment.createdAt)}',
+                  style: textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          Text(formatCurrency(payment.amount), style: textTheme.bodyLarge),
         ],
       ),
     );

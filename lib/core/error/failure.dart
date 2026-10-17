@@ -23,6 +23,10 @@ sealed class Failure {
         if (statusCode == 413) return FileTooLargeFailure();
         if (statusCode == 415) return UnsupportedFileTypeFailure();
         if (statusCode == 422) return _unprocessable(error.response?.data);
+        if (statusCode == 503 &&
+            _errorCode(error.response?.data) == 'payment gateway unavailable') {
+          return GatewayUnavailableFailure();
+        }
         return ServerFailure(statusCode);
       default:
         return UnexpectedFailure(error);
@@ -45,13 +49,19 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'cannot buy your own advertisement' => OwnAdvertisementFailure(),
   'prices changed' => PricesChangedFailure(),
   'cart changed' => CartChangedFailure(),
-  'invalid status transition' => OrderStatusChangedFailure(),
+  'order payment window expired' => PaymentExpiredFailure(),
+  'another payment of this order is in progress' => PaymentInProgressFailure(),
+  'tax id already registered' => TaxIdInUseFailure(),
+  // Payments add why the transition was refused after a colon.
+  final String code when code.startsWith('invalid status transition') =>
+    OrderStatusChangedFailure(),
   _ => ConflictFailure(),
 };
 
 Failure _unprocessable(Object? body) => switch (_errorCode(body)) {
   'shipping option required' => ShippingRequiredFailure.fromBody(body),
   'cart is empty' => EmptyCartFailure(),
+  'tax id required' => TaxIdRequiredFailure(),
   _ => MissingFieldsFailure.fromBody(body),
 };
 
@@ -251,6 +261,37 @@ final class EmptyCartFailure extends Failure {
 final class AddressNotFoundFailure extends Failure {
   @override
   String get message => 'Este endereço não está mais disponível.';
+}
+
+/// A 409 on a payment: the order's payment window ended and it was or will
+/// be cancelled.
+final class PaymentExpiredFailure extends Failure {
+  @override
+  String get message => 'O prazo para pagar este pedido terminou.';
+}
+
+/// A 409 on a payment: another attempt for this order is being created.
+final class PaymentInProgressFailure extends Failure {
+  @override
+  String get message => 'Já há um pagamento deste pedido em andamento.';
+}
+
+final class TaxIdInUseFailure extends Failure {
+  @override
+  String get message => 'Este CPF já está cadastrado em outra conta.';
+}
+
+/// A 422 on a payment: the gateway needs the buyer's CPF.
+final class TaxIdRequiredFailure extends Failure {
+  @override
+  String get message => 'Informe seu CPF para pagar.';
+}
+
+/// A 503 on a payment: the gateway didn't answer (RNF-023).
+final class GatewayUnavailableFailure extends Failure {
+  @override
+  String get message =>
+      'O serviço de pagamento está indisponível no momento. Tente novamente.';
 }
 
 final class ServerFailure extends Failure {

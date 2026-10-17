@@ -35,6 +35,8 @@ class OrderStatusChangeEntity {
   String? get reasonLabel => switch (reason) {
     'checkout' => 'Pedido criado',
     'buyer_cancelled' => 'Cancelado por você',
+    'payment_captured' => 'Pagamento aprovado',
+    'payment_expired' => 'Prazo de pagamento encerrado',
     _ => null,
   };
 }

@@ -11,6 +11,7 @@ import '../../../../support/mocks.dart';
 void main() {
   late MockGetOrderUseCase getOrder;
   late MockCancelOrderUseCase cancelOrder;
+  late MockGetPaymentsUseCase getPayments;
 
   final open = buildOrderDetail();
   final cancelled = buildOrderDetail(cancelled: true);
@@ -18,12 +19,15 @@ void main() {
   OrderDetailCubit buildCubit() => OrderDetailCubit(
     getOrderUseCase: getOrder,
     cancelOrderUseCase: cancelOrder,
+    getPaymentsUseCase: getPayments,
     orderId: 'o1',
   );
 
   setUp(() {
     getOrder = MockGetOrderUseCase();
     cancelOrder = MockCancelOrderUseCase();
+    getPayments = MockGetPaymentsUseCase();
+    when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
   });
 
   group('load', () {
@@ -36,6 +40,48 @@ void main() {
       expect: () => [
         isA<OrderDetailLoading>(),
         isA<OrderDetailLoaded>().having((s) => s.detail, 'detail', open),
+      ],
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'loads the payments before the order, which they may have paid',
+      setUp: () {
+        when(
+          () => getPayments.execute('o1'),
+        ).thenAnswer((_) async => [buildPayment()]);
+        when(() => getOrder.execute('o1')).thenAnswer((_) async => open);
+      },
+      build: buildCubit,
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        isA<OrderDetailLoading>(),
+        isA<OrderDetailLoaded>().having(
+          (s) => s.payments.single.id,
+          'payment',
+          'p1',
+        ),
+      ],
+      verify: (_) => verifyInOrder([
+        () => getPayments.execute('o1'),
+        () => getOrder.execute('o1'),
+      ]),
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'shows the order when its payments fail to load, keeping the last ones',
+      setUp: () {
+        when(
+          () => getPayments.execute('o1'),
+        ).thenThrow(buildDioException(statusCode: 500));
+        when(() => getOrder.execute('o1')).thenAnswer((_) async => open);
+      },
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: open, payments: [buildPayment()]),
+      act: (cubit) => cubit.load(),
+      expect: () => [
+        isA<OrderDetailLoaded>()
+            .having((s) => s.payments.single.id, 'payment', 'p1')
+            .having((s) => s.failure, 'failure', isNull),
       ],
     );
 

@@ -161,7 +161,9 @@ void main() {
     expect(find.text('Pedido SC-20261014-BBBBBB'), findsOneWidget);
     expect(find.text('Loja s1 · Aguardando pagamento'), findsOneWidget);
 
-    await tapButton(tester, 'Ver meus pedidos');
+    expect(find.text('PAGAR PEDIDO 1 DE 2'), findsOneWidget);
+    await tester.tap(find.text('Ver meus pedidos'));
+    await tester.pumpAndSettle();
     expect(viewedOrders, isTrue);
     expect(find.text('Carrinho de teste'), findsOneWidget);
   });
@@ -309,7 +311,55 @@ void main() {
     );
 
     expect(find.text('Seu pedido foi criado!'), findsOneWidget);
+    expect(find.text('PAGAR AGORA'), findsOneWidget);
     expect(find.text('VER MEUS PEDIDOS'), findsNothing);
     expect(find.text('Continuar comprando'), findsOneWidget);
+  });
+
+  testWidgets("the confirmation pays each seller's order in turn", (
+    tester,
+  ) async {
+    final paying = <(String, String?)>[];
+    var paid = true;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OrderConfirmationPage(
+          result: buildCheckoutResult(
+            orders: [
+              buildOrder(id: 'o1', number: 'SC-20261014-AAAAAA'),
+              buildOrder(id: 'o2', number: 'SC-20261014-BBBBBB', seller: 's2'),
+            ],
+          ),
+          onViewOrders: () {},
+          pay: (_, order, position) async {
+            paying.add((order.id, position));
+            return paid;
+          },
+        ),
+      ),
+    );
+    expect(
+      find.text(
+        'Cada vendedor recebe um pagamento separado. Os produtos ficam '
+        'reservados até o pagamento, que você pode fazer agora ou depois, '
+        'pela tela de cada pedido.',
+      ),
+      findsOneWidget,
+    );
+
+    await tapButton(tester, 'Pagar pedido 1 de 2');
+    expect(find.text('Loja s1 · Pago'), findsOneWidget);
+    expect(find.text('Loja s2 · Aguardando pagamento'), findsOneWidget);
+
+    paid = false;
+    await tapButton(tester, 'Pagar pedido 2 de 2');
+    expect(find.text('Loja s2 · Aguardando pagamento'), findsOneWidget);
+
+    paid = true;
+    await tapButton(tester, 'Pagar pedido 2 de 2');
+    expect(find.text('Loja s2 · Pago'), findsOneWidget);
+    expect(find.textContaining('PAGAR PEDIDO'), findsNothing);
+    expect(find.text('VER MEUS PEDIDOS'), findsOneWidget);
+    expect(paying, [('o1', '1 de 2'), ('o2', '2 de 2'), ('o2', '2 de 2')]);
   });
 }
