@@ -43,6 +43,9 @@ PaymentEntity paymentFromJson(Map<String, dynamic> json) {
             brand: card['brand'] as String,
           ),
     capturedAt: _date(json['captured_at']),
+    refundRequestedAt: _date(json['refund_requested_at']),
+    refundUrl: json['refund_url'] as String?,
+    refundedAt: _date(json['refunded_at']),
     createdAt: DateTime.parse(json['created_at'] as String),
   );
 }

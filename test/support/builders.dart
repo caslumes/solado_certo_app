@@ -328,7 +328,7 @@ OrderDetailEntity buildOrderDetail({
         createdAt: DateTime(2026, 10, 15, 10, 0),
       ),
   ],
-  canCancel: !cancelled && !paid,
+  canCancel: !cancelled,
 );
 
 CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {
@@ -348,6 +348,8 @@ PaymentEntity buildPayment({
   double? amount,
   String? failureReason,
   String? failureMessage,
+  DateTime? refundRequestedAt,
+  String? refundUrl,
 }) => PaymentEntity(
   id: id,
   orderId: 'o1',
@@ -372,5 +374,7 @@ PaymentEntity buildPayment({
   capturedAt: status == PaymentStatus.captured
       ? DateTime(2026, 10, 15, 10, 0)
       : null,
+  refundRequestedAt: refundRequestedAt,
+  refundUrl: refundUrl,
   createdAt: DateTime(2026, 10, 15, 9, 30),
 );

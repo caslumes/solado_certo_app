@@ -62,7 +62,7 @@ void main() {
       expect(payment.pix?.expiresAt, DateTime.utc(2026, 10, 18, 2, 59, 59));
       expect(payment.invoiceUrl, 'https://sandbox.asaas.com/i/1');
       expect(payment.card, isNull);
-      expect(payment.statusLabel, 'Aguardando pagamento');
+      expect(payment.statusLabel(), 'Aguardando pagamento');
     });
 
     test('reads a refused card with the gateway message', () {
@@ -74,7 +74,44 @@ void main() {
       expect(payment.card?.last4, '3151');
       expect(payment.dueDate, isNull);
       expect(payment.pix, isNull);
-      expect(payment.statusLabel, 'Cartão recusado');
+      expect(payment.statusLabel(), 'Cartão recusado');
+    });
+
+    test('reads a boleto refund waiting for the bank account', () {
+      final payment = paymentFromJson({
+        ...pixJson(),
+        'method': 'boleto',
+        'status': 'captured',
+        'pix': null,
+        'captured_at': '2026-10-15T13:00:00Z',
+        'refund_requested_at': '2026-10-16T12:00:00Z',
+        'refund_url': 'https://sandbox.asaas.com/r/1',
+      });
+
+      expect(payment.refundRequestedAt, DateTime.utc(2026, 10, 16, 12));
+      expect(payment.refundUrl, 'https://sandbox.asaas.com/r/1');
+      expect(payment.awaitsRefundAccount, isTrue);
+      expect(payment.statusLabel(), 'Estorno solicitado');
+    });
+
+    test('labels the refund of a cancelled order before it is asked for', () {
+      final payment = paymentFromJson({
+        ...pixJson(),
+        'status': 'captured',
+        'captured_at': '2026-10-15T13:00:00Z',
+      });
+
+      expect(payment.statusLabel(), 'Aprovado');
+      expect(payment.statusLabel(orderCancelled: true), 'Estorno solicitado');
+      expect(payment.awaitsRefundAccount, isFalse);
+
+      final refunded = paymentFromJson({
+        ...pixJson(),
+        'status': 'refunded',
+        'refunded_at': '2026-10-16T12:00:00Z',
+      });
+      expect(refunded.refundedAt, DateTime.utc(2026, 10, 16, 12));
+      expect(refunded.statusLabel(orderCancelled: true), 'Estornado');
     });
 
     test('rejects unknown methods and statuses', () {

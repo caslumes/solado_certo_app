@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/order_detail_cubit.dart';
+import 'package:solado_certo_app/features/payments/domain/enum/payment_status.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -137,6 +138,72 @@ void main() {
             .having((s) => s.cancelling, 'cancelling', false)
             .having((s) => s.detail, 'detail', cancelled)
             .having((s) => s.notice, 'notice', 'Pedido cancelado.'),
+      ],
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'cancels a paid order and shows its refund',
+      setUp: () {
+        when(
+          () => cancelOrder.execute('o1'),
+        ).thenAnswer((_) async => cancelled);
+        when(() => getPayments.execute('o1')).thenAnswer(
+          (_) async => [
+            buildPayment(
+              status: PaymentStatus.captured,
+              refundRequestedAt: DateTime(2026, 10, 16),
+            ),
+          ],
+        );
+      },
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(
+        detail: buildOrderDetail(paid: true),
+        payments: [buildPayment(status: PaymentStatus.captured)],
+      ),
+      act: (cubit) => cubit.cancel(),
+      skip: 1,
+      expect: () => [
+        isA<OrderDetailLoaded>()
+            .having((s) => s.detail, 'detail', cancelled)
+            .having(
+              (s) => s.payments.single.refundRequestedAt,
+              'refund requested',
+              isNotNull,
+            )
+            .having(
+              (s) => s.notice,
+              'notice',
+              'Pedido cancelado. O valor pago será estornado.',
+            ),
+      ],
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'keeps the payments shown when they fail to reload after cancelling',
+      setUp: () {
+        when(
+          () => cancelOrder.execute('o1'),
+        ).thenAnswer((_) async => cancelled);
+        when(
+          () => getPayments.execute('o1'),
+        ).thenThrow(buildDioException(statusCode: 500));
+      },
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(
+        detail: buildOrderDetail(paid: true),
+        payments: [buildPayment(status: PaymentStatus.captured)],
+      ),
+      act: (cubit) => cubit.cancel(),
+      skip: 1,
+      expect: () => [
+        isA<OrderDetailLoaded>()
+            .having(
+              (s) => s.payments.single.status,
+              'payment',
+              PaymentStatus.captured,
+            )
+            .having((s) => s.failure, 'failure', isNull),
       ],
     );
 

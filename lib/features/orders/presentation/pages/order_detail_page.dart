@@ -18,15 +18,28 @@ import 'package:solado_certo_app/features/orders/presentation/components/order_t
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// One order with its items, address, totals, payments and status history
-/// (RF-019). The buyer can pay or cancel it while it awaits payment.
+/// (RF-019). The buyer can pay it while it awaits payment, and cancel it until
+/// the seller starts preparing it (a paid order is refunded).
 class OrderDetailPage extends StatelessWidget {
-  const OrderDetailPage({super.key, this.onChanged});
+  const OrderDetailPage({
+    super.key,
+    this.onChanged,
+    this.openUrl = _openExternally,
+  });
 
   /// Receives the order every time it is loaded or changed here, so the
   /// list shows the same status.
   final ValueChanged<OrderEntity>? onChanged;
+
+  /// Opens the page where the buyer gives a bank account for a boleto's
+  /// refund.
+  final Future<bool> Function(Uri url) openUrl;
+
+  static Future<bool> _openExternally(Uri url) =>
+      launchUrl(url, mode: LaunchMode.externalApplication);
 
   static Route<void> route(
     String orderId, {
@@ -51,7 +64,7 @@ class OrderDetailPage extends StatelessWidget {
     cubit.load();
   }
 
-  Future<void> _confirmCancel(BuildContext context) async {
+  Future<void> _confirmCancel(BuildContext context, OrderEntity order) async {
     final cubit = context.read<OrderDetailCubit>();
     final textTheme = Theme.of(context).textTheme;
     final confirmed = await showDialog<bool>(
@@ -59,8 +72,12 @@ class OrderDetailPage extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Text('Cancelar pedido?', style: textTheme.bodyMedium),
         content: Text(
-          'Os produtos voltam a ficar à venda e o pedido não poderá ser '
-          'retomado.',
+          order.status == OrderStatus.paid
+              ? 'O valor pago será estornado na mesma forma de pagamento. Os '
+                    'produtos voltam a ficar à venda e o pedido não poderá ser '
+                    'retomado.'
+              : 'Os produtos voltam a ficar à venda e o pedido não poderá ser '
+                    'retomado.',
           style: textTheme.bodySmall,
         ),
         actions: [
@@ -107,6 +124,7 @@ class OrderDetailPage extends StatelessWidget {
           OrderDetailLoaded(:final detail, :final payments) => _Detail(
             detail: detail,
             payments: payments,
+            openUrl: openUrl,
           ),
           OrderDetailLoadFailure(:final failure) => _LoadError(
             failure: failure,
@@ -138,7 +156,7 @@ class OrderDetailPage extends StatelessWidget {
                       TextButton(
                         onPressed: cancelling
                             ? null
-                            : () => _confirmCancel(context),
+                            : () => _confirmCancel(context, detail.order),
                         child: const Text('Cancelar pedido'),
                       ),
                   ],
@@ -158,10 +176,15 @@ class OrderDetailPage extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.detail, required this.payments});
+  const _Detail({
+    required this.detail,
+    required this.payments,
+    required this.openUrl,
+  });
 
   final OrderDetailEntity detail;
   final List<PaymentEntity> payments;
+  final Future<bool> Function(Uri url) openUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +239,12 @@ class _Detail extends StatelessWidget {
           if (payments.isNotEmpty) ...[
             const Divider(height: 32),
             Text('Pagamento', style: textTheme.bodyMedium),
-            for (final payment in payments) _PaymentRow(payment: payment),
+            for (final payment in payments)
+              _PaymentRow(
+                payment: payment,
+                orderCancelled: order.status == OrderStatus.cancelled,
+                openUrl: openUrl,
+              ),
           ],
           const Divider(height: 32),
           Text('Histórico', style: textTheme.bodyMedium),
@@ -276,11 +304,30 @@ class _ItemRow extends StatelessWidget {
   }
 }
 
-/// One payment attempt: method, status and amount.
+/// One payment attempt: method, status and amount. A boleto being refunded
+/// asks for the bank account that receives the money.
 class _PaymentRow extends StatelessWidget {
-  const _PaymentRow({required this.payment});
+  const _PaymentRow({
+    required this.payment,
+    required this.orderCancelled,
+    required this.openUrl,
+  });
 
   final PaymentEntity payment;
+  final bool orderCancelled;
+  final Future<bool> Function(Uri url) openUrl;
+
+  Future<void> _openRefund(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final opened = await openUrl(Uri.parse(url));
+    if (!opened) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Não foi possível abrir a página.')),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,10 +348,24 @@ class _PaymentRow extends StatelessWidget {
               children: [
                 Text(method, style: textTheme.bodyLarge),
                 Text(
-                  '${payment.statusLabel} · '
+                  '${payment.statusLabel(orderCancelled: orderCancelled)} · '
                   '${formatDateTime(payment.capturedAt ?? payment.createdAt)}',
                   style: textTheme.bodySmall,
                 ),
+                if (payment.refundUrl case final url?
+                    when payment.awaitsRefundAccount) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Para estornar um boleto, informe a conta bancária que '
+                    'vai receber o valor.',
+                    style: textTheme.bodySmall,
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                    onPressed: () => _openRefund(context, url),
+                    child: const Text('Informar conta para estorno'),
+                  ),
+                ],
               ],
             ),
           ),

@@ -31,7 +31,10 @@ void main() {
   late MockAuthBloc authBloc;
   late List<OrderEntity> changes;
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    Future<bool> Function(Uri url)? openUrl,
+  }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -46,7 +49,9 @@ void main() {
               getPaymentsUseCase: getPayments,
               orderId: 'o1',
             )..load(),
-            child: OrderDetailPage(onChanged: changes.add),
+            child: openUrl == null
+                ? OrderDetailPage(onChanged: changes.add)
+                : OrderDetailPage(onChanged: changes.add, openUrl: openUrl),
           ),
         ),
       ),
@@ -149,7 +154,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('PAGAR'), findsNothing);
-    expect(cancelButton, findsNothing);
+    expect(cancelButton, findsOneWidget);
   });
 
   testWidgets('cancels after confirming', (tester) async {
@@ -169,6 +174,90 @@ void main() {
     );
     expect(cancelButton, findsNothing);
     expect(changes.last.status, OrderStatus.cancelled);
+  });
+
+  testWidgets('cancels a paid order and shows its refund', (tester) async {
+    when(
+      () => getOrder.execute('o1'),
+    ).thenAnswer((_) async => buildOrderDetail(paid: true));
+    when(
+      () => getPayments.execute('o1'),
+    ).thenAnswer((_) async => [buildPayment(status: PaymentStatus.captured)]);
+    when(
+      () => cancelOrder.execute('o1'),
+    ).thenAnswer((_) async => buildOrderDetail(cancelled: true));
+    await pumpPage(tester);
+    expect(find.text('Aprovado · 15/10/2026 às 10:00'), findsOneWidget);
+
+    await tester.tap(cancelButton);
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('O valor pago será estornado na mesma forma'),
+      findsOneWidget,
+    );
+    when(() => getPayments.execute('o1')).thenAnswer(
+      (_) async => [
+        buildPayment(
+          status: PaymentStatus.captured,
+          refundRequestedAt: DateTime(2026, 10, 16, 8, 0),
+        ),
+      ],
+    );
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancelar pedido'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Pedido cancelado. O valor pago será estornado.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Estorno solicitado · 15/10/2026 às 10:00'),
+      findsOneWidget,
+    );
+    expect(find.text('Informar conta para estorno'), findsNothing);
+  });
+
+  testWidgets('asks for the bank account of a boleto refund', (tester) async {
+    final opened = <Uri>[];
+    var canOpen = true;
+    when(
+      () => getOrder.execute('o1'),
+    ).thenAnswer((_) async => buildOrderDetail(cancelled: true));
+    when(() => getPayments.execute('o1')).thenAnswer(
+      (_) async => [
+        buildPayment(
+          method: PaymentMethod.boleto,
+          status: PaymentStatus.captured,
+          refundRequestedAt: DateTime(2026, 10, 16, 8, 0),
+          refundUrl: 'https://sandbox.asaas.com/r/1',
+        ),
+      ],
+    );
+    await pumpPage(
+      tester,
+      openUrl: (url) async {
+        opened.add(url);
+        return canOpen;
+      },
+    );
+
+    expect(
+      find.text('Estorno solicitado · 15/10/2026 às 10:00'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Informar conta para estorno'));
+    await tester.pumpAndSettle();
+    expect(opened, [Uri.parse('https://sandbox.asaas.com/r/1')]);
+
+    canOpen = false;
+    await tester.tap(find.text('Informar conta para estorno'));
+    await tester.pumpAndSettle();
+    expect(find.text('Não foi possível abrir a página.'), findsOneWidget);
   });
 
   testWidgets('keeps the order when the buyer gives up', (tester) async {

@@ -23,6 +23,14 @@ class PaymentEntity {
   final String? invoiceUrl;
   final CardSummaryEntity? card;
   final DateTime? capturedAt;
+
+  /// Set once the money was asked back, after the buyer cancelled a paid
+  /// order; the status stays captured until the gateway returns it.
+  final DateTime? refundRequestedAt;
+
+  /// Where the buyer gives the bank account to get a boleto refunded.
+  final String? refundUrl;
+  final DateTime? refundedAt;
   final DateTime createdAt;
 
   const PaymentEntity({
@@ -39,15 +47,34 @@ class PaymentEntity {
     this.invoiceUrl,
     this.card,
     this.capturedAt,
+    this.refundRequestedAt,
+    this.refundUrl,
+    this.refundedAt,
     required this.createdAt,
   });
 
-  /// The status as the buyer reads it, with the reason of a failure.
-  String get statusLabel => switch ((status, failureReason)) {
-    (PaymentStatus.failed, 'card_refused') => 'Cartão recusado',
-    (PaymentStatus.failed, 'overdue') => 'Vencido',
-    _ => status.label,
-  };
+  /// Whether the money is on its way back: asked for, or still to be asked
+  /// for when [orderCancelled] (the gateway was out when the buyer
+  /// cancelled; the backend tries again).
+  bool refundPending({required bool orderCancelled}) =>
+      status == PaymentStatus.captured &&
+      (refundRequestedAt != null || orderCancelled);
+
+  /// A boleto's refund waits for the buyer's bank account, given at
+  /// [refundUrl].
+  bool get awaitsRefundAccount =>
+      status == PaymentStatus.captured && refundUrl != null;
+
+  /// The status as the buyer reads it, with the reason of a failure or the
+  /// refund on its way.
+  String statusLabel({bool orderCancelled = false}) =>
+      switch ((status, failureReason)) {
+        _ when refundPending(orderCancelled: orderCancelled) =>
+          'Estorno solicitado',
+        (PaymentStatus.failed, 'card_refused') => 'Cartão recusado',
+        (PaymentStatus.failed, 'overdue') => 'Vencido',
+        _ => status.label,
+      };
 }
 
 class PixChargeEntity {
