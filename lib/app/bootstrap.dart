@@ -18,6 +18,9 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_fi
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
+import 'package:solado_certo_app/features/notifications/data/repositories/api_notification_repository.dart';
+import 'package:solado_certo_app/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/data/repositories/api_onboarding_repository.dart';
 import 'package:solado_certo_app/features/orders/data/repositories/api_order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
@@ -88,6 +91,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<PaymentRepositoryInterface>(
     () => ApiPaymentRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<NotificationRepositoryInterface>(
+    () => ApiNotificationRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -218,5 +224,16 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GetPaymentsUseCase>(
     () => GetPaymentsUseCase(getIt<PaymentRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetNotificationsUseCase>(
+    () => GetNotificationsUseCase(getIt<NotificationRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<MarkNotificationReadUseCase>(
+    () => MarkNotificationReadUseCase(getIt<NotificationRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<MarkAllNotificationsReadUseCase>(
+    () => MarkAllNotificationsReadUseCase(
+      getIt<NotificationRepositoryInterface>(),
+    ),
   );
 }

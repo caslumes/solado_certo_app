@@ -14,6 +14,7 @@ import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_shell.dart';
+import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/add_address_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
@@ -28,20 +29,27 @@ void main() {
   late MockGetRecommendedItemsUseCase recommendations;
   late MockCartBloc cartBloc;
   late MockGetOrdersUseCase orders;
+  late MockGetNotificationsUseCase notifications;
 
-  Future<void> pumpShell(WidgetTester tester, {required bool isSignedIn}) =>
-      tester.pumpWidget(
-        MultiBlocProvider(
-          providers: [
-            BlocProvider<AuthBloc>.value(value: bloc),
-            BlocProvider<CartBloc>.value(value: cartBloc),
-          ],
-          child: MaterialApp(
-            home: HomeShell(isSignedIn: isSignedIn),
-            routes: AuthRoutes.routes,
-          ),
+  Future<void> pumpShell(
+    WidgetTester tester, {
+    required bool isSignedIn,
+    Duration notificationsInterval = const Duration(seconds: 60),
+  }) => tester.pumpWidget(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: bloc),
+        BlocProvider<CartBloc>.value(value: cartBloc),
+      ],
+      child: MaterialApp(
+        home: HomeShell(
+          isSignedIn: isSignedIn,
+          notificationsInterval: notificationsInterval,
         ),
-      );
+        routes: AuthRoutes.routes,
+      ),
+    ),
+  );
 
   Future<void> selectTab(WidgetTester tester, String label) async {
     await tester.tap(
@@ -59,6 +67,7 @@ void main() {
     registerCatalogFilterOptions();
     recommendations = registerRecommendedItems();
     orders = registerOrders();
+    notifications = registerNotifications();
     cartBloc = buildCartBloc();
     registerFallbackValue(LoadCartEvent());
   });
@@ -177,8 +186,99 @@ void main() {
     when(() => cartBloc.state).thenReturn(CartLoaded(cart: buildCart({})));
     await pumpShell(tester, isSignedIn: true);
 
-    final badge = tester.widget<Badge>(find.byType(Badge).first);
+    final badge = tester.widget<Badge>(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.byType(Badge),
+      ),
+    );
     expect(badge.isLabelVisible, isFalse);
+  });
+
+  group('notifications', () {
+    testWidgets('are checked when signed in and the bell shows the unread', (
+      tester,
+    ) async {
+      when(() => notifications.execute(any())).thenAnswer(
+        (_) async => const NotificationsPageEntity(
+          items: [],
+          currentPage: 1,
+          hasNext: false,
+          unreadCount: 4,
+        ),
+      );
+      await pumpShell(tester, isSignedIn: true);
+      await tester.pump();
+
+      verify(() => notifications.execute(1)).called(1);
+      expect(
+        find.descendant(
+          of: find.byTooltip('Notificações (4 não lidas)'),
+          matching: find.text('4'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('are not checked and have no bell when signed out', (
+      tester,
+    ) async {
+      await pumpShell(tester, isSignedIn: false);
+      await tester.pump(const Duration(minutes: 5));
+
+      verifyNever(() => notifications.execute(any()));
+      expect(find.byTooltip('Notificações'), findsNothing);
+    });
+
+    testWidgets('are checked again every interval until signing out', (
+      tester,
+    ) async {
+      const interval = Duration(seconds: 10);
+      await pumpShell(
+        tester,
+        isSignedIn: true,
+        notificationsInterval: interval,
+      );
+      await tester.pump(interval);
+      await tester.pump(interval);
+
+      verify(() => notifications.execute(1)).called(3);
+
+      await pumpShell(
+        tester,
+        isSignedIn: false,
+        notificationsInterval: interval,
+      );
+      await tester.pump(interval * 3);
+
+      verifyNever(() => notifications.execute(any()));
+    });
+
+    testWidgets('stop in the background and are checked on return', (
+      tester,
+    ) async {
+      const interval = Duration(seconds: 10);
+      await pumpShell(
+        tester,
+        isSignedIn: true,
+        notificationsInterval: interval,
+      );
+      verify(() => notifications.execute(1)).called(1);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump(interval * 3);
+      verifyNever(() => notifications.execute(any()));
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      verify(() => notifications.execute(1)).called(1);
+
+      await tester.pump(interval);
+      verify(() => notifications.execute(1)).called(1);
+    });
   });
 
   testWidgets('asks to sign in before opening the orders when signed out', (

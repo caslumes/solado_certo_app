@@ -57,6 +57,7 @@ void main() {
     registerCatalogFilterOptions();
     registerRecommendedItems();
     registerOrders();
+    registerNotifications();
   });
 
   tearDown(() => states.close());

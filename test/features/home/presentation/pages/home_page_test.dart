@@ -13,6 +13,7 @@ import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_opti
 import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -38,6 +39,14 @@ void main() {
             BlocProvider(
               create: (_) => RecommendationsCubit(
                 getRecommendedItemsUseCase: MockGetRecommendedItemsUseCase(),
+              ),
+            ),
+            BlocProvider(
+              create: (_) => NotificationsBloc(
+                getNotificationsUseCase: MockGetNotificationsUseCase(),
+                markNotificationReadUseCase: MockMarkNotificationReadUseCase(),
+                markAllNotificationsReadUseCase:
+                    MockMarkAllNotificationsReadUseCase(),
               ),
             ),
           ],

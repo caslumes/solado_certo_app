@@ -18,6 +18,9 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_de
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_repository.dart';
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
+import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
+import 'package:solado_certo_app/features/notifications/domain/repositories/notification_repository.dart';
+import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
@@ -197,3 +200,40 @@ MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
 class MockCreatePaymentUseCase extends Mock implements CreatePaymentUseCase {}
 
 class MockGetPaymentsUseCase extends Mock implements GetPaymentsUseCase {}
+
+class MockNotificationRepository extends Mock
+    implements NotificationRepositoryInterface {}
+
+class MockGetNotificationsUseCase extends Mock
+    implements GetNotificationsUseCase {}
+
+class MockMarkNotificationReadUseCase extends Mock
+    implements MarkNotificationReadUseCase {}
+
+class MockMarkAllNotificationsReadUseCase extends Mock
+    implements MarkAllNotificationsReadUseCase {}
+
+/// The home shell creates the bell's bloc through getIt and checks the
+/// notifications when signed in.
+MockGetNotificationsUseCase registerNotifications({
+  List<NotificationEntity> notifications = const [],
+  int unreadCount = 0,
+}) {
+  final useCase = MockGetNotificationsUseCase();
+  when(() => useCase.execute(any())).thenAnswer(
+    (_) async => NotificationsPageEntity(
+      items: notifications,
+      currentPage: 1,
+      hasNext: false,
+      unreadCount: unreadCount,
+    ),
+  );
+  getIt.registerSingleton<GetNotificationsUseCase>(useCase);
+  getIt.registerSingleton<MarkNotificationReadUseCase>(
+    MockMarkNotificationReadUseCase(),
+  );
+  getIt.registerSingleton<MarkAllNotificationsReadUseCase>(
+    MockMarkAllNotificationsReadUseCase(),
+  );
+  return useCase;
+}

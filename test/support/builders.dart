@@ -11,6 +11,8 @@ import 'package:solado_certo_app/features/catalog/domain/entities/purpose.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
+import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
+import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
@@ -377,4 +379,19 @@ PaymentEntity buildPayment({
   refundRequestedAt: refundRequestedAt,
   refundUrl: refundUrl,
   createdAt: DateTime(2026, 10, 15, 9, 30),
+);
+
+NotificationEntity buildNotification({
+  String id = 'n1',
+  NotificationType type = NotificationType.orderShipped,
+  String? orderId = 'o1',
+  bool read = false,
+}) => NotificationEntity(
+  id: id,
+  type: type,
+  title: 'Título $id',
+  body: 'Corpo $id',
+  orderId: orderId,
+  read: read,
+  createdAt: DateTime.utc(2026, 10, 20, 12),
 );

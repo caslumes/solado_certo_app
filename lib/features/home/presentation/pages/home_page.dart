@@ -10,6 +10,7 @@ import 'package:solado_certo_app/features/catalog/presentation/components/featur
 import 'package:solado_certo_app/features/catalog/presentation/components/for_you_items.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/search_bar.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
+import 'package:solado_certo_app/features/notifications/presentation/components/notification_bell.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
@@ -81,6 +82,7 @@ class HomePage extends StatelessWidget {
                     width: MediaQuery.of(context).size.width * 0.5,
                   ),
                   const Spacer(),
+                  if (isSignedIn) const NotificationBell(),
                   isSignedIn
                       ? IconButton(
                           tooltip: 'Meu perfil',

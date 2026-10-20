@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
@@ -11,20 +13,28 @@ import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart'
 import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/home/presentation/pages/home_page.dart';
+import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
+import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.isSignedIn});
+  const HomeShell({
+    super.key,
+    required this.isSignedIn,
+    this.notificationsInterval = const Duration(seconds: 60),
+  });
 
   final bool isSignedIn;
+
+  final Duration notificationsInterval;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   static const _catalogIndex = 0;
   static const _cartIndex = 1;
   static const _ordersIndex = 2;
@@ -37,13 +47,48 @@ class _HomeShellState extends State<HomeShell> {
   late final _ordersBloc = OrdersBloc(
     getOrdersUseCase: getIt<GetOrdersUseCase>(),
   );
+  late final _notificationsBloc = NotificationsBloc(
+    getNotificationsUseCase: getIt<GetNotificationsUseCase>(),
+    markNotificationReadUseCase: getIt<MarkNotificationReadUseCase>(),
+    markAllNotificationsReadUseCase: getIt<MarkAllNotificationsReadUseCase>(),
+  );
+
+  Timer? _notificationsTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.isSignedIn) {
       _recommendationsCubit.load();
       context.read<CartBloc>().add(LoadCartEvent());
+      _watchNotifications();
+    }
+  }
+
+  /// Checks now and then every [HomeShell.notificationsInterval].
+  void _watchNotifications() {
+    _notificationsTimer?.cancel();
+    _notificationsBloc.add(LoadNotificationsEvent(quiet: true));
+    _notificationsTimer = Timer.periodic(
+      widget.notificationsInterval,
+      (_) => _notificationsBloc.add(LoadNotificationsEvent(quiet: true)),
+    );
+  }
+
+  void _stopWatchingNotifications() {
+    _notificationsTimer?.cancel();
+    _notificationsTimer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!widget.isSignedIn) return;
+    if (state == AppLifecycleState.resumed) {
+      _watchNotifications();
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _stopWatchingNotifications();
     }
   }
 
@@ -54,18 +99,24 @@ class _HomeShellState extends State<HomeShell> {
     if (widget.isSignedIn) {
       _recommendationsCubit.load();
       context.read<CartBloc>().add(LoadCartEvent());
+      _watchNotifications();
     } else {
       _recommendationsCubit.hide();
       context.read<CartBloc>().add(ClearCartEvent());
       _ordersBloc.add(ClearOrdersEvent());
+      _stopWatchingNotifications();
+      _notificationsBloc.add(ClearNotificationsEvent());
       setState(() => _selectedIndex = _catalogIndex);
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopWatchingNotifications();
     _recommendationsCubit.close();
     _ordersBloc.close();
+    _notificationsBloc.close();
     super.dispose();
   }
 
@@ -104,6 +155,7 @@ class _HomeShellState extends State<HomeShell> {
         ),
         BlocProvider.value(value: _recommendationsCubit),
         BlocProvider.value(value: _ordersBloc),
+        BlocProvider.value(value: _notificationsBloc),
       ],
       child: Scaffold(
         body: IndexedStack(
