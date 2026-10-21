@@ -52,6 +52,7 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'order payment window expired' => PaymentExpiredFailure(),
   'another payment of this order is in progress' => PaymentInProgressFailure(),
   'tax id already registered' => TaxIdInUseFailure(),
+  'tracking code already registered' => TrackingCodeInUseFailure(),
   // Payments add why the transition was refused after a colon.
   final String code when code.startsWith('invalid status transition') =>
     OrderStatusChangedFailure(),
@@ -62,6 +63,9 @@ Failure _unprocessable(Object? body) => switch (_errorCode(body)) {
   'shipping option required' => ShippingRequiredFailure.fromBody(body),
   'cart is empty' => EmptyCartFailure(),
   'tax id required' => TaxIdRequiredFailure(),
+  // The backend adds which format was expected after a colon.
+  final String code when code.startsWith('invalid tracking code') =>
+    InvalidTrackingCodeFailure(),
   _ => MissingFieldsFailure.fromBody(body),
 };
 
@@ -285,6 +289,18 @@ final class TaxIdInUseFailure extends Failure {
 final class TaxIdRequiredFailure extends Failure {
   @override
   String get message => 'Informe seu CPF para pagar.';
+}
+
+/// A 422 on shipping: the code doesn't have the carrier's format (UC-009).
+final class InvalidTrackingCodeFailure extends Failure {
+  @override
+  String get message => 'Código de rastreio inválido para esta transportadora.';
+}
+
+/// A 409 on shipping: another shipment already has this code.
+final class TrackingCodeInUseFailure extends Failure {
+  @override
+  String get message => 'Este código de rastreio já foi usado em outro envio.';
 }
 
 /// A 503 on a payment: the gateway didn't answer (RNF-023).

@@ -16,6 +16,7 @@ import 'package:solado_certo_app/features/profile/presentation/components/addres
 import 'package:solado_certo_app/features/profile/presentation/components/podological_profile_form.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/profile_avatar.dart';
 import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/seller_orders_page.dart';
 import 'package:solado_certo_app/features/seller/presentation/pages/my_ads_page.dart';
 
 class MyProfilePage extends StatelessWidget {
@@ -270,6 +271,12 @@ class _SellerSection extends StatelessWidget {
           ShoeTextButton(
             onPressed: () => Navigator.of(context).push(MyAdsPage.route()),
             text: 'Meus anúncios',
+            textStyle: _buttonTextStyle(context),
+          ),
+          ShoeTextButton(
+            onPressed: () =>
+                Navigator.of(context).push(SellerOrdersPage.route()),
+            text: 'Minhas vendas',
             textStyle: _buttonTextStyle(context),
           ),
         ],

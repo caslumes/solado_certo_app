@@ -22,4 +22,14 @@ enum OrderStatus {
     'returned' => returned,
     _ => throw ArgumentError.value(value, 'status'),
   };
+
+  String get apiValue => switch (this) {
+    awaitingPayment => 'awaiting_payment',
+    paid => 'paid',
+    processing => 'processing',
+    shipped => 'shipped',
+    delivered => 'delivered',
+    cancelled => 'cancelled',
+    returned => 'returned',
+  };
 }

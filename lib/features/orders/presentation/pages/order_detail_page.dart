@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
-import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/order_detail_cubit.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/amount_row.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/order_sections.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
@@ -217,7 +216,7 @@ class _Detail extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           Text('Vendido por ${order.sellerName}', style: textTheme.bodyMedium),
-          for (final item in order.items) _ItemRow(item: item),
+          for (final item in order.items) OrderItemRow(item: item),
           const Divider(height: 32),
           Text('Entrega', style: textTheme.bodyMedium),
           const SizedBox(height: 4),
@@ -250,54 +249,10 @@ class _Detail extends StatelessWidget {
           Text('Histórico', style: textTheme.bodyMedium),
           const SizedBox(height: 8),
           for (final (index, change) in detail.history.indexed)
-            _HistoryEntry(
+            OrderHistoryEntry(
               change: change,
               isLatest: index == detail.history.length - 1,
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item});
-
-  final OrderItemEntity item;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final option = item.shippingOption;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12.0,
-        children: [
-          SizedBox.square(
-            dimension: 56,
-            child: ProductImage(url: item.coverImageUrl),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.title, style: textTheme.bodyLarge),
-                Text(
-                  '${item.quantity} × ${formatCurrency(item.unitPrice)}',
-                  style: textTheme.bodySmall,
-                ),
-                Text(
-                  '${shippingOptionName(option)} · '
-                  '${deliveryTime(option.deliveryDays)}',
-                  style: textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-          Text(formatCurrency(item.subtotal), style: textTheme.bodyLarge),
         ],
       ),
     );
@@ -370,49 +325,6 @@ class _PaymentRow extends StatelessWidget {
             ),
           ),
           Text(formatCurrency(payment.amount), style: textTheme.bodyLarge),
-        ],
-      ),
-    );
-  }
-}
-
-/// One status change in the order's timeline.
-class _HistoryEntry extends StatelessWidget {
-  const _HistoryEntry({required this.change, required this.isLatest});
-
-  final OrderStatusChangeEntity change;
-  final bool isLatest;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final reason = change.reasonLabel;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 12.0,
-        children: [
-          Icon(
-            isLatest ? Icons.radio_button_checked : Icons.circle_outlined,
-            size: 18,
-            color: isLatest ? AppColors.primaryColor : AppColors.tertiaryColor,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(change.to.label, style: textTheme.bodyLarge),
-                Text(
-                  reason == null
-                      ? formatDateTime(change.createdAt)
-                      : '${formatDateTime(change.createdAt)} · $reason',
-                  style: textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

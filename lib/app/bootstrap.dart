@@ -219,6 +219,18 @@ void configureDependencies() {
   getIt.registerLazySingleton<CancelOrderUseCase>(
     () => CancelOrderUseCase(getIt<OrderRepositoryInterface>()),
   );
+  getIt.registerLazySingleton<GetSellerOrdersUseCase>(
+    () => GetSellerOrdersUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetSellerOrderUseCase>(
+    () => GetSellerOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<StartProcessingUseCase>(
+    () => StartProcessingUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ShipOrderUseCase>(
+    () => ShipOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
   getIt.registerLazySingleton<CreatePaymentUseCase>(
     () => CreatePaymentUseCase(getIt<PaymentRepositoryInterface>()),
   );

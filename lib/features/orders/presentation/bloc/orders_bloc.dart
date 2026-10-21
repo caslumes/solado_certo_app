@@ -1,19 +1,28 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 
-/// The Pedidos tab: the buyer's orders, newest first, a page at a time.
+/// A list of orders a page at a time: the buyer's (the Pedidos tab) or the
+/// seller's with one status (a tab of Minhas vendas).
 class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
-  final GetOrdersUseCase _getOrdersUseCase;
+  final Future<OrdersPageEntity> Function(int page) _loadPage;
 
   /// Bumped by every first-page load, so a next page that arrives after a
   /// refresh is dropped.
   int _generation = 0;
 
   OrdersBloc({required GetOrdersUseCase getOrdersUseCase})
-    : _getOrdersUseCase = getOrdersUseCase,
-      super(const OrdersState()) {
+    : this._(getOrdersUseCase.execute);
+
+  OrdersBloc.sales({
+    required GetSellerOrdersUseCase getSellerOrdersUseCase,
+    required OrderStatus status,
+  }) : this._((page) => getSellerOrdersUseCase.execute(page, status: status));
+
+  OrdersBloc._(this._loadPage) : super(const OrdersState()) {
     on<LoadOrdersEvent>(_onLoad);
     on<LoadMoreOrdersEvent>(_onLoadMore);
     on<OrderChangedEvent>(_onOrderChanged);
@@ -29,7 +38,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     final refreshing = state.status == OrdersStatus.loaded;
     if (!refreshing) emit(const OrdersState(status: OrdersStatus.loading));
     try {
-      final page = await _getOrdersUseCase.execute(1);
+      final page = await _loadPage(1);
       if (generation != _generation) return;
       emit(
         OrdersState(
@@ -63,7 +72,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     final generation = _generation;
     emit(state.copyWith(loadingMore: true));
     try {
-      final page = await _getOrdersUseCase.execute(state.page + 1);
+      final page = await _loadPage(state.page + 1);
       if (generation != _generation) return;
       emit(
         state.copyWith(

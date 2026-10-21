@@ -186,6 +186,16 @@ class MockGetOrderUseCase extends Mock implements GetOrderUseCase {}
 
 class MockCancelOrderUseCase extends Mock implements CancelOrderUseCase {}
 
+class MockGetSellerOrdersUseCase extends Mock
+    implements GetSellerOrdersUseCase {}
+
+class MockGetSellerOrderUseCase extends Mock implements GetSellerOrderUseCase {}
+
+class MockStartProcessingUseCase extends Mock
+    implements StartProcessingUseCase {}
+
+class MockShipOrderUseCase extends Mock implements ShipOrderUseCase {}
+
 /// The home shell creates the Pedidos tab's bloc through getIt.
 MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
   final useCase = MockGetOrdersUseCase();

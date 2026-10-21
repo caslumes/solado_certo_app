@@ -15,6 +15,7 @@ import 'package:solado_certo_app/features/notifications/domain/entities/notifica
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
@@ -281,12 +282,15 @@ OrderEntity buildOrder({
   OrderStatus status = OrderStatus.awaitingPayment,
   List<OrderItemEntity>? items,
   double subtotal = 89.9,
+  String? buyerName,
+  DateTime? paidAt,
 }) => OrderEntity(
   id: id,
   number: number,
   status: status,
   sellerId: seller,
   sellerName: 'Loja $seller',
+  buyerName: buyerName,
   address: shippingAddress,
   items: items ?? [buildOrderItem()],
   subtotal: subtotal,
@@ -294,6 +298,45 @@ OrderEntity buildOrder({
   discountTotal: 0,
   total: 109.8,
   createdAt: DateTime(2026, 10, 14, 9, 5),
+  paidAt: paidAt,
+);
+
+/// One of the seller's orders, bought by Maria Souza, with the actions its
+/// [status] allows; shipped ones have a Correios [shipment].
+OrderDetailEntity buildSellerOrderDetail({
+  String id = 'o1',
+  OrderStatus status = OrderStatus.paid,
+}) => OrderDetailEntity(
+  order: buildOrder(
+    id: id,
+    status: status,
+    buyerName: 'Maria Souza',
+    paidAt: DateTime(2026, 10, 14, 10, 30),
+  ),
+  history: [
+    OrderStatusChangeEntity(
+      to: OrderStatus.awaitingPayment,
+      reason: 'checkout',
+      createdAt: DateTime(2026, 10, 14, 9, 5),
+    ),
+    OrderStatusChangeEntity(
+      from: OrderStatus.awaitingPayment,
+      to: OrderStatus.paid,
+      reason: 'payment_captured',
+      createdAt: DateTime(2026, 10, 14, 10, 30),
+    ),
+  ],
+  shipment: status == OrderStatus.shipped || status == OrderStatus.delivered
+      ? ShipmentEntity(
+          carrier: 'Correios',
+          trackingCode: 'AA123456789BR',
+          status: status == OrderStatus.delivered ? 'delivered' : 'posted',
+          postedAt: DateTime(2026, 10, 15, 8),
+        )
+      : null,
+  canCancel: false,
+  canStartProcessing: status == OrderStatus.paid,
+  canShip: status == OrderStatus.processing,
 );
 
 /// An order awaiting payment, cancelled by the buyer when [cancelled] or

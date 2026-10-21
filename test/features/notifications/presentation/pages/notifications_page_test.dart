@@ -188,7 +188,7 @@ void main() {
     expect(tester.widget<Badge>(find.byType(Badge)).isLabelVisible, isFalse);
   });
 
-  test('a purchase leads to its order, a sale or none to nothing yet', () {
+  test('a purchase or a sale leads to its order, none to nothing', () {
     expect(
       NotificationsPage.defaultRouteFor(buildNotification()),
       isA<Route<void>>(),
@@ -197,7 +197,7 @@ void main() {
       NotificationsPage.defaultRouteFor(
         buildNotification(type: NotificationType.orderPaid),
       ),
-      isNull,
+      isA<Route<void>>(),
     );
     expect(
       NotificationsPage.defaultRouteFor(buildNotification(orderId: null)),

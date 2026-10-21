@@ -9,6 +9,7 @@ import 'package:solado_certo_app/features/notifications/domain/entities/notifica
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
 
 /// The user's notifications (RF-020). Tapping one marks it as read and opens
 /// the order it is about.
@@ -20,8 +21,10 @@ class NotificationsPage extends StatefulWidget {
 
   static Route<void>? defaultRouteFor(NotificationEntity notification) {
     final orderId = notification.orderId;
-    if (orderId == null || notification.type.forSeller) return null;
-    return OrderDetailPage.route(orderId);
+    if (orderId == null) return null;
+    return notification.type.forSeller
+        ? SellerOrderDetailPage.route(orderId)
+        : OrderDetailPage.route(orderId);
   }
 
   static Route<void> route(NotificationsBloc bloc) {

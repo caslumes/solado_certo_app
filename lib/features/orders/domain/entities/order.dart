@@ -8,6 +8,9 @@ class OrderEntity {
   final OrderStatus status;
   final String sellerId;
   final String sellerName;
+
+  /// Only in the seller's views.
+  final String? buyerName;
   final ShippingAddressEntity address;
   final List<OrderItemEntity> items;
   final double subtotal;
@@ -15,6 +18,8 @@ class OrderEntity {
   final double discountTotal;
   final double total;
   final DateTime createdAt;
+  final DateTime? paidAt;
+  final DateTime? deliveredAt;
 
   const OrderEntity({
     required this.id,
@@ -22,6 +27,7 @@ class OrderEntity {
     required this.status,
     required this.sellerId,
     required this.sellerName,
+    this.buyerName,
     required this.address,
     required this.items,
     required this.subtotal,
@@ -29,6 +35,8 @@ class OrderEntity {
     required this.discountTotal,
     required this.total,
     required this.createdAt,
+    this.paidAt,
+    this.deliveredAt,
   });
 }
 

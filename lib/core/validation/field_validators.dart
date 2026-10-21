@@ -165,6 +165,28 @@ abstract final class FieldValidators {
     return RegExp(r'^\d{3,4}$').hasMatch(cvv) ? null : 'CVV inválido';
   }
 
+  static final _correiosPattern = RegExp(r'^[A-Z]{2}\d{9}BR$');
+  static final _trackingPattern = RegExp(r'^[A-Z0-9-]{8,40}$');
+
+  /// Upper case and without spaces, as the backend stores it.
+  static String trackingCode(String value) =>
+      value.replaceAll(RegExp(r'\s'), '').toUpperCase();
+
+  /// The backend's rules (UC-009): a Correios code is `AA123456789BR`; other
+  /// carriers' codes have 8 to 40 letters, digits or hyphens.
+  static FieldValidator trackingCodeFor(String carrier) => (value) {
+    final code = trackingCode(value ?? '');
+    if (code.isEmpty) return 'Campo obrigatório';
+    if (carrier.trim().toLowerCase().startsWith('correios')) {
+      return _correiosPattern.hasMatch(code)
+          ? null
+          : 'Use o formato dos Correios, ex.: AA123456789BR';
+    }
+    return _trackingPattern.hasMatch(code)
+        ? null
+        : 'Use de 8 a 40 letras, números ou hífens';
+  };
+
   static String? password(String? value) {
     final length = utf8.encode(value ?? '').length;
     if (length < 8) return 'A senha deve ter pelo menos 8 caracteres';

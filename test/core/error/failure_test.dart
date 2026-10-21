@@ -240,6 +240,18 @@ void main() {
     );
     expect(fromBody(422, 'tax id required'), isA<TaxIdRequiredFailure>());
     expect(
+      fromBody(
+        422,
+        'invalid tracking code: a Correios tracking code has the format '
+        'AA123456789BR',
+      ),
+      isA<InvalidTrackingCodeFailure>(),
+    );
+    expect(
+      fromBody(409, 'tracking code already registered'),
+      isA<TrackingCodeInUseFailure>(),
+    );
+    expect(
       fromBody(503, 'payment gateway unavailable'),
       isA<GatewayUnavailableFailure>(),
     );

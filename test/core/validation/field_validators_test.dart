@@ -203,4 +203,31 @@ void main() {
       expect(FieldValidators.cvv(''), 'Informe o CVV');
     });
   });
+
+  group('tracking code', () {
+    test('is stored without spaces and in upper case', () {
+      expect(
+        FieldValidators.trackingCode(' aa 123 456 789 br '),
+        'AA123456789BR',
+      );
+    });
+
+    test('Correios codes have two letters, nine digits and BR', () {
+      final validator = FieldValidators.trackingCodeFor('Correios (PAC)');
+      expect(validator('aa123456789br'), isNull);
+      expect(validator('AA 123456789 BR'), isNull);
+      expect(validator('AA12345678BR'), isNotNull);
+      expect(validator('AA123456789US'), isNotNull);
+      expect(validator(''), 'Campo obrigatório');
+    });
+
+    test('other carriers take 8 to 40 letters, digits or hyphens', () {
+      final validator = FieldValidators.trackingCodeFor('Jadlog');
+      expect(validator('10084512345678'), isNull);
+      expect(validator('lg-2026-abc'), isNull);
+      expect(validator('1234567'), isNotNull);
+      expect(validator('A' * 41), isNotNull);
+      expect(validator('ABC/12345'), isNotNull);
+    });
+  });
 }

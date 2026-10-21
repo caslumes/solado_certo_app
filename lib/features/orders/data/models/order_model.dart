@@ -1,6 +1,7 @@
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 
 OrderEntity orderFromJson(Map<String, dynamic> json) => OrderEntity(
@@ -9,6 +10,7 @@ OrderEntity orderFromJson(Map<String, dynamic> json) => OrderEntity(
   status: OrderStatus.fromApi(json['status'] as String),
   sellerId: json['seller']['id'] as String,
   sellerName: json['seller']['name'] as String,
+  buyerName: (json['buyer'] as Map<String, dynamic>?)?['name'] as String?,
   address: shippingAddressFromJson(json['address'] as Map<String, dynamic>),
   items: [for (final item in json['items'] as List) orderItemFromJson(item)],
   subtotal: double.parse(json['subtotal'] as String),
@@ -16,6 +18,19 @@ OrderEntity orderFromJson(Map<String, dynamic> json) => OrderEntity(
   discountTotal: double.parse(json['discount_total'] as String),
   total: double.parse(json['total'] as String),
   createdAt: DateTime.parse(json['created_at'] as String),
+  paidAt: _date(json['paid_at']),
+  deliveredAt: _date(json['delivered_at']),
+);
+
+DateTime? _date(Object? value) =>
+    value is String ? DateTime.parse(value) : null;
+
+ShipmentEntity shipmentFromJson(Map<String, dynamic> json) => ShipmentEntity(
+  carrier: json['carrier'] as String,
+  trackingCode: json['tracking_code'] as String,
+  status: json['status'] as String,
+  postedAt: _date(json['posted_at']),
+  deliveredAt: _date(json['delivered_at']),
 );
 
 OrderItemEntity orderItemFromJson(Map<String, dynamic> json) {
@@ -75,5 +90,12 @@ OrderDetailEntity orderDetailFromJson(Map<String, dynamic> json) =>
             createdAt: DateTime.parse(change['created_at'] as String),
           ),
       ],
+      shipment: switch (json['shipment']) {
+        final Map<String, dynamic> shipment => shipmentFromJson(shipment),
+        _ => null,
+      },
       canCancel: json['can_cancel'] as bool? ?? false,
+      canConfirmDelivery: json['can_confirm_delivery'] as bool? ?? false,
+      canStartProcessing: json['can_start_processing'] as bool? ?? false,
+      canShip: json['can_ship'] as bool? ?? false,
     );

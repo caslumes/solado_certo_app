@@ -179,6 +179,7 @@ void main() {
 
       expect(becomeSellerButton, findsNothing);
       expect(find.text('MEUS ANÚNCIOS'), findsOneWidget);
+      expect(find.text('MINHAS VENDAS'), findsOneWidget);
       expect(
         find.textContaining('Sua conta de vendedor está ativa'),
         findsOneWidget,
