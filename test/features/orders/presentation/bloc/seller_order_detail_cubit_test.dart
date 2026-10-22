@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
@@ -203,7 +204,12 @@ void main() {
       'loads the sales with one status',
       build: () {
         final useCase = MockGetSellerOrdersUseCase();
-        when(() => useCase.execute(1, status: OrderStatus.shipped)).thenAnswer(
+        when(
+          () => useCase.execute(
+            1,
+            filter: const OrderFilter(status: OrderStatus.shipped),
+          ),
+        ).thenAnswer(
           (_) async => OrdersPageEntity(
             items: [shipped.order],
             currentPage: 1,

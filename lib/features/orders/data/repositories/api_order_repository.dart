@@ -1,19 +1,26 @@
 import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/orders/data/models/order_model.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
-import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 
 class ApiOrderRepository implements OrderRepositoryInterface {
   static const pageSize = 10;
 
   final ClientInterface client;
+  final DateTime Function() _now;
 
-  ApiOrderRepository(this.client);
+  ApiOrderRepository(this.client, {DateTime Function() now = DateTime.now})
+    : _now = now;
 
   @override
-  Future<OrdersPageEntity> getOrders(int page) async {
-    final response = await client.get('/orders?page=$page&limit=$pageSize');
+  Future<OrdersPageEntity> getOrders(
+    int page, {
+    OrderFilter filter = const OrderFilter(),
+  }) async {
+    final response = await client.get(
+      '/orders?page=$page&limit=$pageSize${filter.query(_now())}',
+    );
     return ordersPageFromJson(response as Map<String, dynamic>);
   }
 
@@ -30,13 +37,18 @@ class ApiOrderRepository implements OrderRepositoryInterface {
   }
 
   @override
+  Future<OrderDetailEntity> confirmDelivery(String id) async {
+    final response = await client.post('/orders/$id/delivered');
+    return orderDetailFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
   Future<OrdersPageEntity> getSellerOrders(
     int page, {
-    OrderStatus? status,
+    OrderFilter filter = const OrderFilter(),
   }) async {
-    final filter = status == null ? '' : '&status=${status.apiValue}';
     final response = await client.get(
-      '/seller/orders?page=$page&limit=$pageSize$filter',
+      '/seller/orders?page=$page&limit=$pageSize${filter.query(_now())}',
     );
     return ordersPageFromJson(response as Map<String, dynamic>);
   }

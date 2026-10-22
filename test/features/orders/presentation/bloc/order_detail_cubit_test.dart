@@ -12,6 +12,7 @@ import '../../../../support/mocks.dart';
 void main() {
   late MockGetOrderUseCase getOrder;
   late MockCancelOrderUseCase cancelOrder;
+  late MockConfirmDeliveryUseCase confirmDelivery;
   late MockGetPaymentsUseCase getPayments;
 
   final open = buildOrderDetail();
@@ -20,6 +21,7 @@ void main() {
   OrderDetailCubit buildCubit() => OrderDetailCubit(
     getOrderUseCase: getOrder,
     cancelOrderUseCase: cancelOrder,
+    confirmDeliveryUseCase: confirmDelivery,
     getPaymentsUseCase: getPayments,
     orderId: 'o1',
   );
@@ -27,6 +29,7 @@ void main() {
   setUp(() {
     getOrder = MockGetOrderUseCase();
     cancelOrder = MockCancelOrderUseCase();
+    confirmDelivery = MockConfirmDeliveryUseCase();
     getPayments = MockGetPaymentsUseCase();
     when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
   });
@@ -129,13 +132,9 @@ void main() {
       seed: () => OrderDetailLoaded(detail: open),
       act: (cubit) => cubit.cancel(),
       expect: () => [
-        isA<OrderDetailLoaded>().having(
-          (s) => s.cancelling,
-          'cancelling',
-          true,
-        ),
+        isA<OrderDetailLoaded>().having((s) => s.working, 'working', true),
         isA<OrderDetailLoaded>()
-            .having((s) => s.cancelling, 'cancelling', false)
+            .having((s) => s.working, 'working', false)
             .having((s) => s.detail, 'detail', cancelled)
             .having((s) => s.notice, 'notice', 'Pedido cancelado.'),
       ],
@@ -254,6 +253,45 @@ void main() {
             .having((s) => s.failure, 'failure', isA<ServerFailure>()),
       ],
       verify: (_) => verifyNever(() => getOrder.execute(any())),
+    );
+  });
+
+  group('confirmDelivery (RF-023)', () {
+    final shipped = buildShippedOrderDetail();
+    final delivered = buildShippedOrderDetail(delivered: true);
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'marks the order delivered',
+      setUp: () => when(
+        () => confirmDelivery.execute('o1'),
+      ).thenAnswer((_) async => delivered),
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: shipped),
+      act: (cubit) => cubit.confirmDelivery(),
+      expect: () => [
+        isA<OrderDetailLoaded>().having((s) => s.working, 'working', true),
+        isA<OrderDetailLoaded>()
+            .having((s) => s.working, 'working', false)
+            .having((s) => s.detail, 'detail', delivered)
+            .having((s) => s.notice, 'notice', contains('Recebimento')),
+      ],
+      verify: (_) => verifyNever(() => getPayments.execute(any())),
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'shows why it could not confirm',
+      setUp: () => when(
+        () => confirmDelivery.execute('o1'),
+      ).thenThrow(buildDioException(statusCode: 500)),
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: shipped),
+      act: (cubit) => cubit.confirmDelivery(),
+      skip: 1,
+      expect: () => [
+        isA<OrderDetailLoaded>()
+            .having((s) => s.detail, 'detail', shipped)
+            .having((s) => s.failure, 'failure', isA<ServerFailure>()),
+      ],
     );
   });
 }

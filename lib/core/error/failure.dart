@@ -53,6 +53,8 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'another payment of this order is in progress' => PaymentInProgressFailure(),
   'tax id already registered' => TaxIdInUseFailure(),
   'tracking code already registered' => TrackingCodeInUseFailure(),
+  'item already reviewed' => AlreadyReviewedFailure(),
+  'only a delivered order can be reviewed' => ReviewNotAllowedFailure(),
   // Payments add why the transition was refused after a colon.
   final String code when code.startsWith('invalid status transition') =>
     OrderStatusChangedFailure(),
@@ -304,6 +306,17 @@ final class TrackingCodeInUseFailure extends Failure {
 }
 
 /// A 503 on a payment: the gateway didn't answer (RNF-023).
+final class AlreadyReviewedFailure extends Failure {
+  @override
+  String get message => 'Você já avaliou este item.';
+}
+
+final class ReviewNotAllowedFailure extends Failure {
+  @override
+  String get message =>
+      'Só é possível avaliar depois de confirmar o recebimento.';
+}
+
 final class GatewayUnavailableFailure extends Failure {
   @override
   String get message =>

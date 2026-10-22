@@ -6,6 +6,7 @@ class SellerModel {
     required this.name,
     this.state,
     this.averageRating,
+    this.reviewCount = 0,
     required this.memberSince,
   });
 
@@ -13,6 +14,7 @@ class SellerModel {
   final String name;
   final String? state;
   final double? averageRating;
+  final int reviewCount;
   final DateTime memberSince;
 
   factory SellerModel.fromJson(Map<String, dynamic> json) => SellerModel(
@@ -20,6 +22,7 @@ class SellerModel {
     name: json['name'] as String,
     state: json['state'] as String?,
     averageRating: (json['average_rating'] as num?)?.toDouble(),
+    reviewCount: json['review_count'] as int? ?? 0,
     memberSince: DateTime.parse(json['member_since'] as String),
   );
 
@@ -28,6 +31,7 @@ class SellerModel {
     name: name,
     state: state,
     averageRating: averageRating,
+    reviewCount: reviewCount,
     memberSince: memberSince,
   );
 }

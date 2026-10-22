@@ -7,8 +7,10 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/add_to_cart_cubit.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/product_detail_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/product_detail_page.dart';
+import 'package:solado_certo_app/features/reviews/presentation/bloc/product_reviews_cubit.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -16,10 +18,14 @@ import '../../../../support/mocks.dart';
 class MockProductDetailCubit extends MockCubit<ProductDetailState>
     implements ProductDetailCubit {}
 
+class MockProductReviewsCubit extends MockCubit<ProductReviewsState>
+    implements ProductReviewsCubit {}
+
 void main() {
   late MockProductDetailCubit cubit;
   late MockCartBloc cartBloc;
   late MockAddToCartCubit addToCart;
+  late MockProductReviewsCubit reviews;
 
   /// Uses a tall view so the whole page is built without scrolling.
   Future<void> pumpPage(WidgetTester tester, ProductDetailState state) {
@@ -33,6 +39,7 @@ void main() {
           BlocProvider<CartBloc>.value(value: cartBloc),
           BlocProvider<ProductDetailCubit>.value(value: cubit),
           BlocProvider<AddToCartCubit>.value(value: addToCart),
+          BlocProvider<ProductReviewsCubit>.value(value: reviews),
         ],
         child: MaterialApp(
           home: const ProductDetailPage(),
@@ -51,6 +58,10 @@ void main() {
     addToCart = MockAddToCartCubit();
     when(() => addToCart.state).thenReturn(AddToCartIdle());
     when(() => addToCart.add(any(), any())).thenAnswer((_) async {});
+    reviews = MockProductReviewsCubit();
+    when(() => reviews.state).thenReturn(
+      const ProductReviewsState(status: ProductReviewsStatus.loaded),
+    );
   });
 
   testWidgets('shows the product, its attributes, seller and shipping', (
@@ -240,6 +251,60 @@ void main() {
         findsOneWidget,
       );
       verifyNever(() => cartBloc.add(any()));
+    });
+  });
+
+  group('reviews (RF-024)', () {
+    testWidgets("shows the seller's average and the latest reviews", (
+      tester,
+    ) async {
+      when(() => reviews.state).thenReturn(
+        ProductReviewsState(
+          status: ProductReviewsStatus.loaded,
+          reviews: [buildPublicReview()],
+          page: 1,
+          total: 6,
+          hasNext: true,
+        ),
+      );
+      when(() => reviews.loadMore()).thenAnswer((_) async {});
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(
+          product: buildProductDetail(
+            seller: SellerEntity(
+              id: '2',
+              name: 'Loja Pé Bem',
+              state: 'SP',
+              averageRating: 4.5,
+              reviewCount: 12,
+              memberSince: DateTime(2026, 10, 1),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('SP · ★ 4,5 (12)'), findsOneWidget);
+      expect(find.text('Avaliações (6)'), findsOneWidget);
+      expect(find.text('Maria · 21/10/2026'), findsOneWidget);
+      expect(find.text('Conforto: Muito confortável'), findsOneWidget);
+      expect(find.text('Confortável desde o primeiro dia'), findsOneWidget);
+
+      await tester.tap(find.text('Ver mais avaliações'));
+      verify(() => reviews.loadMore()).called(1);
+    });
+
+    testWidgets('says when there are none yet', (tester) async {
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+
+      expect(find.text('Avaliações'), findsOneWidget);
+      expect(
+        find.text('Ainda não há avaliações deste produto.'),
+        findsOneWidget,
+      );
     });
   });
 }

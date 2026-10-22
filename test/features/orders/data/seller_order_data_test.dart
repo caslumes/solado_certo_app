@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/features/orders/data/models/order_model.dart';
 import 'package:solado_certo_app/features/orders/data/repositories/api_order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 
 import 'order_data_test.dart' show MockClient, orderJson, pageJson;
@@ -116,7 +117,10 @@ void main() {
       when(() => client.get(any())).thenAnswer((_) async => pageJson());
 
       await repository.getSellerOrders(1);
-      await repository.getSellerOrders(2, status: OrderStatus.paid);
+      await repository.getSellerOrders(
+        2,
+        filter: const OrderFilter(status: OrderStatus.paid),
+      );
 
       verify(() => client.get('/seller/orders?page=1&limit=10')).called(1);
       verify(

@@ -15,6 +15,7 @@ import 'package:solado_certo_app/features/orders/presentation/components/order_s
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/ship_order_page.dart';
+import 'package:solado_certo_app/features/reviews/presentation/components/item_review_summary.dart';
 
 /// One of the seller's orders (RF-020, RF-021): who bought, where it goes,
 /// what to send, and the next step, "Iniciar preparação" then "Informar
@@ -183,7 +184,17 @@ class _Detail extends StatelessWidget {
             'Comprado por ${order.buyerName ?? ''}',
             style: textTheme.bodyMedium,
           ),
-          for (final item in order.items) OrderItemRow(item: item),
+          for (final item in order.items)
+            OrderItemRow(
+              item: item,
+              footer: switch (item.review) {
+                final review? => ItemReviewSummary(
+                  review: review,
+                  title: 'Avaliação do comprador',
+                ),
+                null => null,
+              },
+            ),
           const Divider(height: 32),
           Text('Enviar para', style: textTheme.bodyMedium),
           const SizedBox(height: 4),
@@ -194,18 +205,7 @@ class _Detail extends StatelessWidget {
           ),
           if (shipment != null) ...[
             const Divider(height: 32),
-            Text('Envio', style: textTheme.bodyMedium),
-            const SizedBox(height: 4),
-            Text(shipment.carrier, style: textTheme.bodyLarge),
-            SelectableText(
-              'Código ${shipment.trackingCode}',
-              style: textTheme.bodySmall,
-            ),
-            if (shipment.postedAt case final postedAt?)
-              Text(
-                'Informado em ${formatDateTime(postedAt)}',
-                style: textTheme.bodySmall,
-              ),
+            ShipmentSection(shipment: shipment),
           ],
           const Divider(height: 32),
           AmountRow(label: 'Subtotal', value: order.subtotal),

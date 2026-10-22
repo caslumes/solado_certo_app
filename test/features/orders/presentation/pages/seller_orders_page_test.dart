@@ -8,6 +8,7 @@ import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
@@ -23,7 +24,9 @@ void main() {
   late MockGetSellerOrderUseCase getOrder;
 
   void answer(OrderStatus status, List<OrderEntity> orders) {
-    when(() => getOrders.execute(any(), status: status)).thenAnswer(
+    when(
+      () => getOrders.execute(any(), filter: OrderFilter(status: status)),
+    ).thenAnswer(
       (_) async =>
           OrdersPageEntity(items: orders, currentPage: 1, hasNext: false),
     );
@@ -79,7 +82,9 @@ void main() {
     }
     expect(find.text('Pedido SC-20261014-ABC123'), findsOneWidget);
     expect(find.text('Maria Souza · 15/10/2026'), findsOneWidget);
-    verify(() => getOrders.execute(1, status: OrderStatus.paid)).called(1);
+    verify(
+      () => getOrders.execute(1, filter: OrderFilter(status: OrderStatus.paid)),
+    ).called(1);
   });
 
   testWidgets('each tab loads its status when shown', (tester) async {
@@ -88,7 +93,12 @@ void main() {
     await tester.tap(find.text('Enviados'));
     await tester.pumpAndSettle();
 
-    verify(() => getOrders.execute(1, status: OrderStatus.shipped)).called(1);
+    verify(
+      () => getOrders.execute(
+        1,
+        filter: OrderFilter(status: OrderStatus.shipped),
+      ),
+    ).called(1);
     expect(find.text('Nenhum pedido enviado'), findsOneWidget);
   });
 
@@ -109,6 +119,51 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    verify(() => getOrders.execute(1, status: OrderStatus.paid)).called(2);
+    verify(
+      () => getOrders.execute(1, filter: OrderFilter(status: OrderStatus.paid)),
+    ).called(2);
+  });
+
+  testWidgets('a period applies to the tab shown (RF-025)', (tester) async {
+    registerFallbackValue(const OrderFilter());
+    when(
+      () => getOrders.execute(any(), filter: any(named: 'filter')),
+    ).thenAnswer(
+      (_) async =>
+          const OrdersPageEntity(items: [], currentPage: 1, hasNext: false),
+    );
+    await pumpPage(tester);
+
+    await tester.tap(find.byTooltip('Filtrar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Situação'), findsNothing);
+    await tester.tap(find.text('Últimos 3 meses'));
+    await tester.tap(find.text('APLICAR'));
+    await tester.pumpAndSettle();
+
+    verify(
+      () => getOrders.execute(
+        1,
+        filter: const OrderFilter(
+          status: OrderStatus.paid,
+          period: OrderPeriod.last3Months,
+        ),
+      ),
+    ).called(1);
+    expect(find.text('Últimos 3 meses'), findsOneWidget);
+    expect(find.text('Nenhuma venda neste período.'), findsOneWidget);
+
+    await tester.tap(find.text('Entregues'));
+    await tester.pumpAndSettle();
+
+    verify(
+      () => getOrders.execute(
+        1,
+        filter: const OrderFilter(
+          status: OrderStatus.delivered,
+          period: OrderPeriod.last3Months,
+        ),
+      ),
+    ).called(1);
   });
 }

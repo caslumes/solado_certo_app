@@ -9,16 +9,19 @@ import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_c
 class OrderDetailCubit extends Cubit<OrderDetailState> {
   final GetOrderUseCase _getOrderUseCase;
   final CancelOrderUseCase _cancelOrderUseCase;
+  final ConfirmDeliveryUseCase _confirmDeliveryUseCase;
   final GetPaymentsUseCase _getPaymentsUseCase;
   final String orderId;
 
   OrderDetailCubit({
     required GetOrderUseCase getOrderUseCase,
     required CancelOrderUseCase cancelOrderUseCase,
+    required ConfirmDeliveryUseCase confirmDeliveryUseCase,
     required GetPaymentsUseCase getPaymentsUseCase,
     required this.orderId,
   }) : _getOrderUseCase = getOrderUseCase,
        _cancelOrderUseCase = cancelOrderUseCase,
+       _confirmDeliveryUseCase = confirmDeliveryUseCase,
        _getPaymentsUseCase = getPaymentsUseCase,
        super(OrderDetailLoading());
 
@@ -58,38 +61,57 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     }
   }
 
+  /// A paid order is refunded: its payments are loaded again to show the
+  /// refund.
+  Future<void> cancel() {
+    final wasPaid = switch (state) {
+      OrderDetailLoaded(:final detail) =>
+        detail.order.status == OrderStatus.paid,
+      _ => false,
+    };
+    return _change(
+      () => _cancelOrderUseCase.execute(orderId),
+      notice: wasPaid
+          ? 'Pedido cancelado. O valor pago será estornado.'
+          : 'Pedido cancelado.',
+      reloadPayments: wasPaid,
+    );
+  }
+
+  /// "Recebi meu pedido" (RF-023): the items can then be reviewed.
+  Future<void> confirmDelivery() => _change(
+    () => _confirmDeliveryUseCase.execute(orderId),
+    notice: 'Recebimento confirmado. Conte o que achou dos produtos.',
+  );
+
   /// When the status changed elsewhere (409), the order is reloaded so the
-  /// page shows where it is now. A paid order is refunded: its payments are
-  /// loaded again to show the refund.
-  Future<void> cancel() async {
+  /// page shows where it is now.
+  Future<void> _change(
+    Future<OrderDetailEntity> Function() action, {
+    required String notice,
+    bool reloadPayments = false,
+  }) async {
     final current = state;
-    if (current is! OrderDetailLoaded || current.cancelling) return;
+    if (current is! OrderDetailLoaded || current.working) return;
 
     emit(
       OrderDetailLoaded(
         detail: current.detail,
         payments: current.payments,
-        cancelling: true,
+        working: true,
       ),
     );
     try {
-      final detail = await _cancelOrderUseCase.execute(orderId);
-      final wasPaid = current.detail.order.status == OrderStatus.paid;
+      final detail = await action();
       var payments = current.payments;
-      if (wasPaid) {
+      if (reloadPayments) {
         try {
           payments = await _getPaymentsUseCase.execute(orderId);
         } catch (_) {}
       }
       if (isClosed) return;
       emit(
-        OrderDetailLoaded(
-          detail: detail,
-          payments: payments,
-          notice: wasPaid
-              ? 'Pedido cancelado. O valor pago será estornado.'
-              : 'Pedido cancelado.',
-        ),
+        OrderDetailLoaded(detail: detail, payments: payments, notice: notice),
       );
     } catch (e) {
       final failure = Failure.from(e);
@@ -126,14 +148,16 @@ class OrderDetailLoaded extends OrderDetailState {
 
   /// The order's payment attempts, newest first.
   final List<PaymentEntity> payments;
-  final bool cancelling;
+
+  /// Cancelling or confirming the delivery.
+  final bool working;
   final Failure? failure;
   final String? notice;
 
   OrderDetailLoaded({
     required this.detail,
     this.payments = const [],
-    this.cancelling = false,
+    this.working = false,
     this.failure,
     this.notice,
   });

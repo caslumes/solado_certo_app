@@ -2,28 +2,38 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 
 /// A list of orders a page at a time: the buyer's (the Pedidos tab) or the
-/// seller's with one status (a tab of Minhas vendas).
+/// seller's with one status (a tab of Minhas vendas), narrowed by the state's
+/// filter.
 class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
-  final Future<OrdersPageEntity> Function(int page) _loadPage;
+  final Future<OrdersPageEntity> Function(int page, OrderFilter filter)
+  _loadPage;
 
   /// Bumped by every first-page load, so a next page that arrives after a
   /// refresh is dropped.
   int _generation = 0;
 
   OrdersBloc({required GetOrdersUseCase getOrdersUseCase})
-    : this._(getOrdersUseCase.execute);
+    : this._((page, filter) => getOrdersUseCase.execute(page, filter: filter));
 
+  /// The tab's [status] replaces the filter's.
   OrdersBloc.sales({
     required GetSellerOrdersUseCase getSellerOrdersUseCase,
     required OrderStatus status,
-  }) : this._((page) => getSellerOrdersUseCase.execute(page, status: status));
+  }) : this._(
+         (page, filter) => getSellerOrdersUseCase.execute(
+           page,
+           filter: filter.withStatus(status),
+         ),
+       );
 
   OrdersBloc._(this._loadPage) : super(const OrdersState()) {
     on<LoadOrdersEvent>(_onLoad);
+    on<FilterOrdersEvent>(_onFilter);
     on<LoadMoreOrdersEvent>(_onLoadMore);
     on<OrderChangedEvent>(_onOrderChanged);
     on<ClearOrdersEvent>((_, emit) {
@@ -33,16 +43,37 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   }
 
   /// Loads the first page. A refresh keeps the orders on screen.
-  Future<void> _onLoad(LoadOrdersEvent event, Emitter<OrdersState> emit) async {
+  Future<void> _onLoad(LoadOrdersEvent event, Emitter<OrdersState> emit) =>
+      _loadFirst(
+        emit,
+        state.filter,
+        refreshing: state.status == OrdersStatus.loaded,
+      );
+
+  /// A new filter starts over from its first page.
+  Future<void> _onFilter(FilterOrdersEvent event, Emitter<OrdersState> emit) {
+    if (event.filter == state.filter && state.status != OrdersStatus.initial) {
+      return Future.value();
+    }
+    return _loadFirst(emit, event.filter, refreshing: false);
+  }
+
+  Future<void> _loadFirst(
+    Emitter<OrdersState> emit,
+    OrderFilter filter, {
+    required bool refreshing,
+  }) async {
     final generation = ++_generation;
-    final refreshing = state.status == OrdersStatus.loaded;
-    if (!refreshing) emit(const OrdersState(status: OrdersStatus.loading));
+    if (!refreshing) {
+      emit(OrdersState(status: OrdersStatus.loading, filter: filter));
+    }
     try {
-      final page = await _loadPage(1);
+      final page = await _loadPage(1, filter);
       if (generation != _generation) return;
       emit(
         OrdersState(
           status: OrdersStatus.loaded,
+          filter: filter,
           orders: page.items,
           page: page.currentPage,
           hasNext: page.hasNext,
@@ -54,7 +85,11 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
       emit(
         refreshing
             ? state.copyWith(failure: failure)
-            : OrdersState(status: OrdersStatus.failure, failure: failure),
+            : OrdersState(
+                status: OrdersStatus.failure,
+                filter: filter,
+                failure: failure,
+              ),
       );
     }
   }
@@ -72,7 +107,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     final generation = _generation;
     emit(state.copyWith(loadingMore: true));
     try {
-      final page = await _loadPage(state.page + 1);
+      final page = await _loadPage(state.page + 1, state.filter);
       if (generation != _generation) return;
       emit(
         state.copyWith(
@@ -108,19 +143,26 @@ class LoadOrdersEvent extends OrdersEvent {}
 
 class LoadMoreOrdersEvent extends OrdersEvent {}
 
+class FilterOrdersEvent extends OrdersEvent {
+  final OrderFilter filter;
+
+  FilterOrdersEvent({required this.filter});
+}
+
 class OrderChangedEvent extends OrdersEvent {
   final OrderEntity order;
 
   OrderChangedEvent({required this.order});
 }
 
-/// Forgets the orders when the user signs out.
+/// Forgets the orders and the filter when the user signs out.
 class ClearOrdersEvent extends OrdersEvent {}
 
 enum OrdersStatus { initial, loading, loaded, failure }
 
 class OrdersState {
   final OrdersStatus status;
+  final OrderFilter filter;
   final List<OrderEntity> orders;
   final int page;
   final bool hasNext;
@@ -129,6 +171,7 @@ class OrdersState {
 
   const OrdersState({
     this.status = OrdersStatus.initial,
+    this.filter = const OrderFilter(),
     this.orders = const [],
     this.page = 0,
     this.hasNext = false,
@@ -145,6 +188,7 @@ class OrdersState {
     Failure? failure,
   }) => OrdersState(
     status: status,
+    filter: filter,
     orders: orders ?? this.orders,
     page: page ?? this.page,
     hasNext: hasNext ?? this.hasNext,

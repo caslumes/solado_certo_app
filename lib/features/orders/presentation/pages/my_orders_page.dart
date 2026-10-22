@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/order_filter_sheet.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/paged_order_list.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 
-/// The Pedidos tab (RF-019): the buyer's orders, newest first.
+/// The Pedidos tab (RF-019, RF-025): the buyer's orders, newest first, by
+/// status and period.
 class MyOrdersPage extends StatelessWidget {
   const MyOrdersPage({super.key});
 
@@ -21,6 +24,12 @@ class MyOrdersPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final filter = context.select<OrdersBloc, OrderFilter>(
+      (bloc) => bloc.state.filter,
+    );
+    void applyFilter(OrderFilter filter) =>
+        context.read<OrdersBloc>().add(FilterOrdersEvent(filter: filter));
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -30,11 +39,27 @@ class MyOrdersPage extends StatelessWidget {
           'Pedidos'.toUpperCase(),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
+        actions: [OrderFilterButton(filter: filter, onChanged: applyFilter)],
       ),
-      body: PagedOrderList(
-        onOpen: (order) => _open(context, order),
-        emptyTitle: 'Você ainda não fez pedidos',
-        emptyMessage: 'Seus pedidos aparecem aqui depois do checkout.',
+      body: Column(
+        children: [
+          if (!filter.isEmpty)
+            OrderFilterBar(
+              filter: filter,
+              onClear: () => applyFilter(const OrderFilter()),
+            ),
+          Expanded(
+            child: PagedOrderList(
+              onOpen: (order) => _open(context, order),
+              emptyTitle: filter.isEmpty
+                  ? 'Você ainda não fez pedidos'
+                  : 'Nenhum pedido encontrado',
+              emptyMessage: filter.isEmpty
+                  ? 'Seus pedidos aparecem aqui depois do checkout.'
+                  : 'Mude ou limpe os filtros.',
+            ),
+          ),
+        ],
       ),
     );
   }

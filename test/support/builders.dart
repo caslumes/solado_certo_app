@@ -21,6 +21,7 @@ import 'package:solado_certo_app/features/payments/domain/entities/payment.dart'
 import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_status.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
+import 'package:solado_certo_app/features/reviews/domain/entities/review.dart';
 import 'package:solado_certo_app/features/onboarding/domain/entities/onboarding.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_status.dart';
 import 'package:solado_certo_app/features/onboarding/domain/enum/onboarding_step.dart';
@@ -91,6 +92,7 @@ ProductDetailEntity buildProductDetail({
   bool prescriptionRequired = true,
   String? contraindications = 'Pós-operatório recente.',
   bool safetyInfoComplete = true,
+  SellerEntity? seller,
 }) => ProductDetailEntity(
   id: '603',
   title: 'Órtese corretora para joanete',
@@ -105,12 +107,14 @@ ProductDetailEntity buildProductDetail({
   contraindications: contraindications,
   purposes: const [PurposeEntity(code: 'correction', name: 'Correção')],
   conditions: const [ConditionEntity(id: '504', name: 'Joanete')],
-  seller: SellerEntity(
-    id: '2',
-    name: 'Loja Pé Bem',
-    state: 'SP',
-    memberSince: DateTime(2026, 10, 1),
-  ),
+  seller:
+      seller ??
+      SellerEntity(
+        id: '2',
+        name: 'Loja Pé Bem',
+        state: 'SP',
+        memberSince: DateTime(2026, 10, 1),
+      ),
   shippingOptions: const [
     ShippingOptionEntity(
       id: '701',
@@ -237,21 +241,27 @@ const shippingAddress = ShippingAddressEntity(
   state: 'SP',
 );
 
-OrderItemEntity buildOrderItem({String id = '601', int quantity = 1}) =>
-    OrderItemEntity(
-      advertisementId: id,
-      title: 'Palmilha $id',
-      quantity: quantity,
-      unitPrice: 89.9,
-      subtotal: 89.9 * quantity,
-      shippingOption: const ShippingOptionEntity(
-        id: 'pac',
-        name: 'PAC',
-        carrier: 'Correios',
-        price: 19.9,
-        deliveryDays: 7,
-      ),
-    );
+OrderItemEntity buildOrderItem({
+  String id = '601',
+  int quantity = 1,
+  String? itemId,
+  ReviewEntity? review,
+}) => OrderItemEntity(
+  id: itemId,
+  advertisementId: id,
+  title: 'Palmilha $id',
+  quantity: quantity,
+  unitPrice: 89.9,
+  subtotal: 89.9 * quantity,
+  shippingOption: const ShippingOptionEntity(
+    id: 'pac',
+    name: 'PAC',
+    carrier: 'Correios',
+    price: 19.9,
+    deliveryDays: 7,
+  ),
+  review: review,
+);
 
 /// One order per seller, each with one unit of 601 and PAC.
 CheckoutPlanEntity buildCheckoutPlan({List<String> sellers = const ['s1']}) =>
@@ -374,6 +384,53 @@ OrderDetailEntity buildOrderDetail({
       ),
   ],
   canCancel: !cancelled,
+);
+
+/// The buyer's order after the seller shipped it by Correios, delivered
+/// when [delivered]; its item i1 carries [review].
+OrderDetailEntity buildShippedOrderDetail({
+  bool delivered = false,
+  ReviewEntity? review,
+}) => OrderDetailEntity(
+  order: buildOrder(
+    status: delivered ? OrderStatus.delivered : OrderStatus.shipped,
+    items: [buildOrderItem(itemId: 'i1', review: review)],
+  ),
+  history: [
+    OrderStatusChangeEntity(
+      from: OrderStatus.processing,
+      to: OrderStatus.shipped,
+      reason: 'seller_shipped',
+      createdAt: DateTime(2026, 10, 15, 8),
+    ),
+  ],
+  shipment: ShipmentEntity(
+    carrier: 'Correios',
+    trackingCode: 'AA123456789BR',
+    status: delivered ? 'delivered' : 'posted',
+    postedAt: DateTime(2026, 10, 15, 8),
+    deliveredAt: delivered ? DateTime(2026, 10, 20, 18) : null,
+  ),
+  canCancel: false,
+  canConfirmDelivery: !delivered,
+);
+
+ReviewEntity buildReview({int? comfortRating = 4}) => ReviewEntity(
+  productRating: 5,
+  sellerRating: 4,
+  comfortRating: comfortRating,
+  comment: 'Muito boa',
+  adaptationFeedback: 'Duas semanas para acostumar',
+  createdAt: DateTime(2026, 10, 21, 10),
+);
+
+PublicReviewEntity buildPublicReview({String id = 'r1'}) => PublicReviewEntity(
+  id: id,
+  reviewerName: 'Maria',
+  productRating: 4,
+  comfortRating: 5,
+  comment: 'Confortável desde o primeiro dia',
+  createdAt: DateTime(2026, 10, 21, 10),
 );
 
 CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {

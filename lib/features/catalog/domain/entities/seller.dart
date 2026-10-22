@@ -3,6 +3,7 @@ class SellerEntity {
   final String name;
   final String? state;
   final double? averageRating;
+  final int reviewCount;
   final DateTime memberSince;
 
   const SellerEntity({
@@ -10,6 +11,7 @@ class SellerEntity {
     required this.name,
     this.state,
     this.averageRating,
+    this.reviewCount = 0,
     required this.memberSince,
   });
 }

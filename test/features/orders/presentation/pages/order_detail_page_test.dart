@@ -16,6 +16,8 @@ import 'package:solado_certo_app/features/payments/domain/enum/payment_status.da
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
+import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
+import 'package:solado_certo_app/features/reviews/presentation/pages/review_page.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -27,6 +29,7 @@ final cancelButton = find.widgetWithText(TextButton, 'Cancelar pedido');
 void main() {
   late MockGetOrderUseCase getOrder;
   late MockCancelOrderUseCase cancelOrder;
+  late MockConfirmDeliveryUseCase confirmDelivery;
   late MockGetPaymentsUseCase getPayments;
   late MockAuthBloc authBloc;
   late List<OrderEntity> changes;
@@ -46,6 +49,7 @@ void main() {
             create: (_) => OrderDetailCubit(
               getOrderUseCase: getOrder,
               cancelOrderUseCase: cancelOrder,
+              confirmDeliveryUseCase: confirmDelivery,
               getPaymentsUseCase: getPayments,
               orderId: 'o1',
             )..load(),
@@ -79,6 +83,7 @@ void main() {
   setUp(() {
     getOrder = MockGetOrderUseCase();
     cancelOrder = MockCancelOrderUseCase();
+    confirmDelivery = MockConfirmDeliveryUseCase();
     getPayments = MockGetPaymentsUseCase();
     when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
     authBloc = MockAuthBloc();
@@ -316,5 +321,107 @@ void main() {
     await pumpPage(tester);
 
     verify(() => authBloc.add(any(that: isA<SignOutEvent>()))).called(1);
+  });
+
+  group('shipped (RF-022, RF-023)', () {
+    testWidgets('shows the tracking and opens the carrier page', (
+      tester,
+    ) async {
+      final opened = <Uri>[];
+      when(
+        () => getOrder.execute('o1'),
+      ).thenAnswer((_) async => buildShippedOrderDetail());
+      await pumpPage(
+        tester,
+        openUrl: (url) async {
+          opened.add(url);
+          return true;
+        },
+      );
+
+      expect(find.text('Envio'), findsOneWidget);
+      expect(find.text('Código AA123456789BR'), findsOneWidget);
+      expect(find.text('Enviado em 15/10/2026 às 08:00'), findsOneWidget);
+      expect(find.textContaining('confirme o recebimento'), findsOneWidget);
+      expect(find.text('CANCELAR PEDIDO'), findsNothing);
+
+      await tester.tap(find.text('Acompanhar entrega'));
+      await tester.pumpAndSettle();
+      expect(opened.single.host, 'rastreamento.correios.com.br');
+      expect(opened.single.queryParameters['objetos'], 'AA123456789BR');
+    });
+
+    testWidgets('confirms the delivery after asking', (tester) async {
+      when(
+        () => getOrder.execute('o1'),
+      ).thenAnswer((_) async => buildShippedOrderDetail());
+      when(
+        () => confirmDelivery.execute('o1'),
+      ).thenAnswer((_) async => buildShippedOrderDetail(delivered: true));
+      await pumpPage(tester);
+
+      await tester.tap(find.text('RECEBI MEU PEDIDO'));
+      await tester.pumpAndSettle();
+      expect(find.text('Recebeu o pedido?'), findsOneWidget);
+      await tester.tap(find.text('Confirmar'));
+      await tester.pumpAndSettle();
+
+      verify(() => confirmDelivery.execute('o1')).called(1);
+      expect(find.text('RECEBI MEU PEDIDO'), findsNothing);
+      expect(find.textContaining('Recebimento confirmado'), findsOneWidget);
+      expect(find.text('Entregue em 20/10/2026 às 18:00'), findsOneWidget);
+      expect(changes.last.status, OrderStatus.delivered);
+    });
+
+    testWidgets('going back from the confirmation changes nothing', (
+      tester,
+    ) async {
+      when(
+        () => getOrder.execute('o1'),
+      ).thenAnswer((_) async => buildShippedOrderDetail());
+      await pumpPage(tester);
+
+      await tester.tap(find.text('RECEBI MEU PEDIDO'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Voltar'));
+      await tester.pumpAndSettle();
+
+      verifyNever(() => confirmDelivery.execute(any()));
+    });
+  });
+
+  group('delivered (RF-024)', () {
+    testWidgets('opens the review of an item and reloads after it', (
+      tester,
+    ) async {
+      final createReview = MockCreateReviewUseCase();
+      getIt.registerSingleton<CreateReviewUseCase>(createReview);
+      addTearDown(getIt.reset);
+      when(
+        () => getOrder.execute('o1'),
+      ).thenAnswer((_) async => buildShippedOrderDetail(delivered: true));
+      await pumpPage(tester);
+
+      expect(find.textContaining('avalie cada produto'), findsOneWidget);
+      await tester.tap(find.text('Avaliar'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReviewPage), findsOneWidget);
+
+      when(() => getOrder.execute('o1')).thenAnswer(
+        (_) async =>
+            buildShippedOrderDetail(delivered: true, review: buildReview()),
+      );
+      Navigator.of(tester.element(find.byType(ReviewPage))).pop(true);
+      await tester.pumpAndSettle();
+
+      verify(() => getOrder.execute('o1')).called(2);
+      expect(find.text('Sua avaliação'), findsOneWidget);
+      expect(find.text('Avaliar'), findsNothing);
+      expect(find.text('Conforto: Confortável'), findsOneWidget);
+      expect(
+        find.text('Adaptação: Duas semanas para acostumar'),
+        findsOneWidget,
+      );
+    });
   });
 }

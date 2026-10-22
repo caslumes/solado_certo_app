@@ -25,6 +25,7 @@ import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onbo
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
@@ -42,6 +43,7 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_us
 import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
+import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/ad_images_use_cases.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_status_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/get_ad_use_case.dart';
@@ -186,6 +188,9 @@ class MockGetOrderUseCase extends Mock implements GetOrderUseCase {}
 
 class MockCancelOrderUseCase extends Mock implements CancelOrderUseCase {}
 
+class MockConfirmDeliveryUseCase extends Mock
+    implements ConfirmDeliveryUseCase {}
+
 class MockGetSellerOrdersUseCase extends Mock
     implements GetSellerOrdersUseCase {}
 
@@ -196,10 +201,15 @@ class MockStartProcessingUseCase extends Mock
 
 class MockShipOrderUseCase extends Mock implements ShipOrderUseCase {}
 
+class MockCreateReviewUseCase extends Mock implements CreateReviewUseCase {}
+
+class MockGetProductReviewsUseCase extends Mock
+    implements GetProductReviewsUseCase {}
+
 /// The home shell creates the Pedidos tab's bloc through getIt.
 MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
   final useCase = MockGetOrdersUseCase();
-  when(() => useCase.execute(any())).thenAnswer(
+  when(() => useCase.execute(any(), filter: const OrderFilter())).thenAnswer(
     (_) async =>
         OrdersPageEntity(items: orders, currentPage: 1, hasNext: false),
   );

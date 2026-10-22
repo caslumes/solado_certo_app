@@ -1,5 +1,5 @@
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
-import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 
 class GetOrdersUseCase {
@@ -7,7 +7,10 @@ class GetOrdersUseCase {
 
   GetOrdersUseCase(this.orderRepository);
 
-  Future<OrdersPageEntity> execute(int page) => orderRepository.getOrders(page);
+  Future<OrdersPageEntity> execute(
+    int page, {
+    OrderFilter filter = const OrderFilter(),
+  }) => orderRepository.getOrders(page, filter: filter);
 }
 
 class GetOrderUseCase {
@@ -27,13 +30,24 @@ class CancelOrderUseCase {
       orderRepository.cancelOrder(id);
 }
 
+class ConfirmDeliveryUseCase {
+  final OrderRepositoryInterface orderRepository;
+
+  ConfirmDeliveryUseCase(this.orderRepository);
+
+  Future<OrderDetailEntity> execute(String id) =>
+      orderRepository.confirmDelivery(id);
+}
+
 class GetSellerOrdersUseCase {
   final OrderRepositoryInterface orderRepository;
 
   GetSellerOrdersUseCase(this.orderRepository);
 
-  Future<OrdersPageEntity> execute(int page, {OrderStatus? status}) =>
-      orderRepository.getSellerOrders(page, status: status);
+  Future<OrdersPageEntity> execute(
+    int page, {
+    OrderFilter filter = const OrderFilter(),
+  }) => orderRepository.getSellerOrders(page, filter: filter);
 }
 
 class GetSellerOrderUseCase {

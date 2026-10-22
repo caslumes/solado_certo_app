@@ -3,6 +3,7 @@ import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/reviews/data/models/review_model.dart';
 
 OrderEntity orderFromJson(Map<String, dynamic> json) => OrderEntity(
   id: json['id'] as String,
@@ -36,6 +37,7 @@ ShipmentEntity shipmentFromJson(Map<String, dynamic> json) => ShipmentEntity(
 OrderItemEntity orderItemFromJson(Map<String, dynamic> json) {
   final option = json['shipping_option'] as Map<String, dynamic>;
   return OrderItemEntity(
+    id: json['id'] as String?,
     advertisementId: json['advertisement_id'] as String,
     title: json['title'] as String,
     coverImageUrl: json['cover_image_url'] as String?,
@@ -49,6 +51,10 @@ OrderItemEntity orderItemFromJson(Map<String, dynamic> json) {
       price: double.parse(option['price'] as String),
       deliveryDays: option['delivery_days'] as int,
     ),
+    review: switch (json['review']) {
+      final Map<String, dynamic> review => reviewFromJson(review),
+      _ => null,
+    },
   );
 }
 

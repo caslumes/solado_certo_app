@@ -28,6 +28,9 @@ import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases
 import 'package:solado_certo_app/features/payments/data/repositories/api_payment_repository.dart';
 import 'package:solado_certo_app/features/payments/domain/repositories/payment_repository.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
+import 'package:solado_certo_app/features/reviews/data/repositories/api_review_repository.dart';
+import 'package:solado_certo_app/features/reviews/domain/repositories/review_repository.dart';
+import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
 import 'package:solado_certo_app/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/change_onboarding_step_use_case.dart';
 import 'package:solado_certo_app/features/onboarding/domain/usecases/get_onboarding_use_case.dart';
@@ -88,6 +91,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<OrderRepositoryInterface>(
     () => ApiOrderRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<ReviewRepositoryInterface>(
+    () => ApiReviewRepository(getIt<ClientInterface>()),
   );
   getIt.registerLazySingleton<PaymentRepositoryInterface>(
     () => ApiPaymentRepository(getIt<ClientInterface>()),
@@ -219,6 +225,9 @@ void configureDependencies() {
   getIt.registerLazySingleton<CancelOrderUseCase>(
     () => CancelOrderUseCase(getIt<OrderRepositoryInterface>()),
   );
+  getIt.registerLazySingleton<ConfirmDeliveryUseCase>(
+    () => ConfirmDeliveryUseCase(getIt<OrderRepositoryInterface>()),
+  );
   getIt.registerLazySingleton<GetSellerOrdersUseCase>(
     () => GetSellerOrdersUseCase(getIt<OrderRepositoryInterface>()),
   );
@@ -230,6 +239,12 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<ShipOrderUseCase>(
     () => ShipOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CreateReviewUseCase>(
+    () => CreateReviewUseCase(getIt<ReviewRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetProductReviewsUseCase>(
+    () => GetProductReviewsUseCase(getIt<ReviewRepositoryInterface>()),
   );
   getIt.registerLazySingleton<CreatePaymentUseCase>(
     () => CreatePaymentUseCase(getIt<PaymentRepositoryInterface>()),

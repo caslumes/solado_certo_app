@@ -17,11 +17,15 @@ import 'package:solado_certo_app/features/orders/presentation/components/order_t
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
+import 'package:solado_certo_app/features/reviews/presentation/components/item_review_summary.dart';
+import 'package:solado_certo_app/features/reviews/presentation/pages/review_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// One order with its items, address, totals, payments and status history
-/// (RF-019). The buyer can pay it while it awaits payment, and cancel it until
-/// the seller starts preparing it (a paid order is refunded).
+/// One order with its items, address, shipment, totals, payments and status
+/// history (RF-019, RF-022). The buyer can pay it while it awaits payment,
+/// cancel it until the seller starts preparing it (a paid order is refunded),
+/// confirm its delivery once shipped (RF-023) and then review each item
+/// (RF-024).
 class OrderDetailPage extends StatelessWidget {
   const OrderDetailPage({
     super.key,
@@ -34,7 +38,7 @@ class OrderDetailPage extends StatelessWidget {
   final ValueChanged<OrderEntity>? onChanged;
 
   /// Opens the page where the buyer gives a bank account for a boleto's
-  /// refund.
+  /// refund, and the carrier's tracking page.
   final Future<bool> Function(Uri url) openUrl;
 
   static Future<bool> _openExternally(Uri url) =>
@@ -49,6 +53,7 @@ class OrderDetailPage extends StatelessWidget {
         create: (_) => OrderDetailCubit(
           getOrderUseCase: getIt<GetOrderUseCase>(),
           cancelOrderUseCase: getIt<CancelOrderUseCase>(),
+          confirmDeliveryUseCase: getIt<ConfirmDeliveryUseCase>(),
           getPaymentsUseCase: getIt<GetPaymentsUseCase>(),
           orderId: orderId,
         )..load(),
@@ -94,6 +99,33 @@ class OrderDetailPage extends StatelessWidget {
     if (confirmed == true) cubit.cancel();
   }
 
+  Future<void> _confirmDelivery(BuildContext context) async {
+    final cubit = context.read<OrderDetailCubit>();
+    final textTheme = Theme.of(context).textTheme;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Recebeu o pedido?', style: textTheme.bodyMedium),
+        content: Text(
+          'Confirme só se todos os produtos chegaram. Depois você pode '
+          'avaliá-los.',
+          style: textTheme.bodySmall,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Voltar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) cubit.confirmDelivery();
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -104,7 +136,7 @@ class OrderDetailPage extends StatelessWidget {
             state.failure is UnauthorizedFailure) {
           return _signOut(context);
         }
-        if (state is! OrderDetailLoaded || state.cancelling) return;
+        if (state is! OrderDetailLoaded || state.working) return;
         onChanged?.call(state.detail.order);
         final failure = state.failure;
         if (failure is UnauthorizedFailure) return _signOut(context);
@@ -133,9 +165,10 @@ class OrderDetailPage extends StatelessWidget {
           ),
         },
         bottomNavigationBar: switch (state) {
-          OrderDetailLoaded(:final detail, :final cancelling)
+          OrderDetailLoaded(:final detail, :final working)
               when detail.order.status == OrderStatus.awaitingPayment ||
-                  detail.canCancel =>
+                  detail.canCancel ||
+                  detail.canConfirmDelivery =>
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -146,14 +179,21 @@ class OrderDetailPage extends StatelessWidget {
                   children: [
                     if (detail.order.status == OrderStatus.awaitingPayment)
                       ShoeTextButton(
-                        onPressed: cancelling
+                        onPressed: working
                             ? null
                             : () => _pay(context, detail.order),
                         text: 'Pagar',
                       ),
+                    if (detail.canConfirmDelivery)
+                      ShoeTextButton(
+                        onPressed: working
+                            ? null
+                            : () => _confirmDelivery(context),
+                        text: 'Recebi meu pedido',
+                      ),
                     if (detail.canCancel)
                       TextButton(
-                        onPressed: cancelling
+                        onPressed: working
                             ? null
                             : () => _confirmCancel(context, detail.order),
                         child: const Text('Cancelar pedido'),
@@ -185,10 +225,53 @@ class _Detail extends StatelessWidget {
   final List<PaymentEntity> payments;
   final Future<bool> Function(Uri url) openUrl;
 
+  Future<void> _review(BuildContext context, OrderItemEntity item) async {
+    final cubit = context.read<OrderDetailCubit>();
+    final reviewed = await Navigator.of(context).push(
+      ReviewPage.route(
+        orderId: detail.order.id,
+        item: item,
+        sellerName: detail.order.sellerName,
+      ),
+    );
+    if (reviewed == true) cubit.load();
+  }
+
+  Widget? _itemFooter(BuildContext context, OrderItemEntity item) {
+    if (item.review case final review?) {
+      return ItemReviewSummary(review: review, title: 'Sua avaliação');
+    }
+    if (item.id == null || detail.order.status != OrderStatus.delivered) {
+      return null;
+    }
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton(
+        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+        onPressed: () => _review(context, item),
+        child: const Text('Avaliar'),
+      ),
+    );
+  }
+
+  static String? _hint(OrderDetailEntity detail) =>
+      switch (detail.order.status) {
+        OrderStatus.awaitingPayment =>
+          'Os produtos ficam reservados para você até o pagamento.',
+        OrderStatus.shipped =>
+          'Quando o pedido chegar, confirme o recebimento para avaliar os '
+              'produtos.',
+        OrderStatus.delivered
+            when detail.order.items.any((item) => item.review == null) =>
+          'Conte como foi a adaptação: avalie cada produto.',
+        _ => null,
+      };
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final order = detail.order;
+    final shipment = detail.shipment;
 
     return RefreshIndicator(
       onRefresh: () => context.read<OrderDetailCubit>().load(),
@@ -207,16 +290,14 @@ class _Detail extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: OrderStatusChip(status: order.status),
           ),
-          if (order.status == OrderStatus.awaitingPayment) ...[
+          if (_hint(detail) case final hint?) ...[
             const SizedBox(height: 12),
-            Text(
-              'Os produtos ficam reservados para você até o pagamento.',
-              style: textTheme.bodySmall,
-            ),
+            Text(hint, style: textTheme.bodySmall),
           ],
           const SizedBox(height: 24),
           Text('Vendido por ${order.sellerName}', style: textTheme.bodyMedium),
-          for (final item in order.items) OrderItemRow(item: item),
+          for (final item in order.items)
+            OrderItemRow(item: item, footer: _itemFooter(context, item)),
           const Divider(height: 32),
           Text('Entrega', style: textTheme.bodyMedium),
           const SizedBox(height: 4),
@@ -225,6 +306,10 @@ class _Detail extends StatelessWidget {
             formatShippingAddress(order.address),
             style: textTheme.bodySmall,
           ),
+          if (shipment != null) ...[
+            const Divider(height: 32),
+            ShipmentSection(shipment: shipment, openUrl: openUrl),
+          ],
           const Divider(height: 32),
           AmountRow(label: 'Subtotal', value: order.subtotal),
           AmountRow(label: 'Frete', value: order.shippingTotal),

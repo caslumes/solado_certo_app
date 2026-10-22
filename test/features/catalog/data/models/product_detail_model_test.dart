@@ -50,7 +50,8 @@ final _detailJson = {
     'id': '00000000-0000-0000-0000-000000000002',
     'name': 'Loja Pé Bem',
     'state': 'SP',
-    'average_rating': null,
+    'average_rating': 4.5,
+    'review_count': 12,
     'member_since': '2026-10-01T12:00:00Z',
   },
   'shipping_options': [
@@ -82,7 +83,8 @@ void main() {
     expect(product.purposes.single.code, 'correction');
     expect(product.conditions.single.name, 'Hálux valgo (joanete)');
     expect(product.seller?.name, 'Loja Pé Bem');
-    expect(product.seller?.averageRating, isNull);
+    expect(product.seller?.averageRating, 4.5);
+    expect(product.seller?.reviewCount, 12);
     expect(product.seller?.memberSince, DateTime.utc(2026, 10, 1, 12));
     expect(product.shippingOptions.single.price, 19.9);
     expect(product.shippingOptions.single.deliveryDays, 7);

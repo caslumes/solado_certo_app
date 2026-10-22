@@ -21,6 +21,9 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_de
 import 'package:solado_certo_app/features/catalog/presentation/bloc/product_detail_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_safety_section.dart';
+import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
+import 'package:solado_certo_app/features/reviews/presentation/bloc/product_reviews_cubit.dart';
+import 'package:solado_certo_app/features/reviews/presentation/components/product_reviews_section.dart';
 
 final _rating = NumberFormat('0.0', appLocale);
 
@@ -40,6 +43,12 @@ class ProductDetailPage extends StatelessWidget {
           BlocProvider(
             create: (_) =>
                 AddToCartCubit(addToCartUseCase: getIt<AddToCartUseCase>()),
+          ),
+          BlocProvider(
+            create: (_) => ProductReviewsCubit(
+              getProductReviewsUseCase: getIt<GetProductReviewsUseCase>(),
+              advertisementId: productId,
+            )..load(),
           ),
         ],
         child: const ProductDetailPage(),
@@ -190,8 +199,13 @@ class _ProductDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reviews = context.read<ProductReviewsCubit>();
+
     return RefreshIndicator(
-      onRefresh: context.read<ProductDetailCubit>().load,
+      onRefresh: () {
+        reviews.load();
+        return context.read<ProductDetailCubit>().load();
+      },
       child: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
@@ -219,6 +233,7 @@ class _ProductDetail extends StatelessWidget {
                     child: _SellerCard(seller: product.seller!),
                   ),
                 _Shipping(product: product),
+                const ProductReviewsSection(),
               ],
             ),
           ),
@@ -439,7 +454,7 @@ class _SellerCard extends StatelessWidget {
     final details = [
       if (seller.state != null) seller.state!,
       if (seller.averageRating != null)
-        '★ ${_rating.format(seller.averageRating)}',
+        '★ ${_rating.format(seller.averageRating)} (${seller.reviewCount})',
     ];
 
     return Container(

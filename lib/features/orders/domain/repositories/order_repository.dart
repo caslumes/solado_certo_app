@@ -1,17 +1,25 @@
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
-import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 
 abstract class OrderRepositoryInterface {
   /// The buyer's orders, newest first; [page] starts at 1.
-  Future<OrdersPageEntity> getOrders(int page);
+  Future<OrdersPageEntity> getOrders(
+    int page, {
+    OrderFilter filter = const OrderFilter(),
+  });
   Future<OrderDetailEntity> getOrder(String id);
 
   /// Cancels an order still awaiting payment and puts its units back on sale.
   Future<OrderDetailEntity> cancelOrder(String id);
 
-  /// The seller's paid orders with [status] (all when null), most recently
-  /// paid first.
-  Future<OrdersPageEntity> getSellerOrders(int page, {OrderStatus? status});
+  /// The buyer received a shipped order; it can then be reviewed.
+  Future<OrderDetailEntity> confirmDelivery(String id);
+
+  /// The seller's paid orders, most recently paid first.
+  Future<OrdersPageEntity> getSellerOrders(
+    int page, {
+    OrderFilter filter = const OrderFilter(),
+  });
   Future<OrderDetailEntity> getSellerOrder(String id);
 
   /// The seller acknowledges a paid order; the buyer can no longer cancel it.

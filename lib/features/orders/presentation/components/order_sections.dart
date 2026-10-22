@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 
-/// One item of an order: photo, quantity, price and shipping option.
+/// One item of an order: photo, quantity, price and shipping option, with
+/// an optional [footer] below, e.g. its review.
 class OrderItemRow extends StatelessWidget {
-  const OrderItemRow({super.key, required this.item});
+  const OrderItemRow({super.key, required this.item, this.footer});
 
   final OrderItemEntity item;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +45,7 @@ class OrderItemRow extends StatelessWidget {
                   '${deliveryTime(option.deliveryDays)}',
                   style: textTheme.bodySmall,
                 ),
+                ?footer,
               ],
             ),
           ),
@@ -98,6 +103,80 @@ class OrderHistoryEntry extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The carrier and tracking code (RF-022). The code can be copied, and
+/// [openUrl] opens the carrier's tracking page when the app knows it.
+class ShipmentSection extends StatelessWidget {
+  const ShipmentSection({super.key, required this.shipment, this.openUrl});
+
+  final ShipmentEntity shipment;
+  final Future<bool> Function(Uri url)? openUrl;
+
+  Future<void> _copy(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: shipment.trackingCode));
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Código copiado.')));
+  }
+
+  Future<void> _track(BuildContext context, Uri url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (await openUrl!(url)) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Não foi possível abrir a página.')),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final trackingUrl = shipment.trackingUrl;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Envio', style: textTheme.bodyMedium),
+        const SizedBox(height: 4),
+        Text(shipment.carrier, style: textTheme.bodyLarge),
+        Row(
+          children: [
+            Expanded(
+              child: SelectableText(
+                'Código ${shipment.trackingCode}',
+                style: textTheme.bodySmall,
+              ),
+            ),
+            IconButton(
+              tooltip: 'Copiar código',
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.copy_outlined, size: 18),
+              onPressed: () => _copy(context),
+            ),
+          ],
+        ),
+        if (shipment.postedAt case final postedAt?)
+          Text(
+            'Enviado em ${formatDateTime(postedAt)}',
+            style: textTheme.bodySmall,
+          ),
+        if (shipment.deliveredAt case final deliveredAt?)
+          Text(
+            'Entregue em ${formatDateTime(deliveredAt)}',
+            style: textTheme.bodySmall,
+          ),
+        if (trackingUrl != null && openUrl != null)
+          TextButton(
+            style: TextButton.styleFrom(padding: EdgeInsets.zero),
+            onPressed: () => _track(context, trackingUrl),
+            child: const Text('Acompanhar entrega'),
+          ),
+      ],
     );
   }
 }

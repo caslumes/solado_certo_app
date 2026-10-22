@@ -204,4 +204,39 @@ void main() {
     expect(find.text('INFORMAR ENVIO'), findsNothing);
     expect(find.text('INICIAR PREPARAÇÃO'), findsNothing);
   });
+
+  testWidgets("a delivered order shows the buyer's review", (tester) async {
+    when(() => getOrder.execute('o1')).thenAnswer((_) async {
+      final detail = buildSellerOrderDetail(status: OrderStatus.delivered);
+      return OrderDetailEntity(
+        order: buildOrder(
+          status: OrderStatus.delivered,
+          buyerName: 'Maria Souza',
+          items: [buildOrderItem(itemId: 'i1', review: buildReview())],
+        ),
+        history: detail.history,
+        shipment: detail.shipment,
+        canCancel: false,
+      );
+    });
+    await tester.pumpWidget(
+      BlocProvider<AuthBloc>.value(
+        value: MockAuthBloc(),
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () =>
+                  Navigator.of(context).push(SellerOrderDetailPage.route('o1')),
+              child: const Text('abrir'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Avaliação do comprador'), findsOneWidget);
+    expect(find.text('Adaptação: Duas semanas para acostumar'), findsOneWidget);
+  });
 }

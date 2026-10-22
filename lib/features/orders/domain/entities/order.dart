@@ -1,5 +1,6 @@
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/reviews/domain/entities/review.dart';
 
 /// One seller's order, created by checkout.
 class OrderEntity {
@@ -41,6 +42,8 @@ class OrderEntity {
 }
 
 class OrderItemEntity {
+  /// Missing in checkout previews.
+  final String? id;
   final String advertisementId;
   final String title;
   final String? coverImageUrl;
@@ -49,7 +52,11 @@ class OrderItemEntity {
   final double subtotal;
   final ShippingOptionEntity shippingOption;
 
+  /// The buyer's review, once the order is delivered and reviewed.
+  final ReviewEntity? review;
+
   const OrderItemEntity({
+    this.id,
     required this.advertisementId,
     required this.title,
     this.coverImageUrl,
@@ -57,6 +64,7 @@ class OrderItemEntity {
     required this.unitPrice,
     required this.subtotal,
     required this.shippingOption,
+    this.review,
   });
 }
 

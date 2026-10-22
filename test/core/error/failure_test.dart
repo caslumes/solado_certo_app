@@ -252,6 +252,14 @@ void main() {
       isA<TrackingCodeInUseFailure>(),
     );
     expect(
+      fromBody(409, 'item already reviewed'),
+      isA<AlreadyReviewedFailure>(),
+    );
+    expect(
+      fromBody(409, 'only a delivered order can be reviewed'),
+      isA<ReviewNotAllowedFailure>(),
+    );
+    expect(
       fromBody(503, 'payment gateway unavailable'),
       isA<GatewayUnavailableFailure>(),
     );
