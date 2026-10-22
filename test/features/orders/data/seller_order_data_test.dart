@@ -101,6 +101,10 @@ void main() {
           isNot(change(reason).reasonLabelFor(seller: true)),
         );
       }
+      expect(
+        change('delivery_deadline_passed').reasonLabel,
+        'Dado como entregue 30 dias após o envio',
+      );
     });
   });
 

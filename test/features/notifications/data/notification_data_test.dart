@@ -72,6 +72,7 @@ void main() {
         'order_processing',
         'order_shipped',
         'order_refunded',
+        'delivery_deadline',
       ]) {
         expect(
           NotificationType.fromApi(type).forSeller,

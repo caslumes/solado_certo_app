@@ -60,6 +60,7 @@ class OrderStatusChangeEntity {
       seller
           ? 'O comprador confirmou o recebimento'
           : 'Você confirmou o recebimento',
+    'delivery_deadline_passed' => 'Dado como entregue 30 dias após o envio',
     _ => null,
   };
 }

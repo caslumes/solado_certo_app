@@ -195,6 +195,7 @@ class NotificationTile extends StatelessWidget {
     NotificationType.orderProcessing => Icons.pending_actions_outlined,
     NotificationType.orderShipped => Icons.local_shipping_outlined,
     NotificationType.orderRefunded => Icons.currency_exchange,
+    NotificationType.deliveryDeadline => Icons.event_available_outlined,
     NotificationType.other => Icons.notifications_none,
   };
 

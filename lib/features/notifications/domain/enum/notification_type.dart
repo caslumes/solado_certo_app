@@ -6,6 +6,7 @@ enum NotificationType {
   orderProcessing(forSeller: false),
   orderShipped(forSeller: false),
   orderRefunded(forSeller: false),
+  deliveryDeadline(forSeller: false),
 
   /// A type this version of the app doesn't know yet; it is still listed.
   other(forSeller: false);
@@ -22,6 +23,7 @@ enum NotificationType {
     'order_processing' => orderProcessing,
     'order_shipped' => orderShipped,
     'order_refunded' => orderRefunded,
+    'delivery_deadline' => deliveryDeadline,
     _ => other,
   };
 }
