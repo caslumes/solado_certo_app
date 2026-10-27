@@ -12,9 +12,6 @@ import 'package:solado_certo_app/features/seller/domain/usecases/change_ad_statu
 import 'package:solado_certo_app/features/seller/domain/usecases/get_ad_use_case.dart';
 import 'package:solado_certo_app/features/seller/domain/usecases/save_ad_use_case.dart';
 
-/// Drives the ad form (UC-003). The form values live in the page and come
-/// in each event as an [AdDraft]; the bloc keeps the saved ad, the step and
-/// the fields to highlight.
 class AdFormBloc extends Bloc<AdFormEvent, AdFormState> {
   final String? _adId;
   final GetCatalogFilterOptionsUseCase _getOptionsUseCase;
@@ -99,8 +96,6 @@ class AdFormBloc extends Bloc<AdFormEvent, AdFormState> {
     }
   }
 
-  /// Saves first, so the server checks the values just typed, and publishes
-  /// only when nothing is missing.
   Future<void> _onPublish(
     PublishAdEvent event,
     Emitter<AdFormState> emit,
@@ -132,9 +127,6 @@ class AdFormBloc extends Bloc<AdFormEvent, AdFormState> {
     }
   }
 
-  /// Creates or edits the ad. On success the state holds the saved ad and
-  /// keeps only the highlights that are still missing; on failure it holds
-  /// the failure and null is returned.
   Future<SellerAdEntity?> _save(
     Emitter<AdFormState> emit,
     AdDraft draft, {
@@ -249,7 +241,6 @@ class AdFormBloc extends Bloc<AdFormEvent, AdFormState> {
     );
   }
 
-  /// Highlights [fields] and opens the step of the first one.
   void _emitMissing(Emitter<AdFormState> emit, List<String> fields) {
     emit(
       state.copyWith(
@@ -266,7 +257,6 @@ class AdFormEvent {}
 
 class LoadAdFormEvent extends AdFormEvent {}
 
-/// Moving to a step that needs photos saves a new ad first.
 class GoToStepEvent extends AdFormEvent {
   final AdFormStep step;
   final AdDraft draft;
@@ -298,7 +288,6 @@ class RemoveImageEvent extends AdFormEvent {
   RemoveImageEvent({required this.imageId});
 }
 
-/// Moves the image [offset] places (-1 earlier, 1 later).
 class MoveImageEvent extends AdFormEvent {
   final String imageId;
   final int offset;
@@ -320,15 +309,12 @@ class AdFormState {
   final AdFormStatus status;
   final CatalogFilterOptions? options;
 
-  /// The ad as last saved; null until a new ad is first saved.
   final SellerAdEntity? ad;
   final AdFormStep step;
   final AdFormActivity activity;
 
-  /// Fields the server reported as missing, shown as errors until filled.
   final Set<String> highlightedFields;
 
-  /// Set once the ad is published, so the page can close.
   final bool isFinished;
   final Failure? failure;
   final String? notice;
@@ -349,11 +335,8 @@ class AdFormState {
 
   bool get isNew => ad == null;
 
-  /// Drafts are published from the form; other ads are only saved here and
-  /// paused or reactivated from the list.
   bool get canPublish => ad == null || ad!.status == AdStatus.draft;
 
-  /// [failure] and [notice] are one-shot: they are cleared unless passed.
   AdFormState copyWith({
     SellerAdEntity? ad,
     AdFormStep? step,

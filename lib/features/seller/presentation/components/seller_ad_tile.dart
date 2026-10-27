@@ -6,10 +6,6 @@ import 'package:solado_certo_app/features/seller/domain/entities/seller_ad.dart'
 import 'package:solado_certo_app/features/seller/domain/enum/ad_field.dart';
 import 'package:solado_certo_app/features/seller/domain/enum/ad_status.dart';
 
-/// One of the seller's ads with its status chips and actions.
-///
-/// Publishing and reactivating are offered only when no required field is
-/// missing, since the backend would refuse them (422); editing fills them.
 class SellerAdTile extends StatelessWidget {
   const SellerAdTile({
     super.key,

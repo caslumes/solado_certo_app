@@ -1,7 +1,5 @@
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
 
-/// The avatar is not sent: the server owns it and changes it only through
-/// `PUT /me/avatar` and `DELETE /me/avatar`.
 Map<String, dynamic> profileToJson(ProfileEntity profile) => {
   'name': profile.name,
   'email': profile.email,

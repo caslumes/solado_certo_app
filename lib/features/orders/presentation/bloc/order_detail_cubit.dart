@@ -1,33 +1,44 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 
 class OrderDetailCubit extends Cubit<OrderDetailState> {
   final GetOrderUseCase _getOrderUseCase;
   final CancelOrderUseCase _cancelOrderUseCase;
   final ConfirmDeliveryUseCase _confirmDeliveryUseCase;
   final GetPaymentsUseCase _getPaymentsUseCase;
+  final UploadPrescriptionUseCase _uploadPrescriptionUseCase;
+  final HasPrescriptionConsentUseCase _hasPrescriptionConsentUseCase;
+  final GrantPrescriptionConsentUseCase _grantPrescriptionConsentUseCase;
   final String orderId;
+
+  bool _hasPrescriptionConsent = false;
 
   OrderDetailCubit({
     required GetOrderUseCase getOrderUseCase,
     required CancelOrderUseCase cancelOrderUseCase,
     required ConfirmDeliveryUseCase confirmDeliveryUseCase,
     required GetPaymentsUseCase getPaymentsUseCase,
+    required UploadPrescriptionUseCase uploadPrescriptionUseCase,
+    required HasPrescriptionConsentUseCase hasPrescriptionConsentUseCase,
+    required GrantPrescriptionConsentUseCase grantPrescriptionConsentUseCase,
     required this.orderId,
   }) : _getOrderUseCase = getOrderUseCase,
        _cancelOrderUseCase = cancelOrderUseCase,
        _confirmDeliveryUseCase = confirmDeliveryUseCase,
        _getPaymentsUseCase = getPaymentsUseCase,
+       _uploadPrescriptionUseCase = uploadPrescriptionUseCase,
+       _hasPrescriptionConsentUseCase = hasPrescriptionConsentUseCase,
+       _grantPrescriptionConsentUseCase = grantPrescriptionConsentUseCase,
        super(OrderDetailLoading());
 
-  /// A refresh keeps the order on screen, even when it fails. The payments
-  /// are loaded first: checking a pending one may mark the order paid.
-  /// Without them the order is still shown.
   Future<void> load() async {
     final current = state;
     if (current is! OrderDetailLoaded) emit(OrderDetailLoading());
@@ -61,8 +72,6 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     }
   }
 
-  /// A paid order is refunded: its payments are loaded again to show the
-  /// refund.
   Future<void> cancel() {
     final wasPaid = switch (state) {
       OrderDetailLoaded(:final detail) =>
@@ -78,17 +87,61 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
     );
   }
 
-  /// "Recebi meu pedido" (RF-023): the items can then be reviewed.
   Future<void> confirmDelivery() => _change(
     () => _confirmDeliveryUseCase.execute(orderId),
     notice: 'Recebimento confirmado. Conte o que achou dos produtos.',
   );
 
-  /// When the status changed elsewhere (409), the order is reloaded so the
-  /// page shows where it is now.
+  Future<bool?> hasPrescriptionConsent() async {
+    if (_hasPrescriptionConsent) return true;
+    try {
+      return _hasPrescriptionConsent = await _hasPrescriptionConsentUseCase
+          .execute();
+    } catch (e) {
+      _report(Failure.from(e));
+      return null;
+    }
+  }
+
+  Future<bool> grantPrescriptionConsent() async {
+    try {
+      await _grantPrescriptionConsentUseCase.execute();
+      return _hasPrescriptionConsent = true;
+    } catch (e) {
+      _report(Failure.from(e));
+      return false;
+    }
+  }
+
+  Future<void> uploadPrescription(String itemId, UploadFile file) => _change(
+    () async {
+      await _uploadPrescriptionUseCase.execute(orderId, itemId, file);
+      return _getOrderUseCase.execute(orderId);
+    },
+    notice: 'Receita enviada.',
+    noticeFor: (detail) =>
+        detail.order.status == OrderStatus.awaitingPayment &&
+            detail.order.itemsAwaitingPrescription.isEmpty
+        ? 'Receita aprovada. Você já pode pagar.'
+        : null,
+  );
+
+  void _report(Failure failure) {
+    final current = state;
+    if (isClosed || current is! OrderDetailLoaded) return;
+    emit(
+      OrderDetailLoaded(
+        detail: current.detail,
+        payments: current.payments,
+        failure: failure,
+      ),
+    );
+  }
+
   Future<void> _change(
     Future<OrderDetailEntity> Function() action, {
     required String notice,
+    String? Function(OrderDetailEntity detail)? noticeFor,
     bool reloadPayments = false,
   }) async {
     final current = state;
@@ -111,10 +164,17 @@ class OrderDetailCubit extends Cubit<OrderDetailState> {
       }
       if (isClosed) return;
       emit(
-        OrderDetailLoaded(detail: detail, payments: payments, notice: notice),
+        OrderDetailLoaded(
+          detail: detail,
+          payments: payments,
+          notice: noticeFor?.call(detail) ?? notice,
+        ),
       );
     } catch (e) {
       final failure = Failure.from(e);
+      if (failure is PrescriptionConsentRequiredFailure) {
+        _hasPrescriptionConsent = false;
+      }
       var detail = current.detail;
       if (failure is OrderStatusChangedFailure) {
         try {
@@ -146,10 +206,8 @@ class OrderDetailLoadFailure extends OrderDetailState {
 class OrderDetailLoaded extends OrderDetailState {
   final OrderDetailEntity detail;
 
-  /// The order's payment attempts, newest first.
   final List<PaymentEntity> payments;
 
-  /// Cancelling or confirming the delivery.
   final bool working;
   final Failure? failure;
   final String? notice;

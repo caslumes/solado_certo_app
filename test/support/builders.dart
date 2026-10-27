@@ -15,7 +15,9 @@ import 'package:solado_certo_app/features/notifications/domain/entities/notifica
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/prescription.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
@@ -85,8 +87,6 @@ CatalogPageEntity buildCatalogPage({
   hasNext: hasNext,
 );
 
-/// The dev seed's 603 without images, so widget tests load nothing from the
-/// network.
 ProductDetailEntity buildProductDetail({
   int stock = 15,
   bool prescriptionRequired = true,
@@ -140,8 +140,6 @@ const catalogFilterOptions = CatalogFilterOptions(
   conditions: [ConditionEntity(id: '501', name: 'Fascite plantar')],
 );
 
-/// A seller's ad without a cover, so widget tests load nothing from the
-/// network.
 SellerAdEntity buildSellerAd({
   String id = '601',
   String? title,
@@ -185,7 +183,6 @@ CartItemEntity buildCartItem({
   ],
 );
 
-/// A cart with one group per seller, totals counting only available items.
 CartEntity buildCart(Map<String, List<CartItemEntity>> itemsBySeller) {
   double sum(Iterable<CartItemEntity> items) => items
       .where((item) => item.isAvailable)
@@ -241,11 +238,27 @@ const shippingAddress = ShippingAddressEntity(
   state: 'SP',
 );
 
+PrescriptionEntity buildPrescription({
+  String id = 'd1',
+  DocumentStatus status = DocumentStatus.approved,
+  String? rejectionReason,
+}) => PrescriptionEntity(
+  id: id,
+  status: status,
+  rejectionReason: rejectionReason,
+  url: '/documents/$id',
+  createdAt: DateTime(2026, 10, 14, 9, 30),
+);
+
 OrderItemEntity buildOrderItem({
   String id = '601',
   int quantity = 1,
   String? itemId,
   ReviewEntity? review,
+  bool prescriptionRequired = false,
+  PrescriptionEntity? prescription,
+  bool canUploadPrescription = false,
+  bool canRejectPrescription = false,
 }) => OrderItemEntity(
   id: itemId,
   advertisementId: id,
@@ -261,9 +274,12 @@ OrderItemEntity buildOrderItem({
     deliveryDays: 7,
   ),
   review: review,
+  prescriptionRequired: prescriptionRequired,
+  prescription: prescription,
+  canUploadPrescription: canUploadPrescription,
+  canRejectPrescription: canRejectPrescription,
 );
 
-/// One order per seller, each with one unit of 601 and PAC.
 CheckoutPlanEntity buildCheckoutPlan({List<String> sellers = const ['s1']}) =>
     CheckoutPlanEntity(
       address: shippingAddress,
@@ -311,15 +327,16 @@ OrderEntity buildOrder({
   paidAt: paidAt,
 );
 
-/// One of the seller's orders, bought by Maria Souza, with the actions its
-/// [status] allows; shipped ones have a Correios [shipment].
 OrderDetailEntity buildSellerOrderDetail({
   String id = 'o1',
   OrderStatus status = OrderStatus.paid,
+  List<OrderItemEntity>? items,
+  bool? canShip,
 }) => OrderDetailEntity(
   order: buildOrder(
     id: id,
     status: status,
+    items: items,
     buyerName: 'Maria Souza',
     paidAt: DateTime(2026, 10, 14, 10, 30),
   ),
@@ -346,16 +363,16 @@ OrderDetailEntity buildSellerOrderDetail({
       : null,
   canCancel: false,
   canStartProcessing: status == OrderStatus.paid,
-  canShip: status == OrderStatus.processing,
+  canShip: canShip ?? status == OrderStatus.processing,
 );
 
-/// An order awaiting payment, cancelled by the buyer when [cancelled] or
-/// paid when [paid].
 OrderDetailEntity buildOrderDetail({
   bool cancelled = false,
   bool paid = false,
+  List<OrderItemEntity>? items,
 }) => OrderDetailEntity(
   order: buildOrder(
+    items: items,
     status: cancelled
         ? OrderStatus.cancelled
         : paid
@@ -386,8 +403,6 @@ OrderDetailEntity buildOrderDetail({
   canCancel: !cancelled,
 );
 
-/// The buyer's order after the seller shipped it by Correios, delivered
-/// when [delivered]; its item i1 carries [review].
 OrderDetailEntity buildShippedOrderDetail({
   bool delivered = false,
   ReviewEntity? review,
@@ -442,7 +457,6 @@ CheckoutResultEntity buildCheckoutResult({List<OrderEntity>? orders}) {
   );
 }
 
-/// A payment of [buildOrder]'s o1: a pending Pix with its code by default.
 PaymentEntity buildPayment({
   String id = 'p1',
   PaymentMethod method = PaymentMethod.pix,

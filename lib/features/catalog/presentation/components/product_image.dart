@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/network/api_urls.dart';
 
-/// A product photo that fills its box, with a placeholder icon when there
-/// is no [url] or the image fails to load.
 class ProductImage extends StatelessWidget {
   const ProductImage({super.key, required this.url, this.semanticLabel});
 

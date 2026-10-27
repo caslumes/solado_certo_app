@@ -1,6 +1,5 @@
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 
-/// An in-app notification (RF-020); there are no push notifications.
 class NotificationEntity {
   final String id;
   final NotificationType type;

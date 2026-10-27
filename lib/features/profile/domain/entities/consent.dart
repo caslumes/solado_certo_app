@@ -1,9 +1,11 @@
 abstract final class ConsentPurposes {
   static const podologicalProfile = 'podological_profile';
+  static const prescription = 'prescription';
 }
 
 abstract final class ConsentTermsVersions {
   static const podologicalProfile = 'podological-profile-v1';
+  static const prescription = 'prescription-v1';
 }
 
 class ConsentEntity {

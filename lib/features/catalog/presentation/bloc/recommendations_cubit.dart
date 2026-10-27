@@ -2,15 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 
-/// Feeds the "Para você" home section.
-///
-/// The section is optional, so every failure hides it: signed out (401),
-/// no podological profile consent (403), no matches or no connection.
-/// While reloading, the current items stay on screen.
 class RecommendationsCubit extends Cubit<RecommendationsState> {
   final GetRecommendedItemsUseCase _getRecommendedItemsUseCase;
 
-  /// Drops responses from a load that a newer [load] or [hide] replaced.
   int _generation = 0;
 
   RecommendationsCubit({

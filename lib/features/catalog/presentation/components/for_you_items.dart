@@ -4,8 +4,6 @@ import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendati
 import 'package:solado_certo_app/features/catalog/presentation/components/product_card.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/product_detail_page.dart';
 
-/// The "Para você" home section: products for the buyer's podological
-/// profile. Takes no space while [RecommendationsCubit] hides it.
 class ForYouItems extends StatelessWidget {
   const ForYouItems({super.key});
 

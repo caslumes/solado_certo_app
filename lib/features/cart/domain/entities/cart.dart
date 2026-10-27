@@ -1,11 +1,9 @@
 import 'package:solado_certo_app/features/cart/domain/enum/cart_item_problem.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 
-/// The buyer's active cart. Totals only count items that can be bought.
 class CartEntity {
   final String? id;
 
-  /// One group per seller: checkout creates one order for each.
   final List<CartGroupEntity> groups;
   final int itemCount;
   final double subtotal;
@@ -29,7 +27,6 @@ class CartEntity {
     for (final group in groups) ...group.items,
   ];
 
-  /// Units of every item, including those with a problem, for the tab badge.
   int get unitCount => items.fold(0, (sum, item) => sum + item.quantity);
 
   CartItemEntity? item(String advertisementId) {
@@ -60,10 +57,8 @@ class CartItemEntity {
   final String? coverImageUrl;
   final int quantity;
 
-  /// The current price of the ad.
   final double unitPrice;
 
-  /// The price when the item was added; checkout asks to confirm if it differs.
   final double addedUnitPrice;
   final bool priceChanged;
   final int stock;

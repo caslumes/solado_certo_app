@@ -2,8 +2,6 @@ import 'dart:math';
 
 final _random = Random.secure();
 
-/// A random UUID (version 4) for the `Idempotency-Key` header, so a request
-/// repeated after a lost answer is not applied twice.
 String newIdempotencyKey() {
   final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
   bytes[6] = (bytes[6] & 0x0f) | 0x40;

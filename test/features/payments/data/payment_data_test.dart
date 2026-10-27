@@ -12,7 +12,6 @@ import '../../../support/builders.dart';
 
 class MockClient extends Mock implements ClientInterface {}
 
-/// A pending Pix as `POST /orders/:id/payments` answers it.
 Map<String, dynamic> pixJson() => {
   'id': 'p1',
   'order_id': 'o1',
@@ -166,7 +165,6 @@ void main() {
     expect(order.amountFor(PaymentMethod.pix), 105.3);
     expect(order.amountFor(PaymentMethod.boleto), 109.8);
     expect(order.amountFor(PaymentMethod.creditCard), 109.8);
-    // 5% of 89.91 is 4.4955: half a cent rounds up.
     expect(buildOrder(subtotal: 89.91).discountFor(PaymentMethod.pix), 4.5);
     expect(buildOrder(subtotal: 89.89).discountFor(PaymentMethod.pix), 4.49);
   });

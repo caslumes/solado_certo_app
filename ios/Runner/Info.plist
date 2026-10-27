@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Para escolher sua foto de perfil e as fotos dos seus anúncios.</string>
+	<string>Para escolher sua foto de perfil, as fotos dos seus anúncios e as receitas dos seus pedidos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Para fotografar as receitas dos seus pedidos.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

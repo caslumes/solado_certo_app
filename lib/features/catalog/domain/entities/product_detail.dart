@@ -28,9 +28,6 @@ class ProductDetailEntity {
   final SellerEntity? seller;
   final List<ShippingOptionEntity> shippingOptions;
 
-  /// False when a prescription or condition-linked item lacks safety alerts
-  /// or contraindications, so the app warns that the information is
-  /// incomplete (UC-005 alternative flow).
   final bool safetyInfoComplete;
 
   const ProductDetailEntity({

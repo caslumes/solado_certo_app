@@ -1,5 +1,3 @@
-/// Labels for the JSON field names the backend lists in `missing_fields`
-/// and in a 422 response.
 const adFieldLabels = {
   'title': 'Título',
   'description': 'Descrição',

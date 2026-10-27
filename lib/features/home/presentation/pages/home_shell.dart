@@ -66,7 +66,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     }
   }
 
-  /// Checks now and then every [HomeShell.notificationsInterval].
   void _watchNotifications() {
     _notificationsTimer?.cancel();
     _notificationsBloc.add(LoadNotificationsEvent(quiet: true));
@@ -125,7 +124,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       Navigator.of(context).pushNamed(AuthRoutes.signIn);
       return;
     }
-    // Stock, prices and order statuses may have changed since last time.
     if (index == _cartIndex) context.read<CartBloc>().add(LoadCartEvent());
     if (index == _ordersIndex) _ordersBloc.add(LoadOrdersEvent());
     setState(() => _selectedIndex = index);
@@ -217,7 +215,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   }
 }
 
-/// The cart icon with the number of units in the cart.
 class _CartIcon extends StatelessWidget {
   const _CartIcon({required this.icon, required this.color});
 

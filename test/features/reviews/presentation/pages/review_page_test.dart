@@ -64,7 +64,6 @@ void main() {
         (_) async => (review: buildReview(), suggestSupport: suggestSupport),
       );
 
-  /// The product's stars come first, the seller's second.
   Future<void> rate(
     WidgetTester tester, {
     required int product,

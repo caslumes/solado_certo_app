@@ -124,8 +124,6 @@ class _LoadFailure extends StatelessWidget {
   }
 }
 
-/// Quantity and "Adicionar ao carrinho" (RF-012). Signed-out visitors are
-/// sent to sign in; the new cart goes to the app's [CartBloc].
 class _AddToCartBar extends StatefulWidget {
   const _AddToCartBar({required this.product});
 
@@ -309,7 +307,6 @@ class _ImageCarouselState extends State<_ImageCarousel> {
   }
 }
 
-/// Title, rating, price, availability and the podological classification.
 class _Summary extends StatelessWidget {
   const _Summary({required this.product});
 
@@ -397,7 +394,6 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// Technical attributes; hidden when the seller filled none of them.
 class _Attributes extends StatelessWidget {
   const _Attributes({required this.product});
 

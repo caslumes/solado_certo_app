@@ -3,14 +3,11 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
 
-/// The bell's unread count and the notifications list, newest first.
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final GetNotificationsUseCase _getNotificationsUseCase;
   final MarkNotificationReadUseCase _markNotificationReadUseCase;
   final MarkAllNotificationsReadUseCase _markAllNotificationsReadUseCase;
 
-  /// Bumped by every first-page load, so a next page that arrives after a
-  /// refresh is dropped.
   int _generation = 0;
 
   NotificationsBloc({
@@ -31,8 +28,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     });
   }
 
-  /// Loads the first page. A refresh keeps the list on screen; a quiet one
-  /// (the periodic check) also keeps quiet about failures.
   Future<void> _onLoad(
     LoadNotificationsEvent event,
     Emitter<NotificationsState> emit,
@@ -86,7 +81,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       final known = {for (final n in state.notifications) n.id};
       emit(
         state.copyWith(
-          // A notification created meanwhile shifts the pages by one.
           notifications: [
             ...state.notifications,
             ...page.items.where((n) => !known.contains(n.id)),
@@ -103,7 +97,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     }
   }
 
-  /// Shown as read at once; put back if the request fails.
   Future<void> _onMarkRead(
     MarkNotificationReadEvent event,
     Emitter<NotificationsState> emit,
@@ -172,7 +165,6 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 class NotificationsEvent {}
 
 class LoadNotificationsEvent extends NotificationsEvent {
-  /// The periodic check: no spinner and no error shown.
   final bool quiet;
 
   LoadNotificationsEvent({this.quiet = false});
@@ -188,7 +180,6 @@ class MarkNotificationReadEvent extends NotificationsEvent {
 
 class MarkAllNotificationsReadEvent extends NotificationsEvent {}
 
-/// Forgets the notifications when the user signs out.
 class ClearNotificationsEvent extends NotificationsEvent {}
 
 enum NotificationsStatus { initial, loading, loaded, failure }
@@ -212,7 +203,6 @@ class NotificationsState {
     this.failure,
   });
 
-  /// [failure] is one-shot: it is cleared unless passed.
   NotificationsState copyWith({
     List<NotificationEntity>? notifications,
     int? page,

@@ -14,8 +14,6 @@ abstract final class FieldValidators {
       ? 'Máximo de $max caracteres'
       : null;
 
-  /// Accepts money typed as `89,90`, `89.90` or `1.234,56`; empty passes, so
-  /// combine with [required] when needed.
   static String? decimal(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return null;
@@ -24,8 +22,6 @@ abstract final class FieldValidators {
 
   static final _decimalPattern = RegExp(r'^\d{1,8}(\.\d{1,2})?$');
 
-  /// Normalizes money typed in pt-BR to the API format (`"1234.56"`), or
-  /// returns null when it isn't a valid amount.
   static String? parseDecimal(String value) {
     var text = value.trim().replaceAll(' ', '');
     if (text.contains(',')) {
@@ -69,9 +65,33 @@ abstract final class FieldValidators {
   }
 
   static const states = {
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', //
-    'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', //
-    'SP', 'SE', 'TO',
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO',
   };
 
   static String zipCodeDigits(String value) =>
@@ -93,8 +113,6 @@ abstract final class FieldValidators {
 
   static String digits(String value) => value.replaceAll(RegExp(r'\D'), '');
 
-  /// Accepts a CPF with or without punctuation and checks its two check
-  /// digits.
   static String? cpf(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return 'Informe seu CPF';
@@ -128,8 +146,6 @@ abstract final class FieldValidators {
         : 'Número de cartão inválido';
   }
 
-  /// Reads an expiry typed as `MM/AA` or `MM/AAAA` into a two-digit month and
-  /// a four-digit year, or returns null.
   static ({String month, String year})? parseCardExpiry(String value) {
     final match = RegExp(
       r'^(\d{1,2})\s*/\s*(\d{2}|\d{4})$',
@@ -144,7 +160,6 @@ abstract final class FieldValidators {
     );
   }
 
-  /// A card is valid until the end of its expiry month.
   static FieldValidator cardExpiry([DateTime Function() now = DateTime.now]) =>
       (value) {
         final text = value?.trim() ?? '';
@@ -168,12 +183,9 @@ abstract final class FieldValidators {
   static final _correiosPattern = RegExp(r'^[A-Z]{2}\d{9}BR$');
   static final _trackingPattern = RegExp(r'^[A-Z0-9-]{8,40}$');
 
-  /// Upper case and without spaces, as the backend stores it.
   static String trackingCode(String value) =>
       value.replaceAll(RegExp(r'\s'), '').toUpperCase();
 
-  /// The backend's rules (UC-009): a Correios code is `AA123456789BR`; other
-  /// carriers' codes have 8 to 40 letters, digits or hyphens.
   static FieldValidator trackingCodeFor(String carrier) => (value) {
     final code = trackingCode(value ?? '');
     if (code.isEmpty) return 'Campo obrigatório';

@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/features/catalog/data/models/product_detail_model.dart';
 
-/// A `GET /catalog/items/:id` response for the dev seed's 603, with a
-/// second image placed before the cover.
 final _detailJson = {
   'id': '00000000-0000-0000-0000-000000000603',
   'seller_id': '00000000-0000-0000-0000-000000000002',

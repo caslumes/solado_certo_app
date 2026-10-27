@@ -6,8 +6,6 @@ import 'package:solado_certo_app/features/reviews/presentation/bloc/product_revi
 import 'package:solado_certo_app/features/reviews/presentation/components/comfort_labels.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/rating_stars.dart';
 
-/// The product's reviews (RF-024), newest first, from the
-/// [ProductReviewsCubit] above.
 class ProductReviewsSection extends StatelessWidget {
   const ProductReviewsSection({super.key});
 

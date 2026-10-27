@@ -12,7 +12,6 @@ enum AdStatus {
       values.firstWhere((status) => status.name == value);
 }
 
-/// The status changes the backend accepts, each from one status only.
 enum AdStatusAction {
   publish(AdStatus.draft, 'Publicar', 'Anúncio publicado.'),
   pause(AdStatus.published, 'Pausar', 'Anúncio pausado.'),

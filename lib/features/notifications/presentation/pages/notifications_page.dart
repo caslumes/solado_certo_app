@@ -11,12 +11,9 @@ import 'package:solado_certo_app/features/notifications/presentation/bloc/notifi
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
 
-/// The user's notifications (RF-020). Tapping one marks it as read and opens
-/// the order it is about.
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key, this.routeFor = defaultRouteFor});
 
-  /// Where a notification leads, or null when it leads nowhere.
   final Route<void>? Function(NotificationEntity notification) routeFor;
 
   static Route<void>? defaultRouteFor(NotificationEntity notification) {
@@ -61,8 +58,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  /// A short first page can leave nothing to scroll, so no scroll event
-  /// would ask for the next one.
   void _checkFill() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) _onScroll();

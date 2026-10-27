@@ -15,6 +15,8 @@ import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.d
 import 'package:solado_certo_app/features/orders/presentation/pages/my_orders_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -44,8 +46,6 @@ void main() {
         child: const MaterialApp(home: MyOrdersPage()),
       ),
     );
-    // The home shell loads the orders when the tab is opened, after the
-    // page was built.
     bloc.add(LoadOrdersEvent());
     await tester.pumpAndSettle();
   }
@@ -183,7 +183,16 @@ void main() {
       ..registerSingleton<GetOrderUseCase>(getOrder)
       ..registerSingleton<CancelOrderUseCase>(cancelOrder)
       ..registerSingleton<ConfirmDeliveryUseCase>(MockConfirmDeliveryUseCase())
-      ..registerSingleton<GetPaymentsUseCase>(getPayments);
+      ..registerSingleton<GetPaymentsUseCase>(getPayments)
+      ..registerSingleton<UploadPrescriptionUseCase>(
+        MockUploadPrescriptionUseCase(),
+      )
+      ..registerSingleton<HasPrescriptionConsentUseCase>(
+        MockHasPrescriptionConsentUseCase(),
+      )
+      ..registerSingleton<GrantPrescriptionConsentUseCase>(
+        MockGrantPrescriptionConsentUseCase(),
+      );
     addTearDown(getIt.reset);
     when(() => getOrders.execute(1, filter: const OrderFilter())).thenAnswer(
       (_) async => OrdersPageEntity(

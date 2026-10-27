@@ -18,7 +18,6 @@ String formatShippingAddress(ShippingAddressEntity address) =>
       zipCode: address.zipCode,
     );
 
-/// Street and number, district and city, then the CEP, one per line.
 String formatAddressLines({
   required String street,
   required String number,

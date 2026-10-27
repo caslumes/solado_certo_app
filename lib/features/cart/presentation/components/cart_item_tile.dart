@@ -5,7 +5,6 @@ import 'package:solado_certo_app/core/presentation/components/shoe_quantity_step
 import 'package:solado_certo_app/features/cart/domain/entities/cart.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 
-/// The most units of one product a cart takes, as the backend allows.
 const maxCartItemQuantity = 99;
 
 class CartItemTile extends StatelessWidget {
@@ -21,10 +20,8 @@ class CartItemTile extends StatelessWidget {
 
   final CartItemEntity item;
 
-  /// This item's action is in progress.
   final bool busy;
 
-  /// False while another item's action runs.
   final bool enabled;
   final ValueChanged<int> onQuantityChanged;
   final VoidCallback onRemove;
@@ -35,7 +32,6 @@ class CartItemTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final problem = item.problem;
     final canChange = enabled && !busy;
-    // An item with a problem can be lowered but not raised.
     final max = item.isAvailable
         ? item.stock.clamp(1, maxCartItemQuantity)
         : item.quantity;

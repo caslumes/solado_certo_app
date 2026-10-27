@@ -35,7 +35,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_
 import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
@@ -129,7 +131,6 @@ class MockGetProductDetailUseCase extends Mock
 class MockGetRecommendedItemsUseCase extends Mock
     implements GetRecommendedItemsUseCase {}
 
-/// The home shell loads the "Para você" items through getIt when signed in.
 MockGetRecommendedItemsUseCase registerRecommendedItems({
   List<CatalogItemEntity> items = const [],
 }) {
@@ -139,7 +140,6 @@ MockGetRecommendedItemsUseCase registerRecommendedItems({
   return useCase;
 }
 
-/// The home shell loads the catalog filter options through getIt.
 void registerCatalogFilterOptions() {
   final useCase = MockGetCatalogFilterOptionsUseCase();
   when(useCase.execute).thenAnswer((_) async => catalogFilterOptions);
@@ -163,7 +163,6 @@ class MockCartBloc extends MockBloc<CartEvent, CartState> implements CartBloc {}
 class MockAddToCartCubit extends MockCubit<AddToCartState>
     implements AddToCartCubit {}
 
-/// A cart bloc that stays in [state]; the app provides one above every page.
 MockCartBloc buildCartBloc([CartState? state]) {
   final bloc = MockCartBloc();
   when(() => bloc.state).thenReturn(state ?? CartInactive());
@@ -201,12 +200,25 @@ class MockStartProcessingUseCase extends Mock
 
 class MockShipOrderUseCase extends Mock implements ShipOrderUseCase {}
 
+class MockUploadPrescriptionUseCase extends Mock
+    implements UploadPrescriptionUseCase {}
+
+class MockRejectPrescriptionUseCase extends Mock
+    implements RejectPrescriptionUseCase {}
+
+class MockOpenDocumentUseCase extends Mock implements OpenDocumentUseCase {}
+
+class MockHasPrescriptionConsentUseCase extends Mock
+    implements HasPrescriptionConsentUseCase {}
+
+class MockGrantPrescriptionConsentUseCase extends Mock
+    implements GrantPrescriptionConsentUseCase {}
+
 class MockCreateReviewUseCase extends Mock implements CreateReviewUseCase {}
 
 class MockGetProductReviewsUseCase extends Mock
     implements GetProductReviewsUseCase {}
 
-/// The home shell creates the Pedidos tab's bloc through getIt.
 MockGetOrdersUseCase registerOrders({List<OrderEntity> orders = const []}) {
   final useCase = MockGetOrdersUseCase();
   when(() => useCase.execute(any(), filter: const OrderFilter())).thenAnswer(
@@ -233,8 +245,6 @@ class MockMarkNotificationReadUseCase extends Mock
 class MockMarkAllNotificationsReadUseCase extends Mock
     implements MarkAllNotificationsReadUseCase {}
 
-/// The home shell creates the bell's bloc through getIt and checks the
-/// notifications when signed in.
 MockGetNotificationsUseCase registerNotifications({
   List<NotificationEntity> notifications = const [],
   int unreadCount = 0,

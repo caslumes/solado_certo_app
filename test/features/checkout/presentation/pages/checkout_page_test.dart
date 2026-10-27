@@ -12,6 +12,7 @@ import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart
 import 'package:solado_certo_app/features/checkout/presentation/bloc/checkout_bloc.dart';
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
 import 'package:solado_certo_app/features/checkout/presentation/pages/order_confirmation_page.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
 
@@ -32,7 +33,6 @@ void main() {
     's2': [buildCartItem(id: '602')],
   });
 
-  /// Opens checkout over a page standing in for the cart, like the app does.
   Future<void> pumpCheckout(
     WidgetTester tester, {
     Future<AddressEntity> Function(NewAddress)? addAddress,
@@ -361,5 +361,64 @@ void main() {
     expect(find.textContaining('PAGAR PEDIDO'), findsNothing);
     expect(find.text('VER MEUS PEDIDOS'), findsOneWidget);
     expect(paying, [('o1', '1 de 2'), ('o2', '2 de 2'), ('o2', '2 de 2')]);
+  });
+
+  testWidgets('an order that needs a prescription is opened to send it', (
+    tester,
+  ) async {
+    final opened = <String>[];
+    late ValueChanged<OrderEntity> update;
+    final pending = buildOrder(
+      items: [
+        buildOrderItem(
+          itemId: 'i1',
+          prescriptionRequired: true,
+          canUploadPrescription: true,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OrderConfirmationPage(
+          result: buildCheckoutResult(orders: [pending]),
+          pay: (_, order, _) async {
+            opened.add('pay ${order.id}');
+            return true;
+          },
+          openOrder: (_, order, onChanged) async {
+            opened.add('open ${order.id}');
+            update = onChanged;
+          },
+        ),
+      ),
+    );
+
+    expect(
+      find.text(
+        'Alguns produtos exigem receita. Envie-a na tela do pedido para '
+        'liberar o pagamento.',
+      ),
+      findsOneWidget,
+    );
+    await tapButton(tester, 'Enviar receita');
+    expect(opened, ['open o1']);
+
+    update(
+      buildOrder(
+        items: [
+          buildOrderItem(
+            itemId: 'i1',
+            prescriptionRequired: true,
+            prescription: buildPrescription(),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Alguns produtos exigem receita'), findsNothing);
+
+    await tapButton(tester, 'Pagar agora');
+    expect(opened, ['open o1', 'pay o1']);
+    expect(find.text('Loja s1 · Pago'), findsOneWidget);
   });
 }

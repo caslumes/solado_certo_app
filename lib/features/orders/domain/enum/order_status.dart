@@ -1,4 +1,3 @@
-/// The order status machine of the backend (`OrderStatus.CanBecome`).
 enum OrderStatus {
   awaitingPayment('Aguardando pagamento'),
   paid('Pago'),

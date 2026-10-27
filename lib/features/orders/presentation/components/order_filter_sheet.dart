@@ -4,8 +4,6 @@ import 'package:solado_certo_app/core/presentation/components/shoe_text_button.d
 import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 
-/// Picks an order history filter (RF-025): a status, when [withStatus], and
-/// a period. Returns null when dismissed.
 Future<OrderFilter?> showOrderFilterSheet(
   BuildContext context, {
   required OrderFilter current,
@@ -91,7 +89,6 @@ class _OrderFilterSheetState extends State<_OrderFilterSheet> {
   }
 }
 
-/// The filter in use above a list, with a way to clear it.
 class OrderFilterBar extends StatelessWidget {
   const OrderFilterBar({
     super.key,
@@ -129,7 +126,6 @@ class OrderFilterBar extends StatelessWidget {
   }
 }
 
-/// Opens the filter sheet; shows a dot while a filter is in use.
 class OrderFilterButton extends StatelessWidget {
   const OrderFilterButton({
     super.key,

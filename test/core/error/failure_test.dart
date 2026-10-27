@@ -265,4 +265,61 @@ void main() {
     );
     expect(fromBody(503, 'other'), isA<ServerFailure>());
   });
+
+  test('maps prescription errors by their code', () {
+    Failure fromBody(int status, String error) => Failure.from(
+      buildDioException(statusCode: status, data: {'error': error}),
+    );
+
+    expect(
+      fromBody(
+        403,
+        'sending a prescription requires consent to the prescription terms',
+      ),
+      isA<PrescriptionConsentRequiredFailure>(),
+    );
+    expect(fromBody(403, 'forbidden'), isA<ForbiddenFailure>());
+    expect(
+      fromBody(415, 'the prescription must be a PDF, JPEG or PNG file'),
+      isA<PrescriptionFileTypeFailure>(),
+    );
+    expect(fromBody(415, 'other'), isA<UnsupportedFileTypeFailure>());
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 409,
+          data: {
+            'error': 'prescription required',
+            'item_ids': ['i1', 'i2'],
+          },
+        ),
+      ),
+      isA<PrescriptionRequiredFailure>().having((f) => f.itemIds, 'itemIds', [
+        'i1',
+        'i2',
+      ]),
+    );
+    for (final (reason, message) in [
+      ('the PDF is incomplete', 'o PDF está incompleto.'),
+      ('the image could not be opened', 'a imagem não pôde ser aberta.'),
+      ('the image is damaged', 'a imagem está danificada.'),
+      (
+        'the image must be at least 300x300 pixels',
+        'a imagem deve ter pelo menos 300 × 300 pixels.',
+      ),
+      (
+        'the image must have at most 40 megapixels',
+        'a imagem deve ter no máximo 40 megapixels.',
+      ),
+    ]) {
+      expect(
+        fromBody(422, 'unreadable document: $reason').message,
+        'Não foi possível ler o arquivo: $message',
+      );
+    }
+    expect(
+      fromBody(422, 'unreadable document: something new').message,
+      'Não foi possível ler o arquivo. Envie outro.',
+    );
+  });
 }

@@ -3,8 +3,6 @@ import 'package:solado_certo_app/features/reviews/domain/entities/review.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/comfort_labels.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/rating_stars.dart';
 
-/// The review of an order item, in full: the buyer and the seller see the
-/// adaptation feedback too.
 class ItemReviewSummary extends StatelessWidget {
   const ItemReviewSummary({super.key, required this.review, this.title});
 

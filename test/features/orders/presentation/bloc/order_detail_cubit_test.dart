@@ -2,9 +2,12 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/order_detail_cubit.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_status.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/consent.dart';
 
 import '../../../../support/builders.dart';
 import '../../../../support/mocks.dart';
@@ -14,8 +17,31 @@ void main() {
   late MockCancelOrderUseCase cancelOrder;
   late MockConfirmDeliveryUseCase confirmDelivery;
   late MockGetPaymentsUseCase getPayments;
+  late MockUploadPrescriptionUseCase uploadPrescription;
+  late MockHasPrescriptionConsentUseCase hasConsent;
+  late MockGrantPrescriptionConsentUseCase grantConsent;
 
+  const file = UploadFile(bytes: [1, 2, 3], filename: 'receita.pdf');
   final open = buildOrderDetail();
+  final awaitingPrescription = buildOrderDetail(
+    items: [
+      buildOrderItem(
+        itemId: 'i1',
+        prescriptionRequired: true,
+        canUploadPrescription: true,
+      ),
+    ],
+  );
+  final withPrescription = buildOrderDetail(
+    items: [
+      buildOrderItem(
+        itemId: 'i1',
+        prescriptionRequired: true,
+        prescription: buildPrescription(),
+        canUploadPrescription: true,
+      ),
+    ],
+  );
   final cancelled = buildOrderDetail(cancelled: true);
 
   OrderDetailCubit buildCubit() => OrderDetailCubit(
@@ -23,6 +49,9 @@ void main() {
     cancelOrderUseCase: cancelOrder,
     confirmDeliveryUseCase: confirmDelivery,
     getPaymentsUseCase: getPayments,
+    uploadPrescriptionUseCase: uploadPrescription,
+    hasPrescriptionConsentUseCase: hasConsent,
+    grantPrescriptionConsentUseCase: grantConsent,
     orderId: 'o1',
   );
 
@@ -31,6 +60,9 @@ void main() {
     cancelOrder = MockCancelOrderUseCase();
     confirmDelivery = MockConfirmDeliveryUseCase();
     getPayments = MockGetPaymentsUseCase();
+    uploadPrescription = MockUploadPrescriptionUseCase();
+    hasConsent = MockHasPrescriptionConsentUseCase();
+    grantConsent = MockGrantPrescriptionConsentUseCase();
     when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
   });
 
@@ -293,5 +325,146 @@ void main() {
             .having((s) => s.failure, 'failure', isA<ServerFailure>()),
       ],
     );
+  });
+
+  group('prescriptions', () {
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'uploads the prescription and reloads the order, now payable',
+      setUp: () {
+        when(
+          () => uploadPrescription.execute('o1', 'i1', file),
+        ).thenAnswer((_) async => buildPrescription());
+        when(
+          () => getOrder.execute('o1'),
+        ).thenAnswer((_) async => withPrescription);
+      },
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: awaitingPrescription),
+      act: (cubit) => cubit.uploadPrescription('i1', file),
+      expect: () => [
+        isA<OrderDetailLoaded>().having((s) => s.working, 'working', true),
+        isA<OrderDetailLoaded>()
+            .having((s) => s.detail, 'detail', withPrescription)
+            .having(
+              (s) => s.notice,
+              'notice',
+              'Receita aprovada. Você já pode pagar.',
+            ),
+      ],
+    );
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'keeps the order and explains why the file was refused',
+      setUp: () =>
+          when(() => uploadPrescription.execute('o1', 'i1', file)).thenThrow(
+            buildDioException(
+              statusCode: 422,
+              data: {'error': 'unreadable document: the PDF is incomplete'},
+            ),
+          ),
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: awaitingPrescription),
+      act: (cubit) => cubit.uploadPrescription('i1', file),
+      skip: 1,
+      expect: () => [
+        isA<OrderDetailLoaded>()
+            .having((s) => s.detail, 'detail', awaitingPrescription)
+            .having(
+              (s) => s.failure?.message,
+              'failure',
+              'Não foi possível ler o arquivo: o PDF está incompleto.',
+            ),
+      ],
+      verify: (_) => verifyNever(() => getOrder.execute(any())),
+    );
+
+    test('asks for the consent only until it is known to be given', () async {
+      when(() => hasConsent.execute()).thenAnswer((_) async => true);
+      final cubit = buildCubit();
+
+      expect(await cubit.hasPrescriptionConsent(), isTrue);
+      expect(await cubit.hasPrescriptionConsent(), isTrue);
+      verify(() => hasConsent.execute()).called(1);
+    });
+
+    test('remembers a consent just given', () async {
+      when(() => hasConsent.execute()).thenAnswer((_) async => false);
+      when(() => grantConsent.execute()).thenAnswer(
+        (_) async => ConsentEntity(
+          purpose: ConsentPurposes.prescription,
+          termsVersion: ConsentTermsVersions.prescription,
+          grantedAt: DateTime(2026, 10, 27),
+        ),
+      );
+      final cubit = buildCubit();
+
+      expect(await cubit.hasPrescriptionConsent(), isFalse);
+      expect(await cubit.grantPrescriptionConsent(), isTrue);
+      expect(await cubit.hasPrescriptionConsent(), isTrue);
+      verify(() => hasConsent.execute()).called(1);
+    });
+
+    blocTest<OrderDetailCubit, OrderDetailState>(
+      'reports a consent check that failed',
+      setUp: () => when(
+        () => hasConsent.execute(),
+      ).thenThrow(buildDioException(statusCode: 500)),
+      build: buildCubit,
+      seed: () => OrderDetailLoaded(detail: awaitingPrescription),
+      act: (cubit) async =>
+          expect(await cubit.hasPrescriptionConsent(), isNull),
+      expect: () => [
+        isA<OrderDetailLoaded>().having(
+          (s) => s.failure,
+          'failure',
+          isA<ServerFailure>(),
+        ),
+      ],
+    );
+
+    test('checks the consent again after the server asked for it', () async {
+      when(() => hasConsent.execute()).thenAnswer((_) async => true);
+      when(() => uploadPrescription.execute('o1', 'i1', file)).thenThrow(
+        buildDioException(
+          statusCode: 403,
+          data: {
+            'error':
+                'sending a prescription requires consent to the prescription terms',
+          },
+        ),
+      );
+      final cubit = buildCubit()
+        ..emit(OrderDetailLoaded(detail: awaitingPrescription));
+
+      await cubit.hasPrescriptionConsent();
+      await cubit.uploadPrescription('i1', file);
+
+      expect(
+        (cubit.state as OrderDetailLoaded).failure,
+        isA<PrescriptionConsentRequiredFailure>(),
+      );
+      await cubit.hasPrescriptionConsent();
+      verify(() => hasConsent.execute()).called(2);
+    });
+
+    test('an item without an approved prescription holds the payment', () {
+      expect(
+        awaitingPrescription.order.itemsAwaitingPrescription,
+        hasLength(1),
+      );
+      expect(withPrescription.order.itemsAwaitingPrescription, isEmpty);
+      expect(
+        buildOrderDetail(
+          items: [
+            buildOrderItem(
+              prescriptionRequired: true,
+              prescription: buildPrescription(status: DocumentStatus.rejected),
+            ),
+          ],
+        ).order.itemsAwaitingPrescription,
+        hasLength(1),
+      );
+      expect(open.order.itemsAwaitingPrescription, isEmpty);
+    });
   });
 }

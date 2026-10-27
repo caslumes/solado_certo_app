@@ -1,7 +1,10 @@
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/orders/data/models/order_model.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/prescription.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 
 class ApiOrderRepository implements OrderRepositoryInterface {
@@ -77,4 +80,34 @@ class ApiOrderRepository implements OrderRepositoryInterface {
     );
     return orderDetailFromJson(response as Map<String, dynamic>);
   }
+
+  @override
+  Future<PrescriptionEntity> uploadPrescription(
+    String orderId,
+    String itemId,
+    UploadFile file,
+  ) async {
+    final response = await client.upload(
+      '/orders/$orderId/items/$itemId/prescription',
+      field: 'file',
+      file: file,
+    );
+    return prescriptionFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<PrescriptionEntity> rejectPrescription(
+    String orderId,
+    String documentId, {
+    required String reason,
+  }) async {
+    final response = await client.post(
+      '/seller/orders/$orderId/documents/$documentId/reject',
+      data: {'reason': reason},
+    );
+    return prescriptionFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<DownloadedFile> openDocument(String url) => client.download(url);
 }

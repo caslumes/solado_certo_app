@@ -1,7 +1,9 @@
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/prescription.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/reviews/data/models/review_model.dart';
 
@@ -55,8 +57,26 @@ OrderItemEntity orderItemFromJson(Map<String, dynamic> json) {
       final Map<String, dynamic> review => reviewFromJson(review),
       _ => null,
     },
+    prescriptionRequired: json['prescription_required'] as bool? ?? false,
+    prescription: switch (json['prescription']) {
+      final Map<String, dynamic> prescription => prescriptionFromJson(
+        prescription,
+      ),
+      _ => null,
+    },
+    canUploadPrescription: json['can_upload_prescription'] as bool? ?? false,
+    canRejectPrescription: json['can_reject_prescription'] as bool? ?? false,
   );
 }
+
+PrescriptionEntity prescriptionFromJson(Map<String, dynamic> json) =>
+    PrescriptionEntity(
+      id: json['id'] as String,
+      status: DocumentStatus.fromApi(json['status'] as String),
+      rejectionReason: json['rejection_reason'] as String?,
+      url: json['url'] as String,
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
 
 ShippingAddressEntity shippingAddressFromJson(Map<String, dynamic> json) =>
     ShippingAddressEntity(

@@ -5,9 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
+import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/order_detail_cubit.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
@@ -15,6 +18,7 @@ import 'package:solado_certo_app/features/payments/domain/enum/payment_method.da
 import 'package:solado_certo_app/features/payments/domain/enum/payment_status.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
+import 'package:solado_certo_app/features/profile/domain/entities/consent.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
 import 'package:solado_certo_app/features/reviews/presentation/pages/review_page.dart';
@@ -31,8 +35,16 @@ void main() {
   late MockCancelOrderUseCase cancelOrder;
   late MockConfirmDeliveryUseCase confirmDelivery;
   late MockGetPaymentsUseCase getPayments;
+  late MockUploadPrescriptionUseCase uploadPrescription;
+  late MockHasPrescriptionConsentUseCase hasConsent;
+  late MockGrantPrescriptionConsentUseCase grantConsent;
   late MockAuthBloc authBloc;
   late List<OrderEntity> changes;
+  late List<String> openedDocuments;
+  late int consentAsked;
+  late bool consentAnswer;
+
+  const file = UploadFile(bytes: [1, 2, 3], filename: 'receita.pdf');
 
   Future<void> pumpPage(
     WidgetTester tester, {
@@ -51,11 +63,21 @@ void main() {
               cancelOrderUseCase: cancelOrder,
               confirmDeliveryUseCase: confirmDelivery,
               getPaymentsUseCase: getPayments,
+              uploadPrescriptionUseCase: uploadPrescription,
+              hasPrescriptionConsentUseCase: hasConsent,
+              grantPrescriptionConsentUseCase: grantConsent,
               orderId: 'o1',
             )..load(),
-            child: openUrl == null
-                ? OrderDetailPage(onChanged: changes.add)
-                : OrderDetailPage(onChanged: changes.add, openUrl: openUrl),
+            child: OrderDetailPage(
+              onChanged: changes.add,
+              openUrl: openUrl ?? (_) async => true,
+              askConsent: (_) async {
+                consentAsked++;
+                return consentAnswer;
+              },
+              pickFile: (_) async => file,
+              openDocument: (_, url) => openedDocuments.add(url),
+            ),
           ),
         ),
       ),
@@ -78,6 +100,7 @@ void main() {
   setUpAll(() {
     initializeFormatting();
     registerFallbackValue(SignOutEvent());
+    registerFallbackValue(file);
   });
 
   setUp(() {
@@ -85,9 +108,15 @@ void main() {
     cancelOrder = MockCancelOrderUseCase();
     confirmDelivery = MockConfirmDeliveryUseCase();
     getPayments = MockGetPaymentsUseCase();
+    uploadPrescription = MockUploadPrescriptionUseCase();
+    hasConsent = MockHasPrescriptionConsentUseCase();
+    grantConsent = MockGrantPrescriptionConsentUseCase();
     when(() => getPayments.execute('o1')).thenAnswer((_) async => []);
     authBloc = MockAuthBloc();
     changes = [];
+    openedDocuments = [];
+    consentAsked = 0;
+    consentAnswer = true;
     when(
       () => getOrder.execute('o1'),
     ).thenAnswer((_) async => buildOrderDetail());
@@ -422,6 +451,164 @@ void main() {
         find.text('Adaptação: Duas semanas para acostumar'),
         findsOneWidget,
       );
+    });
+  });
+
+  group('prescriptions', () {
+    final pending = buildOrderDetail(
+      items: [
+        buildOrderItem(
+          itemId: 'i1',
+          prescriptionRequired: true,
+          canUploadPrescription: true,
+        ),
+      ],
+    );
+    final approved = buildOrderDetail(
+      items: [
+        buildOrderItem(
+          itemId: 'i1',
+          prescriptionRequired: true,
+          prescription: buildPrescription(),
+          canUploadPrescription: true,
+        ),
+      ],
+    );
+
+    Finder payButton() => find.widgetWithText(ShoeTextButton, 'PAGAR');
+
+    void uploadAnswers() {
+      when(
+        () => uploadPrescription.execute('o1', 'i1', file),
+      ).thenAnswer((_) async => buildPrescription());
+    }
+
+    testWidgets('holds the payment until the prescription is sent (UC-007)', (
+      tester,
+    ) async {
+      when(() => getOrder.execute('o1')).thenAnswer((_) async => pending);
+      await pumpPage(tester);
+
+      expect(find.text('Receita pendente'), findsOneWidget);
+      expect(
+        find.text(
+          'Envie a receita dos itens que exigem prescrição para liberar o '
+          'pagamento.',
+        ),
+        findsOneWidget,
+      );
+      final pay = tester.widget<ShoeTextButton>(payButton());
+      expect(pay.onPressed, isNull);
+      expect(find.text('Ver receita'), findsNothing);
+    });
+
+    testWidgets('asks for consent the first time, then uploads', (
+      tester,
+    ) async {
+      when(() => getOrder.execute('o1')).thenAnswer((_) async => pending);
+      when(() => hasConsent.execute()).thenAnswer((_) async => false);
+      when(() => grantConsent.execute()).thenAnswer(
+        (_) async => ConsentEntity(
+          purpose: ConsentPurposes.prescription,
+          termsVersion: ConsentTermsVersions.prescription,
+          grantedAt: DateTime(2026, 10, 27),
+        ),
+      );
+      uploadAnswers();
+      await pumpPage(tester);
+
+      when(() => getOrder.execute('o1')).thenAnswer((_) async => approved);
+      await tester.tap(find.text('Enviar receita'));
+      await tester.pumpAndSettle();
+
+      expect(consentAsked, 1);
+      verify(() => grantConsent.execute()).called(1);
+      verify(() => uploadPrescription.execute('o1', 'i1', file)).called(1);
+      expect(find.text('Receita aprovada'), findsOneWidget);
+      expect(
+        find.text('Receita aprovada. Você já pode pagar.'),
+        findsOneWidget,
+      );
+      final pay = tester.widget<ShoeTextButton>(payButton());
+      expect(pay.onPressed, isNotNull);
+
+      await tester.tap(find.text('Enviar outra receita'));
+      await tester.pumpAndSettle();
+      expect(consentAsked, 1);
+      verify(() => uploadPrescription.execute('o1', 'i1', file)).called(1);
+    });
+
+    testWidgets('sends nothing when the buyer declines the consent', (
+      tester,
+    ) async {
+      when(() => getOrder.execute('o1')).thenAnswer((_) async => pending);
+      when(() => hasConsent.execute()).thenAnswer((_) async => false);
+      consentAnswer = false;
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Enviar receita'));
+      await tester.pumpAndSettle();
+
+      expect(consentAsked, 1);
+      verifyNever(() => grantConsent.execute());
+      verifyNever(() => uploadPrescription.execute(any(), any(), any()));
+    });
+
+    testWidgets('explains a refused file and keeps the payment held', (
+      tester,
+    ) async {
+      when(() => getOrder.execute('o1')).thenAnswer((_) async => pending);
+      when(() => hasConsent.execute()).thenAnswer((_) async => true);
+      when(() => uploadPrescription.execute('o1', 'i1', file)).thenThrow(
+        buildDioException(
+          statusCode: 415,
+          data: {'error': 'the prescription must be a PDF, JPEG or PNG file'},
+        ),
+      );
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Enviar receita'));
+      await tester.pumpAndSettle();
+
+      expect(consentAsked, 0);
+      expect(find.text('Envie a receita em PDF, JPEG ou PNG.'), findsOneWidget);
+      expect(find.text('Receita pendente'), findsOneWidget);
+    });
+
+    testWidgets('shows why the seller rejected it and opens the file', (
+      tester,
+    ) async {
+      when(() => getOrder.execute('o1')).thenAnswer(
+        (_) async => buildOrderDetail(
+          paid: true,
+          items: [
+            buildOrderItem(
+              itemId: 'i1',
+              prescriptionRequired: true,
+              prescription: buildPrescription(
+                status: DocumentStatus.rejected,
+                rejectionReason: 'Receita vencida',
+              ),
+              canUploadPrescription: true,
+            ),
+          ],
+        ),
+      );
+      await pumpPage(tester);
+
+      expect(find.text('Receita recusada'), findsOneWidget);
+      expect(find.text('Motivo: Receita vencida'), findsOneWidget);
+      expect(
+        find.text(
+          'O vendedor recusou a receita de um item. Envie outra para que o '
+          'pedido possa ser enviado.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Enviar outra receita'), findsOneWidget);
+
+      await tester.tap(find.text('Ver receita'));
+      expect(openedDocuments, ['/documents/d1']);
     });
   });
 }

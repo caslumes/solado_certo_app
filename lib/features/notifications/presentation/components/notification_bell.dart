@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:solado_certo_app/features/notifications/presentation/pages/notifications_page.dart';
 
-/// The bell with the number of unread notifications; opens the list.
 class NotificationBell extends StatelessWidget {
   const NotificationBell({super.key});
 

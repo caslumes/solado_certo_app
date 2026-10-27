@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 
-/// [rating] of 5 stars, read only.
 class RatingStars extends StatelessWidget {
   const RatingStars({super.key, required this.rating, this.size = 16});
 
@@ -29,7 +28,6 @@ class RatingStars extends StatelessWidget {
   }
 }
 
-/// Picks 1 to 5 stars; [errorText] shows below when set.
 class StarRatingField extends StatelessWidget {
   const StarRatingField({
     super.key,

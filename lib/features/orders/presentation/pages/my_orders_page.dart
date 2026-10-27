@@ -7,8 +7,6 @@ import 'package:solado_certo_app/features/orders/presentation/components/order_f
 import 'package:solado_certo_app/features/orders/presentation/components/paged_order_list.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 
-/// The Pedidos tab (RF-019, RF-025): the buyer's orders, newest first, by
-/// status and period.
 class MyOrdersPage extends StatelessWidget {
   const MyOrdersPage({super.key});
 

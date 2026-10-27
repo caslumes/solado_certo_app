@@ -64,7 +64,6 @@ void main() {
     newKey: () => 'key-1',
   );
 
-  /// A bloc already on [step] with [home] chosen.
   CheckoutState ready({CheckoutStep step = CheckoutStep.address}) =>
       CheckoutState(
         status: CheckoutStatus.ready,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 
-/// A label and an amount in BRL on one line, for order totals.
 class AmountRow extends StatelessWidget {
   const AmountRow({
     super.key,

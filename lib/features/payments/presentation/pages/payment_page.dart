@@ -18,8 +18,6 @@ import 'package:solado_certo_app/features/payments/presentation/components/payme
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Pays one order with Pix, boleto or card (RF-016, UC-006 step 6), then shows
-/// the result (RF-018). The route answers true once the order is paid.
 class PaymentPage extends StatefulWidget {
   const PaymentPage({
     super.key,
@@ -30,7 +28,6 @@ class PaymentPage extends StatefulWidget {
 
   final OrderEntity order;
 
-  /// The order's place in a checkout with several sellers, e.g. `1 de 2`.
   final String? position;
   final Future<bool> Function(Uri url) openUrl;
 
@@ -84,7 +81,6 @@ class _PaymentPageState extends State<PaymentPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  /// Back from the bank's app or the boleto: check whether it was paid.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {

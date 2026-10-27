@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/features/catalog/data/models/catalog_page_model.dart';
 import 'package:solado_certo_app/features/catalog/data/models/category_model.dart';
 
-/// A `GET /catalog` response from the dev seed, trimmed to two items: one
-/// with every field set and one with the nullable fields null.
 final _pageJson = {
   'items': [
     {

@@ -6,21 +6,15 @@ import 'package:solado_certo_app/features/orders/domain/entities/order_filter.da
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 
-/// A list of orders a page at a time: the buyer's (the Pedidos tab) or the
-/// seller's with one status (a tab of Minhas vendas), narrowed by the state's
-/// filter.
 class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
   final Future<OrdersPageEntity> Function(int page, OrderFilter filter)
   _loadPage;
 
-  /// Bumped by every first-page load, so a next page that arrives after a
-  /// refresh is dropped.
   int _generation = 0;
 
   OrdersBloc({required GetOrdersUseCase getOrdersUseCase})
     : this._((page, filter) => getOrdersUseCase.execute(page, filter: filter));
 
-  /// The tab's [status] replaces the filter's.
   OrdersBloc.sales({
     required GetSellerOrdersUseCase getSellerOrdersUseCase,
     required OrderStatus status,
@@ -42,7 +36,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     });
   }
 
-  /// Loads the first page. A refresh keeps the orders on screen.
   Future<void> _onLoad(LoadOrdersEvent event, Emitter<OrdersState> emit) =>
       _loadFirst(
         emit,
@@ -50,7 +43,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
         refreshing: state.status == OrdersStatus.loaded,
       );
 
-  /// A new filter starts over from its first page.
   Future<void> _onFilter(FilterOrdersEvent event, Emitter<OrdersState> emit) {
     if (event.filter == state.filter && state.status != OrdersStatus.initial) {
       return Future.value();
@@ -123,7 +115,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     }
   }
 
-  /// An order changed on its detail page, e.g. it was cancelled.
   void _onOrderChanged(OrderChangedEvent event, Emitter<OrdersState> emit) {
     if (state.status != OrdersStatus.loaded) return;
     emit(
@@ -155,7 +146,6 @@ class OrderChangedEvent extends OrdersEvent {
   OrderChangedEvent({required this.order});
 }
 
-/// Forgets the orders and the filter when the user signs out.
 class ClearOrdersEvent extends OrdersEvent {}
 
 enum OrdersStatus { initial, loading, loaded, failure }
@@ -179,7 +169,6 @@ class OrdersState {
     this.failure,
   });
 
-  /// [failure] is one-shot: it is cleared unless passed.
   OrdersState copyWith({
     List<OrderEntity>? orders,
     int? page,

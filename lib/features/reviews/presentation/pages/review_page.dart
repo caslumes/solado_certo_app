@@ -14,9 +14,6 @@ import 'package:solado_certo_app/features/reviews/presentation/bloc/review_form_
 import 'package:solado_certo_app/features/reviews/presentation/components/comfort_labels.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/rating_stars.dart';
 
-/// Reviews one delivered item (RF-024, RF-040, UC-010): product and seller
-/// stars, comfort, how the adaptation went and a public comment. A problem
-/// offers to open support. Pops with true once sent.
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     super.key,
@@ -28,7 +25,6 @@ class ReviewPage extends StatefulWidget {
   final OrderItemEntity item;
   final String sellerName;
 
-  /// "Abrir suporte" in the problem prompt.
   final void Function(BuildContext context) openSupport;
 
   static Route<bool> route({
@@ -48,7 +44,6 @@ class ReviewPage extends StatefulWidget {
     );
   }
 
-  /// Support tickets don't exist in the app yet.
   static void supportUnavailable(BuildContext context) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()

@@ -56,6 +56,9 @@ void main() {
       MockStartProcessingUseCase(),
     );
     getIt.registerSingleton<ShipOrderUseCase>(MockShipOrderUseCase());
+    getIt.registerSingleton<RejectPrescriptionUseCase>(
+      MockRejectPrescriptionUseCase(),
+    );
     addTearDown(getIt.reset);
   });
 

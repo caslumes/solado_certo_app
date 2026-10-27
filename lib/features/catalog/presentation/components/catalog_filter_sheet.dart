@@ -52,10 +52,6 @@ class _CatalogFilterSheetState extends State<CatalogFilterSheet> {
   late final Set<String> _purposes = {...widget.filters.purposes};
   late final Set<String> _conditions = {...widget.filters.conditions};
 
-  /// How many times "Limpar" was pressed, used as the dropdowns' key.
-  ///
-  /// Dropdowns read `initialValue` only once, so a new key is what makes
-  /// them show the cleared selection.
   int _resets = 0;
 
   @override

@@ -1,4 +1,3 @@
-/// The payment status machine of the backend (RF-017).
 enum PaymentStatus {
   pending('pending', 'Aguardando pagamento'),
   captured('captured', 'Aprovado'),

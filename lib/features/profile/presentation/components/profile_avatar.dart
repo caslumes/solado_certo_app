@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/network/api_urls.dart';
 
-/// The profile photo with actions to change or remove it. Without a photo, or
-/// when it fails to load, it shows the default user image.
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({
     super.key,

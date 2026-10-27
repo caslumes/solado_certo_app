@@ -14,18 +14,24 @@ import 'package:solado_certo_app/features/orders/presentation/components/amount_
 import 'package:solado_certo_app/features/orders/presentation/components/order_sections.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/prescription_section.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/reject_prescription_dialog.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/document_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/ship_order_page.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/item_review_summary.dart';
 
-/// One of the seller's orders (RF-020, RF-021): who bought, where it goes,
-/// what to send, and the next step, "Iniciar preparação" then "Informar
-/// envio".
 class SellerOrderDetailPage extends StatelessWidget {
-  const SellerOrderDetailPage({super.key, this.onChanged});
+  const SellerOrderDetailPage({
+    super.key,
+    this.onChanged,
+    this.openDocument = _openDocument,
+  });
 
-  /// Receives the order every time it is loaded or changed here, so the
-  /// list shows the same status.
   final ValueChanged<OrderEntity>? onChanged;
+  final void Function(BuildContext context, String url) openDocument;
+
+  static void _openDocument(BuildContext context, String url) =>
+      Navigator.of(context).push(DocumentPage.route(url, title: 'Receita'));
 
   static Route<void> route(
     String orderId, {
@@ -37,6 +43,7 @@ class SellerOrderDetailPage extends StatelessWidget {
           getSellerOrderUseCase: getIt<GetSellerOrderUseCase>(),
           startProcessingUseCase: getIt<StartProcessingUseCase>(),
           shipOrderUseCase: getIt<ShipOrderUseCase>(),
+          rejectPrescriptionUseCase: getIt<RejectPrescriptionUseCase>(),
           orderId: orderId,
         )..load(),
         child: SellerOrderDetailPage(onChanged: onChanged),
@@ -69,6 +76,16 @@ class SellerOrderDetailPage extends StatelessWidget {
       ),
     );
     if (confirmed == true) cubit.startProcessing();
+  }
+
+  void _rejectPrescription(BuildContext context, String documentId) {
+    final cubit = context.read<SellerOrderDetailCubit>();
+    showDialog<void>(
+      context: context,
+      builder: (_) => RejectPrescriptionDialog(
+        reject: (reason) => cubit.rejectPrescription(documentId, reason),
+      ),
+    );
   }
 
   void _ship(BuildContext context, OrderEntity order) {
@@ -106,7 +123,13 @@ class SellerOrderDetailPage extends StatelessWidget {
           title: Text('Venda'.toUpperCase(), style: textTheme.bodyMedium),
         ),
         body: switch (state) {
-          SellerOrderDetailLoaded(:final detail) => _Detail(detail: detail),
+          SellerOrderDetailLoaded(:final detail, :final working) => _Detail(
+            detail: detail,
+            onViewPrescription: (url) => openDocument(context, url),
+            onRejectPrescription: working
+                ? null
+                : (documentId) => _rejectPrescription(context, documentId),
+          ),
           SellerOrderDetailLoadFailure(:final failure) => _LoadError(
             failure: failure,
           ),
@@ -148,9 +171,50 @@ class SellerOrderDetailPage extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.detail});
+  const _Detail({
+    required this.detail,
+    required this.onViewPrescription,
+    required this.onRejectPrescription,
+  });
 
   final OrderDetailEntity detail;
+  final ValueChanged<String> onViewPrescription;
+  final ValueChanged<String>? onRejectPrescription;
+
+  Widget? _itemFooter(OrderItemEntity item) {
+    final review = switch (item.review) {
+      final review? => ItemReviewSummary(
+        review: review,
+        title: 'Avaliação do comprador',
+      ),
+      null => null,
+    };
+    if (!item.prescriptionRequired) return review;
+    final prescription = item.prescription;
+    final reject = onRejectPrescription;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PrescriptionSection(
+          item: item,
+          onView: prescription == null
+              ? null
+              : () => onViewPrescription(prescription.url),
+          actions: [
+            if (item.canRejectPrescription && prescription != null)
+              TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                onPressed: reject == null
+                    ? null
+                    : () => reject(prescription.id),
+                child: const Text('Recusar receita'),
+              ),
+          ],
+        ),
+        ?review,
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +239,7 @@ class _Detail extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: OrderStatusChip(status: order.status),
           ),
-          if (_hint(order.status) case final hint?) ...[
+          if (_hint(order) case final hint?) ...[
             const SizedBox(height: 12),
             Text(hint, style: textTheme.bodySmall),
           ],
@@ -185,16 +249,7 @@ class _Detail extends StatelessWidget {
             style: textTheme.bodyMedium,
           ),
           for (final item in order.items)
-            OrderItemRow(
-              item: item,
-              footer: switch (item.review) {
-                final review? => ItemReviewSummary(
-                  review: review,
-                  title: 'Avaliação do comprador',
-                ),
-                null => null,
-              },
-            ),
+            OrderItemRow(item: item, footer: _itemFooter(item)),
           const Divider(height: 32),
           Text('Enviar para', style: textTheme.bodyMedium),
           const SizedBox(height: 4),
@@ -231,7 +286,15 @@ class _Detail extends StatelessWidget {
     );
   }
 
-  static String? _hint(OrderStatus status) => switch (status) {
+  static String? _hint(OrderEntity order) => switch (order.status) {
+    OrderStatus.paid || OrderStatus.processing
+        when order.itemsAwaitingPrescription.isNotEmpty =>
+      'Aguardando o comprador enviar uma nova receita. O envio fica liberado '
+          'quando todas estiverem aprovadas.',
+    OrderStatus.paid || OrderStatus.processing
+        when order.items.any((item) => item.canRejectPrescription) =>
+      'Confira as receitas antes de enviar. Se alguma estiver ilegível ou não '
+          'servir para o produto, recuse-a informando o motivo.',
     OrderStatus.paid =>
       'Pagamento aprovado. Inicie a preparação para que o comprador não possa '
           'mais cancelar.',

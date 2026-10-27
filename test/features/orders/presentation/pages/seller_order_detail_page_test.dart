@@ -4,11 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/document_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/ship_order_page.dart';
 
@@ -21,14 +24,20 @@ void main() {
   late MockGetSellerOrderUseCase getOrder;
   late MockStartProcessingUseCase startProcessing;
   late MockShipOrderUseCase shipOrder;
+  late MockRejectPrescriptionUseCase rejectPrescription;
+  late MockOpenDocumentUseCase openDocument;
 
-  Future<void> pumpPage(WidgetTester tester, OrderStatus status) async {
+  Future<void> pumpPage(
+    WidgetTester tester,
+    OrderStatus status, {
+    OrderDetailEntity? detail,
+  }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     when(
       () => getOrder.execute('o1'),
-    ).thenAnswer((_) async => buildSellerOrderDetail(status: status));
+    ).thenAnswer((_) async => detail ?? buildSellerOrderDetail(status: status));
     await tester.pumpWidget(
       BlocProvider<AuthBloc>.value(
         value: MockAuthBloc(),
@@ -72,9 +81,13 @@ void main() {
     getOrder = MockGetSellerOrderUseCase();
     startProcessing = MockStartProcessingUseCase();
     shipOrder = MockShipOrderUseCase();
+    rejectPrescription = MockRejectPrescriptionUseCase();
+    openDocument = MockOpenDocumentUseCase();
     getIt.registerSingleton<GetSellerOrderUseCase>(getOrder);
     getIt.registerSingleton<StartProcessingUseCase>(startProcessing);
     getIt.registerSingleton<ShipOrderUseCase>(shipOrder);
+    getIt.registerSingleton<RejectPrescriptionUseCase>(rejectPrescription);
+    getIt.registerSingleton<OpenDocumentUseCase>(openDocument);
     addTearDown(getIt.reset);
   });
 
@@ -238,5 +251,126 @@ void main() {
 
     expect(find.text('Avaliação do comprador'), findsOneWidget);
     expect(find.text('Adaptação: Duas semanas para acostumar'), findsOneWidget);
+  });
+
+  group('prescriptions', () {
+    OrderDetailEntity withPrescription(
+      OrderStatus status, {
+      DocumentStatus prescriptionStatus = DocumentStatus.approved,
+      bool canReject = true,
+    }) => buildSellerOrderDetail(
+      status: status,
+      canShip:
+          prescriptionStatus == DocumentStatus.approved &&
+          status == OrderStatus.processing,
+      items: [
+        buildOrderItem(
+          itemId: 'i1',
+          prescriptionRequired: true,
+          prescription: buildPrescription(
+            status: prescriptionStatus,
+            rejectionReason: prescriptionStatus == DocumentStatus.rejected
+                ? 'Ilegível'
+                : null,
+          ),
+          canRejectPrescription: canReject,
+        ),
+      ],
+    );
+
+    Future<void> openRejection(WidgetTester tester) async {
+      await tester.tap(find.widgetWithText(TextButton, 'Recusar receita'));
+      await tester.pumpAndSettle();
+    }
+
+    Finder confirmRejection() => find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.widgetWithText(TextButton, 'Recusar receita'),
+    );
+
+    testWidgets('rejects a prescription with the reason', (tester) async {
+      await pumpPage(
+        tester,
+        OrderStatus.processing,
+        detail: withPrescription(OrderStatus.processing),
+      );
+      expect(find.text('Receita aprovada'), findsOneWidget);
+      expect(find.text('INFORMAR ENVIO'), findsOneWidget);
+      when(
+        () => rejectPrescription.execute(
+          'o1',
+          'd1',
+          reason: any(named: 'reason'),
+        ),
+      ).thenAnswer(
+        (_) async => buildPrescription(status: DocumentStatus.rejected),
+      );
+
+      await openRejection(tester);
+      when(() => getOrder.execute('o1')).thenAnswer(
+        (_) async => withPrescription(
+          OrderStatus.processing,
+          prescriptionStatus: DocumentStatus.rejected,
+          canReject: false,
+        ),
+      );
+      await tester.enterText(find.byType(TextField), '  Ilegível ');
+      await tester.tap(confirmRejection());
+      await tester.pumpAndSettle();
+
+      verify(
+        () => rejectPrescription.execute('o1', 'd1', reason: 'Ilegível'),
+      ).called(1);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Receita recusada'), findsOneWidget);
+      expect(find.text('Motivo: Ilegível'), findsOneWidget);
+      expect(find.text('INFORMAR ENVIO'), findsNothing);
+      expect(
+        find.textContaining('Aguardando o comprador enviar uma nova receita'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not reject without a reason', (tester) async {
+      await pumpPage(
+        tester,
+        OrderStatus.paid,
+        detail: withPrescription(OrderStatus.paid),
+      );
+
+      await openRejection(tester);
+      await tester.tap(confirmRejection());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Explique ao comprador o que está errado.'),
+        findsOneWidget,
+      );
+      verifyNever(
+        () => rejectPrescription.execute(
+          any(),
+          any(),
+          reason: any(named: 'reason'),
+        ),
+      );
+    });
+
+    testWidgets('opens the prescription', (tester) async {
+      when(() => openDocument.execute('/documents/d1')).thenAnswer(
+        (_) async =>
+            const DownloadedFile(bytes: [1], contentType: 'application/pdf'),
+      );
+      await pumpPage(
+        tester,
+        OrderStatus.paid,
+        detail: withPrescription(OrderStatus.paid),
+      );
+
+      await tester.tap(find.text('Ver receita'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DocumentPage), findsOneWidget);
+      expect(find.text('ABRIR PDF'), findsOneWidget);
+    });
   });
 }

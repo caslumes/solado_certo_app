@@ -35,8 +35,6 @@ class ShoeTextFormField extends StatefulWidget {
   final bool readOnly;
   final Widget? suffixIcon;
 
-  /// An error shown regardless of [validator], e.g. a field the server
-  /// reported as missing.
   final String? forceErrorText;
   final int maxLines;
 

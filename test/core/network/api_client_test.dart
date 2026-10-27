@@ -253,7 +253,6 @@ void main() {
         file: photo,
       );
 
-      // Resending the same FormData would throw "already finalized".
       expect(response, {'ok': true});
       expect(adapter.requestsTo(avatarPath), hasLength(2));
     });

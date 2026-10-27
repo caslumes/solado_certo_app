@@ -1,8 +1,9 @@
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/prescription.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/reviews/domain/entities/review.dart';
 
-/// One seller's order, created by checkout.
 class OrderEntity {
   final String id;
   final String number;
@@ -10,7 +11,6 @@ class OrderEntity {
   final String sellerId;
   final String sellerName;
 
-  /// Only in the seller's views.
   final String? buyerName;
   final ShippingAddressEntity address;
   final List<OrderItemEntity> items;
@@ -39,10 +39,12 @@ class OrderEntity {
     this.paidAt,
     this.deliveredAt,
   });
+
+  List<OrderItemEntity> get itemsAwaitingPrescription =>
+      items.where((item) => item.awaitsPrescription).toList();
 }
 
 class OrderItemEntity {
-  /// Missing in checkout previews.
   final String? id;
   final String advertisementId;
   final String title;
@@ -52,8 +54,12 @@ class OrderItemEntity {
   final double subtotal;
   final ShippingOptionEntity shippingOption;
 
-  /// The buyer's review, once the order is delivered and reviewed.
   final ReviewEntity? review;
+
+  final bool prescriptionRequired;
+  final PrescriptionEntity? prescription;
+  final bool canUploadPrescription;
+  final bool canRejectPrescription;
 
   const OrderItemEntity({
     this.id,
@@ -65,10 +71,16 @@ class OrderItemEntity {
     required this.subtotal,
     required this.shippingOption,
     this.review,
+    this.prescriptionRequired = false,
+    this.prescription,
+    this.canUploadPrescription = false,
+    this.canRejectPrescription = false,
   });
+
+  bool get awaitsPrescription =>
+      prescriptionRequired && prescription?.status != DocumentStatus.approved;
 }
 
-/// The delivery address as it was at checkout; later edits don't change it.
 class ShippingAddressEntity {
   final String? label;
   final String receiver;

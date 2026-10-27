@@ -3,25 +3,25 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 
-/// One of the seller's orders, with the actions that move it forward
-/// (RF-021): start preparing it, then ship it.
 class SellerOrderDetailCubit extends Cubit<SellerOrderDetailState> {
   final GetSellerOrderUseCase _getSellerOrderUseCase;
   final StartProcessingUseCase _startProcessingUseCase;
   final ShipOrderUseCase _shipOrderUseCase;
+  final RejectPrescriptionUseCase _rejectPrescriptionUseCase;
   final String orderId;
 
   SellerOrderDetailCubit({
     required GetSellerOrderUseCase getSellerOrderUseCase,
     required StartProcessingUseCase startProcessingUseCase,
     required ShipOrderUseCase shipOrderUseCase,
+    required RejectPrescriptionUseCase rejectPrescriptionUseCase,
     required this.orderId,
   }) : _getSellerOrderUseCase = getSellerOrderUseCase,
        _startProcessingUseCase = startProcessingUseCase,
        _shipOrderUseCase = shipOrderUseCase,
+       _rejectPrescriptionUseCase = rejectPrescriptionUseCase,
        super(SellerOrderDetailLoading());
 
-  /// A refresh keeps the order on screen, even when it fails.
   Future<void> load() async {
     final current = state;
     if (current is! SellerOrderDetailLoaded) emit(SellerOrderDetailLoading());
@@ -59,9 +59,6 @@ class SellerOrderDetailCubit extends Cubit<SellerOrderDetailState> {
     }
   }
 
-  /// Returns the failure for the shipping form to show (an invalid or
-  /// repeated code), or null once the order is shipped. Other failures are
-  /// also shown on the page.
   Future<Failure?> ship({
     required String carrier,
     required String trackingCode,
@@ -96,8 +93,37 @@ class SellerOrderDetailCubit extends Cubit<SellerOrderDetailState> {
     }
   }
 
-  /// When the status changed elsewhere (409), e.g. the buyer cancelled, the
-  /// order is reloaded so the page shows where it is now.
+  Future<Failure?> rejectPrescription(String documentId, String reason) async {
+    final current = state;
+    if (current is! SellerOrderDetailLoaded || current.working) return null;
+
+    emit(SellerOrderDetailLoaded(detail: current.detail, working: true));
+    try {
+      await _rejectPrescriptionUseCase.execute(
+        orderId,
+        documentId,
+        reason: reason,
+      );
+      final detail = await _getSellerOrderUseCase.execute(orderId);
+      if (isClosed) return null;
+      emit(
+        SellerOrderDetailLoaded(
+          detail: detail,
+          notice: 'Receita recusada. O comprador foi avisado.',
+        ),
+      );
+      return null;
+    } catch (e) {
+      final failure = Failure.from(e);
+      if (failure is InvalidInputFailure || failure is MissingFieldsFailure) {
+        if (!isClosed) emit(SellerOrderDetailLoaded(detail: current.detail));
+      } else {
+        await _fail(current, failure);
+      }
+      return failure;
+    }
+  }
+
   Future<void> _fail(SellerOrderDetailLoaded current, Failure failure) async {
     var detail = current.detail;
     if (failure is OrderStatusChangedFailure) {
@@ -123,7 +149,6 @@ class SellerOrderDetailLoadFailure extends SellerOrderDetailState {
 class SellerOrderDetailLoaded extends SellerOrderDetailState {
   final OrderDetailEntity detail;
 
-  /// An action is being sent.
   final bool working;
   final Failure? failure;
   final String? notice;

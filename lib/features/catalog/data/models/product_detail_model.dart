@@ -5,7 +5,6 @@ import 'package:solado_certo_app/features/catalog/data/models/seller_model.dart'
 import 'package:solado_certo_app/features/catalog/data/models/shipping_option_model.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 
-/// A `GET /catalog/items/:id` response.
 class ProductDetailModel {
   const ProductDetailModel({
     required this.id,
@@ -89,7 +88,6 @@ class ProductDetailModel {
         safetyInfoComplete: json['safety_info_complete'] as bool? ?? true,
       );
 
-  /// Lists the images cover first, then by their order.
   ProductDetailEntity toEntity() {
     final sortedImages = [...images]
       ..sort((a, b) {
@@ -126,8 +124,6 @@ class ProductDetailModel {
   }
 }
 
-/// Maps a JSON array with [fromJson], reading a missing or null array as
-/// empty.
 List<T> _list<T>(Object? json, T Function(Map<String, dynamic>) fromJson) =>
     (json as List? ?? const [])
         .map((e) => fromJson(e as Map<String, dynamic>))

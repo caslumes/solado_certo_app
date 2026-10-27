@@ -2,7 +2,6 @@ import 'package:solado_certo_app/features/seller/domain/entities/ad_draft.dart';
 import 'package:solado_certo_app/features/seller/domain/entities/seller_ad.dart';
 import 'package:solado_certo_app/features/seller/domain/enum/ad_status.dart';
 
-/// Reads the backend's ad output, used by the list and by the form.
 SellerAdEntity sellerAdFromJson(Map<String, dynamic> json) => SellerAdEntity(
   id: json['id'] as String,
   title: json['title'] as String,
@@ -50,9 +49,6 @@ List<String> _strings(Object? list) => [
   for (final value in list as List? ?? const []) value as String,
 ];
 
-/// The body of `POST /seller/ads` and `PATCH /seller/ads/:id`. Every field is
-/// sent, so clearing one in the form clears it on the server; an empty price
-/// is sent as zero, which the backend reports as missing.
 Map<String, dynamic> adDraftToJson(AdDraft draft) => {
   'title': draft.title,
   if (draft.categoryId != null) 'category_id': draft.categoryId,

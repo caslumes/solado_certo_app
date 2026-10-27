@@ -2,7 +2,6 @@ import 'package:solado_certo_app/features/cart/domain/entities/cart.dart';
 import 'package:solado_certo_app/features/cart/domain/enum/cart_item_problem.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 
-/// Reads the cart returned by every `/cart` endpoint.
 CartEntity cartFromJson(Map<String, dynamic> json) => CartEntity(
   id: json['id'] as String?,
   groups: [

@@ -52,7 +52,6 @@ void main() {
     totalItems: 3,
   );
 
-  /// A bloc that already shows [firstPage].
   CatalogState loadedState() => CatalogState(
     status: CatalogStatus.loaded,
     items: firstPage.items,

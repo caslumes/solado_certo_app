@@ -19,7 +19,6 @@ import 'package:solado_certo_app/features/seller/presentation/bloc/ad_form_bloc.
 import 'package:solado_certo_app/features/seller/presentation/components/ad_form_fields.dart';
 import 'package:solado_certo_app/features/seller/presentation/components/ad_form_sections.dart';
 
-/// Creates an ad (without [adId]) or edits one, in steps (UC-003).
 class AdFormPage extends StatefulWidget {
   const AdFormPage({super.key, this.pickPhoto});
 
@@ -64,7 +63,6 @@ class _AdFormPageState extends State<AdFormPage> {
   bool _validate(AdFormStep step) =>
       _formKeys[step]!.currentState?.validate() ?? true;
 
-  /// Validates every step and opens the first invalid one.
   bool _validateAll() {
     for (final step in AdFormStep.values) {
       if (!_validate(step)) {
@@ -75,8 +73,6 @@ class _AdFormPageState extends State<AdFormPage> {
     return true;
   }
 
-  /// Leaving a step checks its formats; reaching the photos of a new ad
-  /// saves it first, which needs the general data.
   void _goTo(AdFormStep step, {bool validateCurrent = true}) {
     final state = _bloc.state;
     if (step == state.step) return;
@@ -167,7 +163,6 @@ class _AdFormPageState extends State<AdFormPage> {
       Navigator.of(context).pop();
       return;
     }
-    // After a save the shipping options have ids; keep them for the next one.
     final saved = state.ad;
     if (saved != null && state.failure == null && _fields != null) {
       if (state.notice != null) {

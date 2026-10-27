@@ -1,4 +1,3 @@
-/// What a notification is about; the backend's `notifications.type`.
 enum NotificationType {
   orderPaid(forSeller: true),
   orderCancelled(forSeller: true),
@@ -8,12 +7,10 @@ enum NotificationType {
   orderRefunded(forSeller: false),
   deliveryDeadline(forSeller: false),
 
-  /// A type this version of the app doesn't know yet; it is still listed.
   other(forSeller: false);
 
   const NotificationType({required this.forSeller});
 
-  /// Whether the order it points to is one of the user's sales, not purchases.
   final bool forSeller;
 
   static NotificationType fromApi(String value) => switch (value) {

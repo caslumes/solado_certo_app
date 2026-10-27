@@ -9,7 +9,6 @@ import 'package:solado_certo_app/features/payments/domain/entities/payment.dart'
 import 'package:solado_certo_app/features/payments/domain/entities/payment_amounts.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
 
-/// The order being paid, with its place in the checkout ("1 de 2").
 class PaymentOrderHeader extends StatelessWidget {
   const PaymentOrderHeader({super.key, required this.order, this.position});
 
@@ -35,7 +34,6 @@ class PaymentOrderHeader extends StatelessWidget {
   }
 }
 
-/// A Pix charge: the QR code, the copy-and-paste code and its deadline.
 class PixPaymentView extends StatelessWidget {
   const PixPaymentView({super.key, required this.payment});
 
@@ -95,7 +93,6 @@ class PixPaymentView extends StatelessWidget {
   }
 }
 
-/// A boleto: its link and due date. It is confirmed days after it is paid.
 class BoletoPaymentView extends StatelessWidget {
   const BoletoPaymentView({
     super.key,
@@ -162,7 +159,6 @@ class _Waiting extends StatelessWidget {
   }
 }
 
-/// The approved payment with the order summary (RF-018).
 class PaymentApprovedView extends StatelessWidget {
   const PaymentApprovedView({
     super.key,
@@ -240,7 +236,6 @@ class PaymentApprovedView extends StatelessWidget {
   }
 }
 
-/// The subtitle of each method on the choice list.
 String paymentMethodHint(PaymentMethod method) => switch (method) {
   PaymentMethod.pix =>
     '${PaymentAmounts.pixDiscountPercent}% de desconto · aprovação na hora',

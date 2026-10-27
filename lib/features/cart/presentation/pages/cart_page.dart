@@ -10,12 +10,9 @@ import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart'
 import 'package:solado_certo_app/features/cart/presentation/components/cart_item_tile.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/product_detail_page.dart';
 
-/// The Carrinho tab (RF-012, RF-013): items grouped by seller, with
-/// quantities, problems and the subtotal. Shipping is chosen at checkout.
 class CartPage extends StatelessWidget {
   const CartPage({super.key, this.onCheckout});
 
-  /// Opens checkout with the cart on screen.
   final VoidCallback? onCheckout;
 
   @override
@@ -52,7 +49,6 @@ class CartPage extends StatelessWidget {
           CartLoaded() => _CartContent(state: state),
           CartLoadFailure(:final failure) => _LoadError(failure: failure),
           CartLoading() => const Center(child: CircularProgressIndicator()),
-          // Signed-out visitors are sent to sign in instead of this tab.
           CartInactive() => const SizedBox.shrink(),
         },
         bottomNavigationBar: state is CartLoaded && !state.cart.isEmpty

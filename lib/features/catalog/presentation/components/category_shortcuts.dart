@@ -6,7 +6,6 @@ import 'package:solado_certo_app/features/catalog/domain/entities/category.dart'
 import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_options_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/pages/catalog_page.dart';
 
-/// Top-level categories on the home page; three fit across, the rest scroll.
 class CategoryShortcuts extends StatelessWidget {
   const CategoryShortcuts({super.key});
 

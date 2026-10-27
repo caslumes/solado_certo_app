@@ -35,7 +35,6 @@ ReviewsPageEntity reviewsPageFromJson(Map<String, dynamic> json) =>
       hasNext: json['has_next'] as bool,
     );
 
-/// Empty texts are left out.
 Map<String, dynamic> newReviewToJson(NewReview review) => {
   'product_rating': review.productRating,
   'seller_rating': review.sellerRating,

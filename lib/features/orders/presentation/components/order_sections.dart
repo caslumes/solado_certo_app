@@ -8,8 +8,6 @@ import 'package:solado_certo_app/features/orders/domain/entities/order_detail.da
 import 'package:solado_certo_app/features/orders/domain/entities/shipment.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 
-/// One item of an order: photo, quantity, price and shipping option, with
-/// an optional [footer] below, e.g. its review.
 class OrderItemRow extends StatelessWidget {
   const OrderItemRow({super.key, required this.item, this.footer});
 
@@ -56,7 +54,6 @@ class OrderItemRow extends StatelessWidget {
   }
 }
 
-/// One status change in the order's timeline.
 class OrderHistoryEntry extends StatelessWidget {
   const OrderHistoryEntry({
     super.key,
@@ -68,7 +65,6 @@ class OrderHistoryEntry extends StatelessWidget {
   final OrderStatusChangeEntity change;
   final bool isLatest;
 
-  /// Words the reasons for the seller.
   final bool seller;
 
   @override
@@ -107,8 +103,6 @@ class OrderHistoryEntry extends StatelessWidget {
   }
 }
 
-/// The carrier and tracking code (RF-022). The code can be copied, and
-/// [openUrl] opens the carrier's tracking page when the app knows it.
 class ShipmentSection extends StatelessWidget {
   const ShipmentSection({super.key, required this.shipment, this.openUrl});
 

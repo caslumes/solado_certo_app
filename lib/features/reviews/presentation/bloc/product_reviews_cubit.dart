@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/features/reviews/domain/entities/review.dart';
 import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
 
-/// A product's reviews on its page, a few at a time.
 class ProductReviewsCubit extends Cubit<ProductReviewsState> {
   final GetProductReviewsUseCase _getProductReviewsUseCase;
   final String advertisementId;
@@ -33,7 +32,6 @@ class ProductReviewsCubit extends Cubit<ProductReviewsState> {
     }
   }
 
-  /// A failure keeps the reviews shown and lets the buyer try again.
   Future<void> loadMore() async {
     if (state.status != ProductReviewsStatus.loaded ||
         !state.hasNext ||

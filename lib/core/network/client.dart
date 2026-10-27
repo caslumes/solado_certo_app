@@ -1,7 +1,9 @@
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
 import 'package:solado_certo_app/core/files/upload_file.dart';
 
 abstract class ClientInterface {
   Future<dynamic> get(String url);
+  Future<DownloadedFile> download(String url);
   Future<dynamic> post(
     String url, {
     Map<String, dynamic>? data,
@@ -11,8 +13,6 @@ abstract class ClientInterface {
   Future<dynamic> patch(String url, {Map<String, dynamic>? data});
   Future<dynamic> delete(String url);
 
-  /// Sends [file] as the multipart field [field], with [fields] as extra
-  /// text fields.
   Future<dynamic> upload(
     String url, {
     String method = 'POST',

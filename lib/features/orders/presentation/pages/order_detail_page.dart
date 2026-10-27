@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -14,32 +15,38 @@ import 'package:solado_certo_app/features/orders/presentation/components/amount_
 import 'package:solado_certo_app/features/orders/presentation/components/order_sections.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/prescription_consent_dialog.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/prescription_section.dart';
+import 'package:solado_certo_app/features/orders/presentation/components/prescription_source_sheet.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/document_page.dart';
 import 'package:solado_certo_app/features/payments/domain/entities/payment.dart';
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/item_review_summary.dart';
 import 'package:solado_certo_app/features/reviews/presentation/pages/review_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// One order with its items, address, shipment, totals, payments and status
-/// history (RF-019, RF-022). The buyer can pay it while it awaits payment,
-/// cancel it until the seller starts preparing it (a paid order is refunded),
-/// confirm its delivery once shipped (RF-023) and then review each item
-/// (RF-024).
 class OrderDetailPage extends StatelessWidget {
   const OrderDetailPage({
     super.key,
     this.onChanged,
     this.openUrl = _openExternally,
+    this.askConsent = askPrescriptionConsent,
+    this.pickFile = pickPrescription,
+    this.openDocument = _openDocument,
   });
 
-  /// Receives the order every time it is loaded or changed here, so the
-  /// list shows the same status.
   final ValueChanged<OrderEntity>? onChanged;
 
-  /// Opens the page where the buyer gives a bank account for a boleto's
-  /// refund, and the carrier's tracking page.
   final Future<bool> Function(Uri url) openUrl;
+  final Future<bool> Function(BuildContext context) askConsent;
+  final Future<UploadFile?> Function(BuildContext context) pickFile;
+  final void Function(BuildContext context, String url) openDocument;
+
+  static void _openDocument(BuildContext context, String url) =>
+      Navigator.of(context).push(DocumentPage.route(url, title: 'Receita'));
 
   static Future<bool> _openExternally(Uri url) =>
       launchUrl(url, mode: LaunchMode.externalApplication);
@@ -55,6 +62,10 @@ class OrderDetailPage extends StatelessWidget {
           cancelOrderUseCase: getIt<CancelOrderUseCase>(),
           confirmDeliveryUseCase: getIt<ConfirmDeliveryUseCase>(),
           getPaymentsUseCase: getIt<GetPaymentsUseCase>(),
+          uploadPrescriptionUseCase: getIt<UploadPrescriptionUseCase>(),
+          hasPrescriptionConsentUseCase: getIt<HasPrescriptionConsentUseCase>(),
+          grantPrescriptionConsentUseCase:
+              getIt<GrantPrescriptionConsentUseCase>(),
           orderId: orderId,
         )..load(),
         child: OrderDetailPage(onChanged: onChanged),
@@ -66,6 +77,23 @@ class OrderDetailPage extends StatelessWidget {
     final cubit = context.read<OrderDetailCubit>();
     await Navigator.of(context).push(PaymentPage.route(order));
     cubit.load();
+  }
+
+  Future<void> _sendPrescription(
+    BuildContext context,
+    OrderItemEntity item,
+  ) async {
+    final cubit = context.read<OrderDetailCubit>();
+    final consented = await cubit.hasPrescriptionConsent();
+    if (consented == null || !context.mounted) return;
+    if (!consented) {
+      if (!await askConsent(context)) return;
+      if (!await cubit.grantPrescriptionConsent()) return;
+      if (!context.mounted) return;
+    }
+    final file = await pickFile(context);
+    if (file == null) return;
+    await cubit.uploadPrescription(item.id!, file);
   }
 
   Future<void> _confirmCancel(BuildContext context, OrderEntity order) async {
@@ -152,11 +180,16 @@ class OrderDetailPage extends StatelessWidget {
           title: Text('Pedido'.toUpperCase(), style: textTheme.bodyMedium),
         ),
         body: switch (state) {
-          OrderDetailLoaded(:final detail, :final payments) => _Detail(
-            detail: detail,
-            payments: payments,
-            openUrl: openUrl,
-          ),
+          OrderDetailLoaded(:final detail, :final payments, :final working) =>
+            _Detail(
+              detail: detail,
+              payments: payments,
+              openUrl: openUrl,
+              onSendPrescription: working
+                  ? null
+                  : (item) => _sendPrescription(context, item),
+              onViewPrescription: (url) => openDocument(context, url),
+            ),
           OrderDetailLoadFailure(:final failure) => _LoadError(
             failure: failure,
           ),
@@ -177,9 +210,22 @@ class OrderDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: 8.0,
                   children: [
+                    if (detail.order.status == OrderStatus.awaitingPayment &&
+                        detail.order.itemsAwaitingPrescription.isNotEmpty)
+                      Text(
+                        'Envie a receita dos itens que exigem prescrição para '
+                        'liberar o pagamento.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall,
+                      ),
                     if (detail.order.status == OrderStatus.awaitingPayment)
                       ShoeTextButton(
-                        onPressed: working
+                        onPressed:
+                            working ||
+                                detail
+                                    .order
+                                    .itemsAwaitingPrescription
+                                    .isNotEmpty
                             ? null
                             : () => _pay(context, detail.order),
                         text: 'Pagar',
@@ -219,11 +265,15 @@ class _Detail extends StatelessWidget {
     required this.detail,
     required this.payments,
     required this.openUrl,
+    required this.onSendPrescription,
+    required this.onViewPrescription,
   });
 
   final OrderDetailEntity detail;
   final List<PaymentEntity> payments;
   final Future<bool> Function(Uri url) openUrl;
+  final ValueChanged<OrderItemEntity>? onSendPrescription;
+  final ValueChanged<String> onViewPrescription;
 
   Future<void> _review(BuildContext context, OrderItemEntity item) async {
     final cubit = context.read<OrderDetailCubit>();
@@ -238,6 +288,37 @@ class _Detail extends StatelessWidget {
   }
 
   Widget? _itemFooter(BuildContext context, OrderItemEntity item) {
+    final review = _reviewFooter(context, item);
+    if (!item.prescriptionRequired) return review;
+    final send = onSendPrescription;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PrescriptionSection(
+          item: item,
+          onView: switch (item.prescription) {
+            final prescription? => () => onViewPrescription(prescription.url),
+            null => null,
+          },
+          actions: [
+            if (item.canUploadPrescription && item.id != null)
+              TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                onPressed: send == null ? null : () => send(item),
+                child: Text(
+                  item.prescription == null
+                      ? 'Enviar receita'
+                      : 'Enviar outra receita',
+                ),
+              ),
+          ],
+        ),
+        ?review,
+      ],
+    );
+  }
+
+  Widget? _reviewFooter(BuildContext context, OrderItemEntity item) {
     if (item.review case final review?) {
       return ItemReviewSummary(review: review, title: 'Sua avaliação');
     }
@@ -256,8 +337,16 @@ class _Detail extends StatelessWidget {
 
   static String? _hint(OrderDetailEntity detail) =>
       switch (detail.order.status) {
+        OrderStatus.awaitingPayment
+            when detail.order.itemsAwaitingPrescription.isNotEmpty =>
+          'Os produtos ficam reservados para você até o pagamento. Antes de '
+              'pagar, envie a receita dos itens que exigem prescrição.',
         OrderStatus.awaitingPayment =>
           'Os produtos ficam reservados para você até o pagamento.',
+        OrderStatus.paid || OrderStatus.processing
+            when detail.order.itemsAwaitingPrescription.isNotEmpty =>
+          'O vendedor recusou a receita de um item. Envie outra para que o '
+              'pedido possa ser enviado.',
         OrderStatus.shipped =>
           'Quando o pedido chegar, confirme o recebimento para avaliar os '
               'produtos.',
@@ -344,8 +433,6 @@ class _Detail extends StatelessWidget {
   }
 }
 
-/// One payment attempt: method, status and amount. A boleto being refunded
-/// asks for the bank account that receives the money.
 class _PaymentRow extends StatelessWidget {
   const _PaymentRow({
     required this.payment,

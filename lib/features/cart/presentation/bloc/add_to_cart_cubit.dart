@@ -3,8 +3,6 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/cart/domain/entities/cart.dart';
 import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
 
-/// The product page's "Adicionar ao carrinho". It has its own state so only
-/// that page shows the result; the new cart goes to the CartBloc.
 class AddToCartCubit extends Cubit<AddToCartState> {
   final AddToCartUseCase _addToCartUseCase;
 

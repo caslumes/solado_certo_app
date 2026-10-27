@@ -8,7 +8,6 @@ import 'package:solado_certo_app/features/orders/presentation/components/amount_
 import 'package:solado_certo_app/features/orders/presentation/components/order_texts.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 
-/// Step 1: where the orders go.
 class CheckoutAddressStep extends StatelessWidget {
   const CheckoutAddressStep({
     super.key,
@@ -62,7 +61,6 @@ class CheckoutAddressStep extends StatelessWidget {
   }
 }
 
-/// Step 2: a shipping option for each item, grouped by seller.
 class CheckoutShippingStep extends StatelessWidget {
   const CheckoutShippingStep({
     super.key,
@@ -137,7 +135,6 @@ class CheckoutShippingStep extends StatelessWidget {
   }
 }
 
-/// Step 3: the orders the server will create, with its totals.
 class CheckoutReviewStep extends StatelessWidget {
   const CheckoutReviewStep({super.key, required this.plan});
 
@@ -258,7 +255,6 @@ class _ItemLine extends StatelessWidget {
   }
 }
 
-/// A selectable row, like a radio button, for addresses and shipping.
 class CheckoutChoiceTile extends StatelessWidget {
   const CheckoutChoiceTile({
     super.key,

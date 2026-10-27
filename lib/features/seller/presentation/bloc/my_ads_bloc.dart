@@ -26,7 +26,6 @@ class MyAdsBloc extends Bloc<MyAdsEvent, MyAdsState> {
 
   Future<void> _onLoad(LoadMyAdsEvent event, Emitter<MyAdsState> emit) async {
     final currentState = state;
-    // A refresh keeps the list on screen; only the first load shows a spinner.
     if (currentState is! MyAdsLoaded) emit(MyAdsLoading());
     try {
       emit(MyAdsLoaded(ads: await _getMyAdsUseCase.execute()));
@@ -60,8 +59,6 @@ class MyAdsBloc extends Bloc<MyAdsEvent, MyAdsState> {
         ];
       });
 
-  /// Runs one action at a time. When the ad changed elsewhere (409) or no
-  /// longer exists (404), the list is reloaded so it matches the server.
   Future<void> _act(
     Emitter<MyAdsState> emit,
     String adId,
@@ -126,7 +123,6 @@ class MyAdsLoadFailure extends MyAdsState {
 class MyAdsLoaded extends MyAdsState {
   final List<SellerAdEntity> ads;
 
-  /// The ad whose action is in progress; other actions wait for it.
   final String? busyAdId;
   final Failure? failure;
   final String? notice;

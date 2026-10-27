@@ -16,8 +16,6 @@ const maxAdPhotos = 6;
 const maxShippingOptions = 5;
 const _missingText = 'Obrigatório para publicar';
 
-/// What every step needs: the values, the bloc state and a way to redraw
-/// the page when a value that affects other widgets changes.
 class AdFormSectionContext {
   const AdFormSectionContext({
     required this.fields,
@@ -31,7 +29,6 @@ class AdFormSectionContext {
 
   CatalogFilterOptions get options => state.options!;
 
-  /// The error for a field the server reported as missing, until filled.
   String? missing(String field) =>
       state.highlightedFields.contains(field) && fields.isEmpty(field)
       ? _missingText
@@ -47,12 +44,10 @@ class AdFormSectionContext {
     return null;
   }
 
-  /// RF-031: the category's attributes; a custom-made item has no size.
   bool isRequiredAttribute(String field) =>
       (category?.requiredAttributes.contains(field) ?? false) &&
       !(field == 'size' && fields.customMadeAllowed);
 
-  /// RF-034: clinical items need safety alerts and contraindications.
   bool get isClinical =>
       fields.prescriptionRequired || fields.conditionIds.isNotEmpty;
 }
@@ -586,8 +581,6 @@ class _ShippingOptionCard extends StatelessWidget {
   }
 }
 
-/// A summary of what will be published, with the fields still missing as
-/// of the last save.
 class AdReviewSection extends StatelessWidget {
   const AdReviewSection({super.key, required this.section});
 
@@ -763,7 +756,6 @@ class _Dropdown<T> extends StatelessWidget {
   final FormFieldValidator<T>? validator;
   final String? forceErrorText;
 
-  /// Adds a "Não informado" entry that clears the value.
   final bool allowEmpty;
 
   @override

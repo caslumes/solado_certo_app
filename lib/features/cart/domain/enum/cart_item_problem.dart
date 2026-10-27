@@ -1,4 +1,3 @@
-/// Why a cart item can't be bought as it is.
 enum CartItemProblem {
   unavailable('Indisponível'),
   outOfStock('Esgotado'),

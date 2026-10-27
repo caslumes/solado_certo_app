@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 
-/// The "Segurança de uso" section of the product page (RF-034): usage
-/// indications, alerts and contraindications, with a warning when the
-/// seller left clinical information out (UC-005 alternative flow).
 class ProductSafetySection extends StatelessWidget {
   const ProductSafetySection({super.key, required this.product});
 
@@ -102,8 +99,6 @@ class _Notice extends StatelessWidget {
   }
 }
 
-/// A titled safety field, saying "Não informado" when the seller left it
-/// blank.
 class _SafetyItem extends StatelessWidget {
   const _SafetyItem({required this.title, required this.text});
 

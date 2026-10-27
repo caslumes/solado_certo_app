@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solado_certo_app/core/config/envs.dart';
 import 'package:solado_certo_app/core/network/client.dart';
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
 import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/core/storage/storage_keys.dart';
@@ -55,6 +56,24 @@ class ApiClient implements ClientInterface {
   Future<dynamic> get(String url) async {
     Response response = await dio.get(url);
     return response.data;
+  }
+
+  @override
+  Future<DownloadedFile> download(String url) async {
+    final Response<List<int>> response = await dio.get<List<int>>(
+      url,
+      options: Options(
+        responseType: ResponseType.bytes,
+        headers: {'Accept': '*/*'},
+        receiveTimeout: _uploadTimeout,
+      ),
+    );
+    return DownloadedFile(
+      bytes: response.data ?? const [],
+      contentType:
+          response.headers.value(Headers.contentTypeHeader) ??
+          'application/octet-stream',
+    );
   }
 
   @override
@@ -163,7 +182,6 @@ class ApiClient implements ClientInterface {
     final requestOptions = e.requestOptions;
     requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
     requestOptions.extra[_retriedKey] = true;
-    // A multipart body is a stream that can only be sent once.
     if (requestOptions.data case final FormData formData) {
       requestOptions.data = formData.clone();
     }

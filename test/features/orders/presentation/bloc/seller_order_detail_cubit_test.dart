@@ -16,6 +16,7 @@ void main() {
   late MockGetSellerOrderUseCase getOrder;
   late MockStartProcessingUseCase startProcessing;
   late MockShipOrderUseCase shipOrder;
+  late MockRejectPrescriptionUseCase rejectPrescription;
 
   final paid = buildSellerOrderDetail();
   final processing = buildSellerOrderDetail(status: OrderStatus.processing);
@@ -25,6 +26,7 @@ void main() {
     getSellerOrderUseCase: getOrder,
     startProcessingUseCase: startProcessing,
     shipOrderUseCase: shipOrder,
+    rejectPrescriptionUseCase: rejectPrescription,
     orderId: 'o1',
   );
 
@@ -58,6 +60,7 @@ void main() {
     getOrder = MockGetSellerOrderUseCase();
     startProcessing = MockStartProcessingUseCase();
     shipOrder = MockShipOrderUseCase();
+    rejectPrescription = MockRejectPrescriptionUseCase();
   });
 
   group('load', () {
@@ -229,6 +232,69 @@ void main() {
           'statuses',
           [OrderStatus.shipped],
         ),
+      ],
+    );
+  });
+
+  group('rejectPrescription', () {
+    void rejectAnswers(Object answer) {
+      final call = when(
+        () => rejectPrescription.execute(
+          'o1',
+          'd1',
+          reason: any(named: 'reason'),
+        ),
+      );
+      if (answer is Exception) {
+        call.thenThrow(answer);
+      } else {
+        call.thenAnswer((_) async => buildPrescription());
+      }
+    }
+
+    blocTest<SellerOrderDetailCubit, SellerOrderDetailState>(
+      'rejects with the reason and reloads the order',
+      setUp: () {
+        rejectAnswers(true);
+        when(() => getOrder.execute('o1')).thenAnswer((_) async => processing);
+      },
+      build: buildCubit,
+      seed: () => SellerOrderDetailLoaded(detail: paid),
+      act: (cubit) async =>
+          expect(await cubit.rejectPrescription('d1', 'Ilegível'), isNull),
+      expect: () => [
+        loaded(OrderStatus.paid, working: true),
+        loaded(OrderStatus.processing, notice: true),
+      ],
+      verify: (_) => verify(
+        () => rejectPrescription.execute('o1', 'd1', reason: 'Ilegível'),
+      ).called(1),
+    );
+
+    blocTest<SellerOrderDetailCubit, SellerOrderDetailState>(
+      'hands an invalid reason back to the dialog',
+      setUp: () => rejectAnswers(buildDioException(statusCode: 400)),
+      build: buildCubit,
+      seed: () => SellerOrderDetailLoaded(detail: paid),
+      act: (cubit) async => expect(
+        await cubit.rejectPrescription('d1', 'x'),
+        isA<InvalidInputFailure>(),
+      ),
+      expect: () => [
+        loaded(OrderStatus.paid, working: true),
+        loaded(OrderStatus.paid),
+      ],
+    );
+
+    blocTest<SellerOrderDetailCubit, SellerOrderDetailState>(
+      'shows other failures on the page',
+      setUp: () => rejectAnswers(buildDioException(statusCode: 500)),
+      build: buildCubit,
+      seed: () => SellerOrderDetailLoaded(detail: paid),
+      act: (cubit) => cubit.rejectPrescription('d1', 'Ilegível'),
+      expect: () => [
+        loaded(OrderStatus.paid, working: true),
+        loaded(OrderStatus.paid, failure: isA<ServerFailure>()),
       ],
     );
   });

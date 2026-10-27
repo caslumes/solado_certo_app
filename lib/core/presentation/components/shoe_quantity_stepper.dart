@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 
-/// − value +, within [min] and [max]. A null [onChanged] disables it.
 class ShoeQuantityStepper extends StatelessWidget {
   const ShoeQuantityStepper({
     super.key,

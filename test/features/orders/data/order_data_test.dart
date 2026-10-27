@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/orders/data/models/order_model.dart';
 import 'package:solado_certo_app/features/orders/data/repositories/api_order_repository.dart';
+import 'package:solado_certo_app/features/orders/domain/enum/document_status.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 
 import '../../checkout/data/checkout_data_test.dart' show checkoutJson;
@@ -19,6 +22,17 @@ Map<String, dynamic> pageJson() => {
   'total_items': 21,
   'has_next': true,
   'has_previous': true,
+};
+
+const prescriptionJson = {
+  'id': 'd1',
+  'order_id': 'o1',
+  'order_item_id': 'i1',
+  'type': 'prescription',
+  'status': 'rejected',
+  'rejection_reason': 'Ilegível',
+  'url': '/documents/d1',
+  'created_at': '2026-10-14T12:30:00Z',
 };
 
 Map<String, dynamic> detailJson() => {
@@ -49,6 +63,35 @@ void main() {
       expect(page.currentPage, 2);
       expect(page.hasNext, isTrue);
       expect(page.items.single.number, 'SC-20261014-564NZP');
+    });
+
+    test('reads the prescription of an item', () {
+      final item = orderItemFromJson({
+        ...(orderJson()['items'] as List).single as Map<String, dynamic>,
+        'id': 'i1',
+        'prescription_required': true,
+        'prescription': prescriptionJson,
+        'can_upload_prescription': true,
+        'can_reject_prescription': false,
+      });
+
+      expect(item.prescriptionRequired, isTrue);
+      expect(item.prescription?.status, DocumentStatus.rejected);
+      expect(item.prescription?.rejectionReason, 'Ilegível');
+      expect(item.prescription?.url, '/documents/d1');
+      expect(item.canUploadPrescription, isTrue);
+      expect(item.canRejectPrescription, isFalse);
+      expect(item.awaitsPrescription, isTrue);
+    });
+
+    test('an item without the prescription fields needs none', () {
+      final item = orderItemFromJson(
+        (orderJson()['items'] as List).single as Map<String, dynamic>,
+      );
+
+      expect(item.prescriptionRequired, isFalse);
+      expect(item.prescription, isNull);
+      expect(item.awaitsPrescription, isFalse);
     });
 
     test('reads an empty page', () {
@@ -116,6 +159,55 @@ void main() {
 
       expect(detail.history, hasLength(2));
       verify(() => client.get('/orders/o1')).called(1);
+    });
+
+    test('uploads a prescription as the file field', () async {
+      const file = UploadFile(bytes: [1, 2, 3], filename: 'receita.pdf');
+      when(
+        () => client.upload(
+          any(),
+          field: any(named: 'field'),
+          file: file,
+        ),
+      ).thenAnswer((_) async => prescriptionJson);
+
+      final prescription = await repository.uploadPrescription(
+        'o1',
+        'i1',
+        file,
+      );
+
+      expect(prescription.id, 'd1');
+      verify(
+        () => client.upload(
+          '/orders/o1/items/i1/prescription',
+          field: 'file',
+          file: file,
+        ),
+      ).called(1);
+    });
+
+    test('rejects a prescription with the reason', () async {
+      when(
+        () => client.post(any(), data: any(named: 'data')),
+      ).thenAnswer((_) async => prescriptionJson);
+
+      await repository.rejectPrescription('o1', 'd1', reason: 'Ilegível');
+
+      verify(
+        () => client.post(
+          '/seller/orders/o1/documents/d1/reject',
+          data: {'reason': 'Ilegível'},
+        ),
+      ).called(1);
+    });
+
+    test('downloads a document', () async {
+      const file = DownloadedFile(bytes: [1], contentType: 'image/png');
+      when(() => client.download(any())).thenAnswer((_) async => file);
+
+      expect(await repository.openDocument('/documents/d1'), file);
+      verify(() => client.download('/documents/d1')).called(1);
     });
 
     test('cancels an order', () async {

@@ -24,8 +24,6 @@ void main() {
   late List<bool?> results;
   late String? copied;
 
-  /// Opens the page from a host page, so what it answers when closed is kept
-  /// in [results].
   Future<void> pumpPage(WidgetTester tester, {String? position}) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1;

@@ -31,8 +31,6 @@ class HomePage extends StatelessWidget {
 
   final bool isSignedIn;
 
-  /// Reloads "Para você" on return, since the podological profile or its
-  /// consent may have changed on the profile page.
   Future<void> _openProfile(BuildContext context) async {
     final recommendations = context.read<RecommendationsCubit>();
     await Navigator.of(context).push(

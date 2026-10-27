@@ -10,7 +10,6 @@ import 'package:solado_certo_app/features/orders/presentation/components/order_f
 import 'package:solado_certo_app/features/orders/presentation/components/paged_order_list.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
 
-/// The tabs, in the order a sale goes through them.
 const _tabs = [
   (OrderStatus.paid, 'Novos', 'Nenhum pedido novo'),
   (OrderStatus.processing, 'Em preparação', 'Nenhum pedido em preparação'),
@@ -19,8 +18,6 @@ const _tabs = [
   (OrderStatus.cancelled, 'Cancelados', 'Nenhum pedido cancelado'),
 ];
 
-/// Minhas vendas (RF-020, RF-025): the seller's paid orders by status, in
-/// one period for every tab.
 class SellerOrdersPage extends StatefulWidget {
   const SellerOrdersPage({super.key});
 
@@ -88,8 +85,6 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
   }
 }
 
-/// One status. It loads every time it is shown, since orders move between
-/// tabs as they are prepared, shipped and delivered.
 class _SalesTab extends StatefulWidget {
   const _SalesTab({
     super.key,
@@ -128,7 +123,6 @@ class _SalesTabState extends State<_SalesTab> {
 
   Future<void> _open(OrderEntity order) async {
     await Navigator.of(context).push(SellerOrderDetailPage.route(order.id));
-    // The order may have moved to the next tab.
     if (!_bloc.isClosed) _bloc.add(LoadOrdersEvent());
   }
 

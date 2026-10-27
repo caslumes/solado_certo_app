@@ -11,13 +11,6 @@ import 'package:solado_certo_app/features/payments/domain/enum/payment_status.da
 import 'package:solado_certo_app/features/payments/domain/usecases/payment_use_cases.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 
-/// Pays one order (RF-016, UC-006 step 6). A Pix or boleto waits for the
-/// confirmation, checked every [pollInterval] for Pix; a refused card goes
-/// back to the choice of method (UC-006 alternative flow).
-///
-/// The idempotency key is kept only when the request may not have reached the
-/// server (network failure), so trying again can't charge twice; any answer
-/// makes the next attempt a new one.
 class PaymentCubit extends Cubit<PaymentState> {
   final GetProfileUseCase _getProfileUseCase;
   final GetPaymentsUseCase _getPaymentsUseCase;
@@ -74,8 +67,6 @@ class PaymentCubit extends Cubit<PaymentState> {
     emit(state.copyWith(method: method));
   }
 
-  /// [taxId] is sent only while the profile has no CPF, [card] only for a
-  /// card payment.
   Future<void> pay({String? taxId, CardDetails? card}) async {
     if (state.stage != PaymentStage.choosing || state.submitting) return;
 
@@ -113,7 +104,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         stage: PaymentStage.waiting,
         payment: payment,
       ),
-      // A refused card stays on the choice of method with the reason.
       _ => charged.copyWith(stage: PaymentStage.choosing, payment: payment),
     };
   }
@@ -129,7 +119,6 @@ class PaymentCubit extends Cubit<PaymentState> {
         return choosing.copyWith(needsTaxId: true, failure: failure);
       case PaymentExpiredFailure():
         return state.copyWith(stage: PaymentStage.closed, failure: failure);
-      // Paid or being paid elsewhere: show where it is now.
       case OrderStatusChangedFailure() || PaymentInProgressFailure():
         try {
           final payments = await _getPaymentsUseCase.execute(order.id);
@@ -143,9 +132,6 @@ class PaymentCubit extends Cubit<PaymentState> {
     }
   }
 
-  /// Checks the payment being waited for. [manual] is the buyer's "Já paguei":
-  /// it shows progress and says when nothing arrived yet; a poll that fails is
-  /// retried at the next tick without a message.
   Future<void> refresh({bool manual = false}) async {
     if (state.stage != PaymentStage.waiting || _checking) return;
     _checking = true;
@@ -174,14 +160,12 @@ class PaymentCubit extends Cubit<PaymentState> {
     }
   }
 
-  /// Leaves a pending Pix or boleto; the next charge cancels it.
   void chooseAnotherMethod() {
     if (state.stage != PaymentStage.waiting) return;
     _idempotencyKey = _newKey();
     emit(state.copyWith(stage: PaymentStage.choosing, clearPayment: true));
   }
 
-  /// A captured attempt wins; otherwise the newest one, if still pending.
   PaymentState? _settle(List<PaymentEntity> payments) {
     final captured = payments
         .where((payment) => payment.status == PaymentStatus.captured)
@@ -231,13 +215,10 @@ class PaymentState {
   final PaymentMethod method;
   final bool needsTaxId;
 
-  /// The attempt on screen: pending while waiting, captured once approved,
-  /// or a refused card shown above the choice of method.
   final PaymentEntity? payment;
   final bool submitting;
   final bool refreshing;
 
-  /// Shown once; a new state clears it.
   final Failure? failure;
   final String? notice;
 

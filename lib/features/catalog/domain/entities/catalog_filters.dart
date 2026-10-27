@@ -8,8 +8,6 @@ class CatalogFilters {
   final Set<String> purposes;
   final Set<String> conditions;
 
-  /// Only ads matching the buyer's podological profile; needs a login
-  /// and the profile consent.
   final bool forMe;
 
   const CatalogFilters({

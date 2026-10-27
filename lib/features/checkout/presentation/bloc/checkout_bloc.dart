@@ -8,10 +8,6 @@ import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_
 import 'package:solado_certo_app/features/profile/domain/entities/address.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 
-/// Drives checkout (RF-014, UC-006): address, one shipping option per item,
-/// the server's summary, then the orders. One idempotency key is kept for
-/// the whole page, so confirming again after a lost answer doesn't create
-/// the orders twice.
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   final GetAddressesUseCase _getAddressesUseCase;
   final PreviewCheckoutUseCase _previewCheckoutUseCase;
@@ -39,7 +35,6 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     on<ConfirmCheckoutEvent>(_onConfirm);
   }
 
-  /// Options come cheapest first, so each item starts with the cheapest.
   static Map<String, String> _cheapestShipping(CartEntity cart) => {
     for (final item in cart.items)
       if (item.shippingOptions.isNotEmpty)
@@ -96,8 +91,6 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     );
   }
 
-  /// Going back is always allowed. Going forward needs an address, then a
-  /// shipping option for every item; reaching the summary asks the server.
   Future<void> _onGoToStep(
     GoToCheckoutStepEvent event,
     Emitter<CheckoutState> emit,
@@ -184,7 +177,6 @@ class CheckoutEvent {}
 
 class LoadCheckoutEvent extends CheckoutEvent {}
 
-/// An address created from checkout; it becomes the chosen one.
 class AddressAddedEvent extends CheckoutEvent {
   final AddressEntity address;
 
@@ -222,24 +214,18 @@ enum CheckoutActivity { idle, previewing, submitting }
 class CheckoutState {
   final CheckoutStatus status;
 
-  /// The cart when checkout started; the server checks it again.
   final CartEntity cart;
   final List<AddressEntity> addresses;
   final String? addressId;
 
-  /// Shipping option ID by advertisement ID.
   final Map<String, String> shipping;
   final CheckoutStep step;
   final CheckoutActivity activity;
 
-  /// The server's summary, shown in the last step.
   final CheckoutPlanEntity? plan;
 
-  /// The created orders; the page then shows the confirmation.
   final CheckoutResultEntity? result;
 
-  /// The cart after a stock, price or cart conflict; the page hands it to
-  /// the cart and goes back there.
   final CartEntity? conflictCart;
   final Failure? failure;
 
@@ -267,9 +253,6 @@ class CheckoutState {
         item,
   ];
 
-  /// The shipping charged for [group]: one package per seller, so the most
-  /// expensive option chosen among its items (the server applies the same
-  /// rule).
   double shippingFor(CartGroupEntity group) {
     var highest = 0.0;
     for (final item in group.items) {
@@ -289,8 +272,6 @@ class CheckoutState {
     return CheckoutSelection(addressId: addressId, shipping: shipping);
   }
 
-  /// [failure], [conflictCart] and [result] are one-shot, and [activity]
-  /// goes back to idle, unless passed.
   CheckoutState copyWith({
     CheckoutStatus? status,
     List<AddressEntity>? addresses,

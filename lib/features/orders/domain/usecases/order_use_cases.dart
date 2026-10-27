@@ -1,5 +1,8 @@
+import 'package:solado_certo_app/core/files/downloaded_file.dart';
+import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
+import 'package:solado_certo_app/features/orders/domain/entities/prescription.dart';
 import 'package:solado_certo_app/features/orders/domain/repositories/order_repository.dart';
 
 class GetOrdersUseCase {
@@ -82,4 +85,37 @@ class ShipOrderUseCase {
     carrier: carrier,
     trackingCode: trackingCode,
   );
+}
+
+class UploadPrescriptionUseCase {
+  final OrderRepositoryInterface orderRepository;
+
+  UploadPrescriptionUseCase(this.orderRepository);
+
+  Future<PrescriptionEntity> execute(
+    String orderId,
+    String itemId,
+    UploadFile file,
+  ) => orderRepository.uploadPrescription(orderId, itemId, file);
+}
+
+class RejectPrescriptionUseCase {
+  final OrderRepositoryInterface orderRepository;
+
+  RejectPrescriptionUseCase(this.orderRepository);
+
+  Future<PrescriptionEntity> execute(
+    String orderId,
+    String documentId, {
+    required String reason,
+  }) => orderRepository.rejectPrescription(orderId, documentId, reason: reason);
+}
+
+class OpenDocumentUseCase {
+  final OrderRepositoryInterface orderRepository;
+
+  OpenDocumentUseCase(this.orderRepository);
+
+  Future<DownloadedFile> execute(String url) =>
+      orderRepository.openDocument(url);
 }

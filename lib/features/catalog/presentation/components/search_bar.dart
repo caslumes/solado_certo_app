@@ -13,7 +13,6 @@ class ShoeSearchBar extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
 
-  /// Called from the keyboard's search action and from the search icon.
   final ValueChanged<String>? onSubmitted;
 
   @override

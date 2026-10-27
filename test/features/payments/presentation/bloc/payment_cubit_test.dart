@@ -57,7 +57,6 @@ void main() {
     pollInterval: const Duration(milliseconds: 10),
   );
 
-  /// The state after [PaymentCubit.load] found nothing paid or pending.
   PaymentState choosing({
     PaymentMethod method = PaymentMethod.pix,
     bool needsTaxId = false,
@@ -67,7 +66,6 @@ void main() {
     needsTaxId: needsTaxId,
   );
 
-  /// Each request sent, with its idempotency key.
   List<(PaymentRequest, String)> sent() {
     final captured = verify(
       () => createPayment.execute('o1', captureAny(), captureAny()),

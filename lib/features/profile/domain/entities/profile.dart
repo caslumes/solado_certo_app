@@ -4,7 +4,6 @@ class ProfileEntity {
   final String phone;
   final String avatarUrl;
 
-  /// Whether the CPF was given; it is asked only before the first payment.
   final bool hasTaxId;
 
   ProfileEntity({

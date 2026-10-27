@@ -10,8 +10,6 @@ import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
 
-/// The orders of the [OrdersBloc] above, loading the next page near the end,
-/// with pull to refresh, an empty message and a load error.
 class PagedOrderList extends StatefulWidget {
   const PagedOrderList({
     super.key,
@@ -25,7 +23,6 @@ class PagedOrderList extends StatefulWidget {
   final String emptyTitle;
   final String emptyMessage;
 
-  /// Shows who bought instead of who sold, for the seller's lists.
   final bool showBuyer;
 
   @override
@@ -55,8 +52,6 @@ class _PagedOrderListState extends State<PagedOrderList> {
     }
   }
 
-  /// A short first page can leave nothing to scroll, so no scroll event
-  /// would ask for the next one.
   void _checkFill() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) _onScroll();
@@ -97,7 +92,6 @@ class _PagedOrderListState extends State<PagedOrderList> {
         OrdersStatus.loading => const Center(
           child: CircularProgressIndicator(),
         ),
-        // Signed-out visitors are sent to sign in instead of the list.
         OrdersStatus.initial => const SizedBox.shrink(),
       },
     );
@@ -170,7 +164,6 @@ class OrderTile extends StatelessWidget {
     final first = order.items.first;
     final others = order.items.length - 1;
     final who = showBuyer ? order.buyerName ?? '' : order.sellerName;
-    // A sale counts from its payment, a purchase from its checkout.
     final date = showBuyer ? order.paidAt ?? order.createdAt : order.createdAt;
 
     return InkWell(

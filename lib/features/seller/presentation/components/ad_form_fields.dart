@@ -4,7 +4,6 @@ import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/features/seller/domain/entities/ad_draft.dart';
 import 'package:solado_certo_app/features/seller/domain/entities/seller_ad.dart';
 
-/// The editable values of the ad form, kept by the page across steps.
 class AdFormFields {
   AdFormFields.from(SellerAdEntity? ad)
     : title = TextEditingController(text: ad?.title),
@@ -50,7 +49,6 @@ class AdFormFields {
   final Set<String> conditionIds;
   List<ShippingOptionFields> shippingOptions;
 
-  /// Whether [field] (a backend JSON name) still has no value.
   bool isEmpty(String field) => switch (field) {
     'title' => title.text.trim().isEmpty,
     'category_id' => categoryId == null,
@@ -90,8 +88,6 @@ class AdFormFields {
     shippingOptions: [for (final option in shippingOptions) option.toDraft()],
   );
 
-  /// Takes the saved shipping options, which now have ids, so the next save
-  /// edits them instead of creating new ones.
   void syncShippingOptions(List<SellerShippingOption> saved) {
     shippingOptions.forEach(disposeShippingOptionLater);
     shippingOptions = [
@@ -156,11 +152,8 @@ class ShippingOptionFields {
   }
 }
 
-/// Disposes the controllers after the frame, once the fields using them
-/// are gone.
 void disposeShippingOptionLater(ShippingOptionFields option) =>
     SchedulerBinding.instance.addPostFrameCallback((_) => option.dispose());
 
-/// Shows an amount the way the seller types it, e.g. `89,90`.
 String formatDecimalInput(double value) =>
     value.toStringAsFixed(2).replaceAll('.', ',');

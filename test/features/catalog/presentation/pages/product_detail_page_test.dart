@@ -27,7 +27,6 @@ void main() {
   late MockAddToCartCubit addToCart;
   late MockProductReviewsCubit reviews;
 
-  /// Uses a tall view so the whole page is built without scrolling.
   Future<void> pumpPage(WidgetTester tester, ProductDetailState state) {
     tester.view.physicalSize = const Size(800, 3000);
     tester.view.devicePixelRatio = 1;

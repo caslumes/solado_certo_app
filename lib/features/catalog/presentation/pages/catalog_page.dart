@@ -16,7 +16,6 @@ import 'package:solado_certo_app/features/catalog/presentation/pages/product_det
 class CatalogPage extends StatefulWidget {
   const CatalogPage({super.key});
 
-  /// Opens the list with [filters], sharing the caller's options cubit.
   static Route<void> route(
     BuildContext context, {
     CatalogFilters filters = const CatalogFilters(),
@@ -43,7 +42,6 @@ class CatalogPage extends StatefulWidget {
 }
 
 class _CatalogPageState extends State<CatalogPage> {
-  /// Distance from the end of the list at which the next page is requested.
   static const _loadMoreExtent = 600.0;
 
   late final _searchController = TextEditingController(
@@ -71,8 +69,6 @@ class _CatalogPageState extends State<CatalogPage> {
     }
   }
 
-  /// A short first page can leave nothing to scroll, so no scroll event
-  /// would ever ask for the next one.
   void _fillViewport() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -89,10 +85,6 @@ class _CatalogPageState extends State<CatalogPage> {
     );
   }
 
-  /// Clears the search field and every filter.
-  ///
-  /// Also sends an empty [CatalogQueryChanged], so a search still waiting
-  /// for the debounce can't bring the old text back.
   void _clearFilters() {
     _searchController.clear();
     context.read<CatalogBloc>()
@@ -356,10 +348,6 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/// A centered message with an optional action, shown in place of the grid
-/// for the empty and error states.
-///
-/// It scrolls even when it fits on screen, so pull-to-refresh still works.
 class _Message extends StatelessWidget {
   const _Message({
     required this.title,

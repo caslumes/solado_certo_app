@@ -15,8 +15,6 @@ class ReviewFormCubit extends Cubit<ReviewFormState> {
   }) : _createReviewUseCase = createReviewUseCase,
        super(const ReviewFormState());
 
-  /// Support is suggested when the backend finds the comfort low or the
-  /// buyer says they [hadProblems] (UC-010).
   Future<void> submit(NewReview review, {required bool hadProblems}) async {
     if (state.sending || state.sent != null) return;
     emit(const ReviewFormState(sending: true));

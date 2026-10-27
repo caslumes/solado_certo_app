@@ -14,7 +14,6 @@ import 'package:solado_certo_app/features/seller/presentation/bloc/my_ads_bloc.d
 import 'package:solado_certo_app/features/seller/presentation/components/seller_ad_tile.dart';
 import 'package:solado_certo_app/features/seller/presentation/pages/ad_form_page.dart';
 
-/// The tabs, in order. Removed ads are not listed by the backend.
 const _tabs = [
   (AdStatus.published, 'Publicados', 'Nenhum anúncio publicado.'),
   (AdStatus.draft, 'Rascunhos', 'Nenhum rascunho.'),
@@ -24,7 +23,6 @@ const _tabs = [
 class MyAdsPage extends StatelessWidget {
   const MyAdsPage({super.key, this.openForm});
 
-  /// Opens the ad form (new when the id is null); replaced in tests.
   final Future<void> Function(BuildContext context, String? adId)? openForm;
 
   static Future<void> _openForm(BuildContext context, String? adId) =>
@@ -116,8 +114,6 @@ class MyAdsPage extends StatelessWidget {
     );
   }
 
-  /// The list is reloaded on return, since the form may have saved,
-  /// published or changed photos.
   Future<void> _edit(BuildContext context, String? adId) async {
     final bloc = context.read<MyAdsBloc>();
     await (openForm ?? _openForm)(context, adId);

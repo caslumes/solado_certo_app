@@ -3,8 +3,6 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/features/cart/domain/entities/cart.dart';
 import 'package:solado_certo_app/features/cart/domain/usecases/cart_use_cases.dart';
 
-/// Holds the signed-in buyer's cart for the whole app: the tab badge, the
-/// cart page and the product page (which adds through [CartUpdatedEvent]).
 class CartBloc extends Bloc<CartEvent, CartState> {
   final GetCartUseCase _getCartUseCase;
   final ChangeCartItemQuantityUseCase _changeCartItemQuantityUseCase;
@@ -27,7 +25,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
   Future<void> _onLoad(LoadCartEvent event, Emitter<CartState> emit) async {
     final currentState = state;
-    // A refresh keeps the cart on screen; only the first load shows a spinner.
     if (currentState is! CartLoaded) emit(CartLoading());
     try {
       emit(CartLoaded(cart: await _getCartUseCase.execute()));
@@ -62,8 +59,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         () => _removeCartItemUseCase.execute(event.advertisementId),
       );
 
-  /// Runs one item action at a time. When the stock changed (409) or the item
-  /// is gone (404), the cart is reloaded so it matches the server.
   Future<void> _act(
     Emitter<CartState> emit,
     String advertisementId,
@@ -99,13 +94,10 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
 class CartEvent {}
 
-/// Loads the cart, or refreshes it keeping the current one on screen.
 class LoadCartEvent extends CartEvent {}
 
-/// Forgets the cart when the user signs out.
 class ClearCartEvent extends CartEvent {}
 
-/// A cart returned by an action made elsewhere, such as adding a product.
 class CartUpdatedEvent extends CartEvent {
   final CartEntity cart;
 
@@ -130,7 +122,6 @@ class RemoveCartItemEvent extends CartEvent {
 
 sealed class CartState {}
 
-/// Nobody is signed in, so there is no cart.
 class CartInactive extends CartState {}
 
 class CartLoading extends CartState {}
@@ -144,7 +135,6 @@ class CartLoadFailure extends CartState {
 class CartLoaded extends CartState {
   final CartEntity cart;
 
-  /// The item whose action is in progress; other actions wait for it.
   final String? busyItemId;
   final Failure? failure;
   final String? notice;

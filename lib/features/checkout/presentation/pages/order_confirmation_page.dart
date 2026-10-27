@@ -5,10 +5,9 @@ import 'package:solado_certo_app/core/presentation/components/shoe_text_button.d
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
+import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 import 'package:solado_certo_app/features/payments/presentation/pages/payment_page.dart';
 
-/// Shown after checkout: the order numbers and their payment, one order
-/// (one seller) at a time.
 class OrderConfirmationPage extends StatefulWidget {
   const OrderConfirmationPage({
     super.key,
@@ -16,21 +15,35 @@ class OrderConfirmationPage extends StatefulWidget {
     this.onViewOrders,
     this.onKeepShopping,
     this.pay = _openPayment,
+    this.openOrder = _openOrder,
   });
 
   final CheckoutResultEntity result;
 
-  /// Open the Pedidos and Catálogo tabs once this page is closed.
   final VoidCallback? onViewOrders;
   final VoidCallback? onKeepShopping;
 
-  /// Opens the payment of an order; answers true when it was paid.
   final Future<bool?> Function(
     BuildContext context,
     OrderEntity order,
     String? position,
   )
   pay;
+
+  final Future<void> Function(
+    BuildContext context,
+    OrderEntity order,
+    ValueChanged<OrderEntity> onChanged,
+  )
+  openOrder;
+
+  static Future<void> _openOrder(
+    BuildContext context,
+    OrderEntity order,
+    ValueChanged<OrderEntity> onChanged,
+  ) => Navigator.of(
+    context,
+  ).push(OrderDetailPage.route(order.id, onChanged: onChanged));
 
   static Future<bool?> _openPayment(
     BuildContext context,
@@ -58,8 +71,11 @@ class OrderConfirmationPage extends StatefulWidget {
 
 class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   final _paid = <String>{};
+  final _updated = <String, OrderEntity>{};
 
-  List<OrderEntity> get _orders => widget.result.orders;
+  List<OrderEntity> get _orders => [
+    for (final order in widget.result.orders) _updated[order.id] ?? order,
+  ];
 
   OrderEntity? get _nextToPay => _orders
       .where(
@@ -69,6 +85,9 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       )
       .firstOrNull;
 
+  bool get _awaitsPrescription =>
+      _orders.any((order) => order.itemsAwaitingPrescription.isNotEmpty);
+
   String? _position(OrderEntity order) => _orders.length == 1
       ? null
       : '${_orders.indexOf(order) + 1} de ${_orders.length}';
@@ -76,6 +95,11 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   Future<void> _payNext() async {
     final order = _nextToPay;
     if (order == null) return;
+    if (order.itemsAwaitingPrescription.isNotEmpty) {
+      return widget.openOrder(context, order, (updated) {
+        if (mounted) setState(() => _updated[updated.id] = updated);
+      });
+    }
     final paid = await widget.pay(context, order, _position(order));
     if (paid == true && mounted) setState(() => _paid.add(order.id));
   }
@@ -119,6 +143,15 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
             textAlign: TextAlign.center,
             style: textTheme.bodySmall,
           ),
+          if (_awaitsPrescription) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Alguns produtos exigem receita. Envie-a na tela do pedido para '
+              'liberar o pagamento.',
+              textAlign: TextAlign.center,
+              style: textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: 16),
           for (final order in _orders)
             ListTile(
@@ -158,9 +191,16 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               if (next != null)
                 ShoeTextButton(
                   onPressed: _payNext,
-                  text: single
-                      ? 'Pagar agora'
-                      : 'Pagar pedido ${_position(next)}',
+                  text: switch ((
+                    next.itemsAwaitingPrescription.isNotEmpty,
+                    single,
+                  )) {
+                    (true, true) => 'Enviar receita',
+                    (true, false) =>
+                      'Enviar receita do pedido ${_position(next)}',
+                    (false, true) => 'Pagar agora',
+                    (false, false) => 'Pagar pedido ${_position(next)}',
+                  },
                 ),
               if (widget.onViewOrders case final viewOrders?)
                 next == null

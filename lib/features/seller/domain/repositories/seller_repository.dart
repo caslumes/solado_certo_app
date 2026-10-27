@@ -7,7 +7,6 @@ abstract class SellerRepositoryInterface {
   Future<List<SellerAdEntity>> getAds();
   Future<SellerAdEntity> getAd(String id);
 
-  /// Creates the ad as a draft.
   Future<SellerAdEntity> createAd(AdDraft draft);
   Future<SellerAdEntity> updateAd(String id, AdDraft draft);
   Future<SellerAdEntity> changeStatus(String id, AdStatusAction action);
@@ -16,7 +15,6 @@ abstract class SellerRepositoryInterface {
   Future<SellerAdEntity> addImage(String adId, UploadFile photo);
   Future<SellerAdEntity> removeImage(String adId, String imageId);
 
-  /// [imageIds] must list every image of the ad once.
   Future<SellerAdEntity> reorderImages(
     String adId,
     List<String> imageIds, {

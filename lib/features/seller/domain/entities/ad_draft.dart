@@ -1,11 +1,8 @@
-/// The values of the ad form, sent whole on every save: an empty text clears
-/// the field and an empty list clears the list.
 class AdDraft {
   final String title;
   final String? categoryId;
   final String description;
 
-  /// API format (`"89.90"`), or empty when not filled.
   final String price;
   final int stock;
   final bool prescriptionRequired;
@@ -44,14 +41,11 @@ class AdDraft {
   });
 }
 
-/// A shipping option in the form. Without [id] it is new; options left out
-/// of a save are deactivated by the backend.
 class ShippingOptionDraft {
   final String? id;
   final String name;
   final String carrier;
 
-  /// API format (`"19.90"`).
   final String price;
   final int deliveryDays;
 

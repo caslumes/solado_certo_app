@@ -1,6 +1,5 @@
 import 'package:solado_certo_app/features/seller/domain/enum/ad_status.dart';
 
-/// One of the seller's own ads, in any status.
 class SellerAdEntity {
   final String id;
   final String title;
@@ -9,7 +8,6 @@ class SellerAdEntity {
   final AdStatus status;
   final String? coverImageUrl;
 
-  /// JSON names of the fields that block publishing, in form order.
   final List<String> missingFields;
 
   final String? categoryId;
@@ -28,7 +26,6 @@ class SellerAdEntity {
   final List<String> conditionIds;
   final List<SellerShippingOption> shippingOptions;
 
-  /// In display order; the cover is flagged.
   final List<SellerAdImage> images;
 
   const SellerAdEntity({
@@ -57,7 +54,6 @@ class SellerAdEntity {
     this.images = const [],
   });
 
-  /// RF-007: not stored, shown for a published ad without stock.
   bool get isSoldOut => status == AdStatus.published && stock == 0;
 
   bool get isComplete => missingFields.isEmpty;

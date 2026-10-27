@@ -1,14 +1,10 @@
-/// The buyer's review of one order item (RF-024, RF-040), as the buyer and
-/// the seller see it.
 class ReviewEntity {
   final int productRating;
   final int sellerRating;
 
-  /// 1 (very uncomfortable) to 5 (very comfortable).
   final int? comfortRating;
   final String? comment;
 
-  /// How the first days of use went; never shown on the product page.
   final String? adaptationFeedback;
   final DateTime createdAt;
 
@@ -22,8 +18,6 @@ class ReviewEntity {
   });
 }
 
-/// A review on the product page: the reviewer's first name and no
-/// adaptation feedback.
 class PublicReviewEntity {
   final String id;
   final String reviewerName;
@@ -42,7 +36,6 @@ class PublicReviewEntity {
   });
 }
 
-/// One page of a product's reviews, newest first.
 class ReviewsPageEntity {
   final List<PublicReviewEntity> items;
   final int currentPage;
@@ -73,6 +66,4 @@ class NewReview {
   });
 }
 
-/// A review just sent. [suggestSupport] is set when the comfort was low
-/// (UC-010).
 typedef CreatedReview = ({ReviewEntity review, bool suggestSupport});

@@ -37,7 +37,6 @@ class ApiCheckoutRepository implements CheckoutRepositoryInterface {
     return checkoutResultFromJson(response as Map<String, dynamic>);
   }
 
-  /// Turns a 409 that carries the current cart into a [CheckoutConflict].
   static Future<dynamic> _withConflicts(
     Future<dynamic> Function() request,
   ) async {

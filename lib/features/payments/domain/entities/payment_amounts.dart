@@ -1,8 +1,6 @@
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/payments/domain/enum/payment_method.dart';
 
-/// What an order costs with each method, computed like the backend: Pix takes
-/// 5% off the subtotal, rounded to the cent; shipping is not discounted.
 extension PaymentAmounts on OrderEntity {
   static const pixDiscountPercent = 5;
 

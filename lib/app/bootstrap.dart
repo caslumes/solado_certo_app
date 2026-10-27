@@ -41,7 +41,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_
 import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/save_podological_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_podological_profile_use_case.dart';
@@ -239,6 +241,21 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<ShipOrderUseCase>(
     () => ShipOrderUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<UploadPrescriptionUseCase>(
+    () => UploadPrescriptionUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RejectPrescriptionUseCase>(
+    () => RejectPrescriptionUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<OpenDocumentUseCase>(
+    () => OpenDocumentUseCase(getIt<OrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<HasPrescriptionConsentUseCase>(
+    () => HasPrescriptionConsentUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GrantPrescriptionConsentUseCase>(
+    () => GrantPrescriptionConsentUseCase(getIt<ProfileRepositoryInterface>()),
   );
   getIt.registerLazySingleton<CreateReviewUseCase>(
     () => CreateReviewUseCase(getIt<ReviewRepositoryInterface>()),

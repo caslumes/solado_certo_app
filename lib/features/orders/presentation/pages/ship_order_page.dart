@@ -6,13 +6,9 @@ import 'package:solado_certo_app/core/presentation/components/shoe_text_form_fie
 import 'package:solado_certo_app/core/validation/field_validators.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/seller_order_detail_cubit.dart';
 
-/// "Informar envio" (RF-021, UC-009): the carrier and the tracking code. An
-/// invalid or repeated code keeps the form open with the error; any other
-/// failure goes back to the order, which shows it.
 class ShipOrderPage extends StatefulWidget {
   const ShipOrderPage({super.key, required this.carrier});
 
-  /// Suggested from the shipping option the buyer chose.
   final String carrier;
 
   static Route<bool> route(SellerOrderDetailCubit cubit, {String? carrier}) {

@@ -19,8 +19,6 @@ import 'package:solado_certo_app/features/profile/domain/usecases/add_address_us
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
 
-/// Checkout in steps (RF-014, UC-006): endereço, frete, resumo. Ends on the
-/// order confirmation; a stock or price conflict goes back to the cart.
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({
     super.key,
@@ -31,7 +29,6 @@ class CheckoutPage extends StatelessWidget {
 
   final Future<AddressEntity> Function(NewAddress address) addAddress;
 
-  /// Passed to the order confirmation.
   final VoidCallback? onViewOrders;
   final VoidCallback? onKeepShopping;
 
@@ -111,7 +108,6 @@ class CheckoutPage extends StatelessWidget {
     final cartBloc = context.read<CartBloc>();
 
     if (state.result case final result?) {
-      // The cart was turned into the orders, so it is empty now.
       cartBloc.add(LoadCartEvent());
       navigator.pushReplacement(
         OrderConfirmationPage.route(
@@ -147,7 +143,6 @@ class CheckoutPage extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(failure.message)));
   }
 
-  /// UC-006 alternative flow: say what changed before going back to the cart.
   static Future<void> _showConflict(
     BuildContext context,
     Failure failure,
@@ -313,7 +308,6 @@ class _StepHeader extends StatelessWidget {
               showCheckmark: false,
               selectedColor: AppColors.primaryColor,
               selected: step == current,
-              // Only earlier steps can be reopened from here.
               onSelected: enabled && step.index < current.index
                   ? (_) => onSelected(step)
                   : null,
