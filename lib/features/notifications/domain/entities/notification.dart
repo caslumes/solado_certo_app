@@ -7,6 +7,8 @@ class NotificationEntity {
   final String body;
 
   final String? orderId;
+  final String? customOrderId;
+  final bool sentToSeller;
   final bool read;
   final DateTime createdAt;
 
@@ -16,9 +18,13 @@ class NotificationEntity {
     required this.title,
     required this.body,
     this.orderId,
+    this.customOrderId,
+    this.sentToSeller = false,
     required this.read,
     required this.createdAt,
   });
+
+  bool get forSeller => type.forSeller || sentToSeller;
 
   NotificationEntity copyWith({bool? read}) => NotificationEntity(
     id: id,
@@ -26,6 +32,8 @@ class NotificationEntity {
     title: title,
     body: body,
     orderId: orderId,
+    customOrderId: customOrderId,
+    sentToSeller: sentToSeller,
     read: read ?? this.read,
     createdAt: createdAt,
   );

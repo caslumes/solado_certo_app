@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
+import 'package:solado_certo_app/features/custom_orders/presentation/pages/seller_custom_orders_page.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
@@ -46,6 +47,12 @@ class _SellerOrdersPageState extends State<SellerOrdersPage> {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           actions: [
+            IconButton(
+              tooltip: 'Pedidos sob medida',
+              icon: const Icon(Icons.straighten),
+              onPressed: () =>
+                  Navigator.of(context).push(SellerCustomOrdersPage.route()),
+            ),
             OrderFilterButton(
               filter: _period,
               withStatus: false,

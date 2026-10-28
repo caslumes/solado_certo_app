@@ -5,6 +5,8 @@ import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:solado_certo_app/features/custom_orders/presentation/pages/custom_order_detail_page.dart';
+import 'package:solado_certo_app/features/custom_orders/presentation/pages/seller_custom_order_detail_page.dart';
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
@@ -17,9 +19,14 @@ class NotificationsPage extends StatefulWidget {
   final Route<void>? Function(NotificationEntity notification) routeFor;
 
   static Route<void>? defaultRouteFor(NotificationEntity notification) {
+    if (notification.customOrderId case final requestId?) {
+      return notification.forSeller
+          ? SellerCustomOrderDetailPage.route(requestId)
+          : CustomOrderDetailPage.route(requestId);
+    }
     final orderId = notification.orderId;
     if (orderId == null) return null;
-    return notification.type.forSeller
+    return notification.forSeller
         ? SellerOrderDetailPage.route(orderId)
         : OrderDetailPage.route(orderId);
   }
@@ -191,6 +198,10 @@ class NotificationTile extends StatelessWidget {
     NotificationType.orderShipped => Icons.local_shipping_outlined,
     NotificationType.orderRefunded => Icons.currency_exchange,
     NotificationType.deliveryDeadline => Icons.event_available_outlined,
+    NotificationType.prescriptionSent ||
+    NotificationType.prescriptionRejected => Icons.description_outlined,
+    NotificationType.customOrderRequested ||
+    NotificationType.customOrderUpdated => Icons.straighten,
     NotificationType.other => Icons.notifications_none,
   };
 

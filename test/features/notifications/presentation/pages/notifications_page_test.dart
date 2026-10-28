@@ -204,4 +204,20 @@ void main() {
       isNull,
     );
   });
+
+  test('a custom order notification leads to its request', () {
+    for (final sentToSeller in [false, true]) {
+      expect(
+        NotificationsPage.defaultRouteFor(
+          buildNotification(
+            type: NotificationType.customOrderUpdated,
+            orderId: null,
+            customOrderId: 'c1',
+            sentToSeller: sentToSeller,
+          ),
+        ),
+        isA<Route<void>>(),
+      );
+    }
+  });
 }

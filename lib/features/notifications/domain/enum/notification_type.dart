@@ -6,6 +6,10 @@ enum NotificationType {
   orderShipped(forSeller: false),
   orderRefunded(forSeller: false),
   deliveryDeadline(forSeller: false),
+  prescriptionSent(forSeller: true),
+  prescriptionRejected(forSeller: false),
+  customOrderRequested(forSeller: true),
+  customOrderUpdated(forSeller: false),
 
   other(forSeller: false);
 
@@ -21,6 +25,10 @@ enum NotificationType {
     'order_shipped' => orderShipped,
     'order_refunded' => orderRefunded,
     'delivery_deadline' => deliveryDeadline,
+    'prescription_sent' => prescriptionSent,
+    'prescription_rejected' => prescriptionRejected,
+    'custom_order_requested' => customOrderRequested,
+    'custom_order_updated' => customOrderUpdated,
     _ => other,
   };
 }

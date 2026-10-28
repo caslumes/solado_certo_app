@@ -506,6 +506,8 @@ NotificationEntity buildNotification({
   String id = 'n1',
   NotificationType type = NotificationType.orderShipped,
   String? orderId = 'o1',
+  String? customOrderId,
+  bool sentToSeller = false,
   bool read = false,
 }) => NotificationEntity(
   id: id,
@@ -513,6 +515,8 @@ NotificationEntity buildNotification({
   title: 'Título $id',
   body: 'Corpo $id',
   orderId: orderId,
+  customOrderId: customOrderId,
+  sentToSeller: sentToSeller,
   read: read,
   createdAt: DateTime.utc(2026, 10, 20, 12),
 );

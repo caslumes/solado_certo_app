@@ -6,10 +6,17 @@ import 'package:solado_certo_app/core/files/upload_file.dart';
 
 enum PrescriptionSource { camera, gallery, pdf }
 
-Future<UploadFile?> pickPrescription(BuildContext context) async {
+Future<UploadFile?> pickPrescription(BuildContext context) =>
+    pickDocumentFile(context);
+
+Future<UploadFile?> pickDocumentFile(
+  BuildContext context, {
+  String title = PrescriptionSourceSheet.prescriptionTitle,
+  String hint = PrescriptionSourceSheet.prescriptionHint,
+}) async {
   final source = await showModalBottomSheet<PrescriptionSource>(
     context: context,
-    builder: (context) => const PrescriptionSourceSheet(),
+    builder: (context) => PrescriptionSourceSheet(title: title, hint: hint),
   );
   return switch (source) {
     PrescriptionSource.camera => pickImage(ImageSource.camera),
@@ -20,7 +27,19 @@ Future<UploadFile?> pickPrescription(BuildContext context) async {
 }
 
 class PrescriptionSourceSheet extends StatelessWidget {
-  const PrescriptionSourceSheet({super.key});
+  const PrescriptionSourceSheet({
+    super.key,
+    this.title = prescriptionTitle,
+    this.hint = prescriptionHint,
+  });
+
+  static const prescriptionTitle = 'Enviar receita';
+  static const prescriptionHint =
+      'PDF, JPEG ou PNG de até 5 MB. A foto precisa estar nítida e mostrar a '
+      'receita inteira.';
+
+  final String title;
+  final String hint;
 
   static const _sources = [
     (PrescriptionSource.camera, Icons.photo_camera_outlined, 'Tirar foto'),
@@ -43,15 +62,11 @@ class PrescriptionSourceSheet extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text('Enviar receita', style: textTheme.bodyMedium),
+            child: Text(title, style: textTheme.bodyMedium),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Text(
-              'PDF, JPEG ou PNG de até 5 MB. A foto precisa estar nítida e '
-              'mostrar a receita inteira.',
-              style: textTheme.bodySmall,
-            ),
+            child: Text(hint, style: textTheme.bodySmall),
           ),
           for (final (source, icon, label) in _sources)
             ListTile(

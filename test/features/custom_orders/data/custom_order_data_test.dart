@@ -271,5 +271,86 @@ void main() {
         ),
       ).called(1);
     });
+
+    test('reads the seller side', () async {
+      when(() => client.get(any())).thenAnswer(
+        (invocation) async =>
+            (invocation.positionalArguments.single as String).contains('?')
+            ? {
+                'items': [summaryJson()],
+                'current_page': 2,
+                'has_next': false,
+              }
+            : detailJson(),
+      );
+
+      final page = await repository.getSellerRequests(2);
+      final detail = await repository.getSellerRequest('c1');
+
+      expect(page.items.single.buyerName, 'Maria Souza');
+      expect(detail.request.id, 'c1');
+      verify(
+        () => client.get('/seller/custom-orders?page=2&limit=10'),
+      ).called(1);
+      verify(() => client.get('/seller/custom-orders/c1')).called(1);
+    });
+
+    test('sends each seller decision to its route', () async {
+      when(
+        () => client.post(any(), data: any(named: 'data')),
+      ).thenAnswer((_) async => detailJson());
+
+      await repository.review('c1');
+      await repository.accept('c1', '189.90');
+      await repository.reject('c1', 'Sem material');
+      await repository.requestInfo('c1', 'Qual o arco?');
+
+      verify(() => client.post('/seller/custom-orders/c1/review')).called(1);
+      verify(
+        () => client.post(
+          '/seller/custom-orders/c1/accept',
+          data: {'quoted_price': '189.90'},
+        ),
+      ).called(1);
+      verify(
+        () => client.post(
+          '/seller/custom-orders/c1/reject',
+          data: {'reason': 'Sem material'},
+        ),
+      ).called(1);
+      verify(
+        () => client.post(
+          '/seller/custom-orders/c1/request-info',
+          data: {'reason': 'Qual o arco?'},
+        ),
+      ).called(1);
+    });
+
+    test('sends the report with the adaptation instructions', () async {
+      const file = UploadFile(bytes: [1, 2, 3], filename: 'laudo.pdf');
+      when(
+        () => client.upload(
+          any(),
+          field: any(named: 'field'),
+          file: file,
+          fields: any(named: 'fields'),
+        ),
+      ).thenAnswer((_) async => detailJson());
+
+      await repository.sendReport(
+        'c1',
+        file: file,
+        adaptationInstructions: 'Use 1 hora no primeiro dia.',
+      );
+
+      verify(
+        () => client.upload(
+          '/seller/custom-orders/c1/report',
+          field: 'file',
+          file: file,
+          fields: {'adaptation_instructions': 'Use 1 hora no primeiro dia.'},
+        ),
+      ).called(1);
+    });
   });
 }

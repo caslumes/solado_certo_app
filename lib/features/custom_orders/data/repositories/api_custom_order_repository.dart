@@ -80,4 +80,61 @@ class ApiCustomOrderRepository implements CustomOrderRepositoryInterface {
     );
     return customOrderDetailFromJson(response as Map<String, dynamic>);
   }
+
+  @override
+  Future<CustomOrdersPageEntity> getSellerRequests(int page) async {
+    final response = await client.get(
+      '/seller/custom-orders?page=$page&limit=$pageSize',
+    );
+    return customOrdersPageFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CustomOrderDetailEntity> getSellerRequest(String id) async {
+    final response = await client.get('/seller/custom-orders/$id');
+    return customOrderDetailFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CustomOrderDetailEntity> review(String id) =>
+      _decide(id, 'review', null);
+
+  @override
+  Future<CustomOrderDetailEntity> accept(String id, String quotedPrice) =>
+      _decide(id, 'accept', {'quoted_price': quotedPrice});
+
+  @override
+  Future<CustomOrderDetailEntity> reject(String id, String reason) =>
+      _decide(id, 'reject', {'reason': reason});
+
+  @override
+  Future<CustomOrderDetailEntity> requestInfo(String id, String question) =>
+      _decide(id, 'request-info', {'reason': question});
+
+  Future<CustomOrderDetailEntity> _decide(
+    String id,
+    String decision,
+    Map<String, dynamic>? data,
+  ) async {
+    final response = await client.post(
+      '/seller/custom-orders/$id/$decision',
+      data: data,
+    );
+    return customOrderDetailFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<CustomOrderDetailEntity> sendReport(
+    String id, {
+    required UploadFile file,
+    required String adaptationInstructions,
+  }) async {
+    final response = await client.upload(
+      '/seller/custom-orders/$id/report',
+      field: 'file',
+      file: file,
+      fields: {'adaptation_instructions': adaptationInstructions},
+    );
+    return customOrderDetailFromJson(response as Map<String, dynamic>);
+  }
 }

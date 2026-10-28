@@ -23,4 +23,22 @@ abstract class CustomOrderRepositoryInterface {
     required String shippingOptionId,
     required String idempotencyKey,
   });
+
+  Future<CustomOrdersPageEntity> getSellerRequests(int page);
+
+  Future<CustomOrderDetailEntity> getSellerRequest(String id);
+
+  Future<CustomOrderDetailEntity> review(String id);
+
+  Future<CustomOrderDetailEntity> accept(String id, String quotedPrice);
+
+  Future<CustomOrderDetailEntity> reject(String id, String reason);
+
+  Future<CustomOrderDetailEntity> requestInfo(String id, String question);
+
+  Future<CustomOrderDetailEntity> sendReport(
+    String id, {
+    required UploadFile file,
+    required String adaptationInstructions,
+  });
 }

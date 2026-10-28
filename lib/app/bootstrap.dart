@@ -292,6 +292,28 @@ void configureDependencies() {
   getIt.registerLazySingleton<CheckoutCustomOrderUseCase>(
     () => CheckoutCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
   );
+  getIt.registerLazySingleton<GetSellerCustomOrdersUseCase>(
+    () => GetSellerCustomOrdersUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetSellerCustomOrderUseCase>(
+    () => GetSellerCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ReviewCustomOrderUseCase>(
+    () => ReviewCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<AcceptCustomOrderUseCase>(
+    () => AcceptCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RejectCustomOrderUseCase>(
+    () => RejectCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<RequestCustomOrderInfoUseCase>(
+    () =>
+        RequestCustomOrderInfoUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<SendFittingReportUseCase>(
+    () => SendFittingReportUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
   getIt.registerLazySingleton<CreateReviewUseCase>(
     () => CreateReviewUseCase(getIt<ReviewRepositoryInterface>()),
   );

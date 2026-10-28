@@ -75,3 +75,73 @@ class CheckoutCustomOrderUseCase {
     idempotencyKey: idempotencyKey,
   );
 }
+
+class GetSellerCustomOrdersUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  GetSellerCustomOrdersUseCase(this.customOrderRepository);
+
+  Future<CustomOrdersPageEntity> execute(int page) =>
+      customOrderRepository.getSellerRequests(page);
+}
+
+class GetSellerCustomOrderUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  GetSellerCustomOrderUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(String id) =>
+      customOrderRepository.getSellerRequest(id);
+}
+
+class ReviewCustomOrderUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  ReviewCustomOrderUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(String id) =>
+      customOrderRepository.review(id);
+}
+
+class AcceptCustomOrderUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  AcceptCustomOrderUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(String id, String quotedPrice) =>
+      customOrderRepository.accept(id, quotedPrice);
+}
+
+class RejectCustomOrderUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  RejectCustomOrderUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(String id, String reason) =>
+      customOrderRepository.reject(id, reason);
+}
+
+class RequestCustomOrderInfoUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  RequestCustomOrderInfoUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(String id, String question) =>
+      customOrderRepository.requestInfo(id, question);
+}
+
+class SendFittingReportUseCase {
+  final CustomOrderRepositoryInterface customOrderRepository;
+
+  SendFittingReportUseCase(this.customOrderRepository);
+
+  Future<CustomOrderDetailEntity> execute(
+    String id, {
+    required UploadFile file,
+    required String adaptationInstructions,
+  }) => customOrderRepository.sendReport(
+    id,
+    file: file,
+    adaptationInstructions: adaptationInstructions,
+  );
+}

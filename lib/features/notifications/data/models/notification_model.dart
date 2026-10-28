@@ -1,16 +1,20 @@
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 
-NotificationEntity notificationFromJson(Map<String, dynamic> json) =>
-    NotificationEntity(
-      id: json['id'] as String,
-      type: NotificationType.fromApi(json['type'] as String),
-      title: json['title'] as String,
-      body: json['body'] as String,
-      orderId: (json['data'] as Map<String, dynamic>?)?['order_id'] as String?,
-      read: json['read'] as bool,
-      createdAt: DateTime.parse(json['created_at'] as String),
-    );
+NotificationEntity notificationFromJson(Map<String, dynamic> json) {
+  final data = json['data'] as Map<String, dynamic>?;
+  return NotificationEntity(
+    id: json['id'] as String,
+    type: NotificationType.fromApi(json['type'] as String),
+    title: json['title'] as String,
+    body: json['body'] as String,
+    orderId: data?['order_id'] as String?,
+    customOrderId: data?['custom_order_id'] as String?,
+    sentToSeller: data?['recipient'] == 'seller',
+    read: json['read'] as bool,
+    createdAt: DateTime.parse(json['created_at'] as String),
+  );
+}
 
 NotificationsPageEntity notificationsPageFromJson(Map<String, dynamic> json) =>
     NotificationsPageEntity(

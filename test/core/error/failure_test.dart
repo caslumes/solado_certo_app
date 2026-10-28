@@ -340,6 +340,10 @@ void main() {
       isA<FootPhotoFileTypeFailure>(),
     );
     expect(
+      fromBody(415, 'the report must be a PDF, JPEG or PNG file'),
+      isA<FittingReportFileTypeFailure>(),
+    );
+    expect(
       fromBody(409, 'this advertisement does not take custom orders'),
       isA<CustomMadeNotAllowedFailure>(),
     );

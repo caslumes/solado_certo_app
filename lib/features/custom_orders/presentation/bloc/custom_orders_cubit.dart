@@ -12,6 +12,11 @@ class CustomOrdersCubit extends Cubit<CustomOrdersState> {
     : _loadPage = getCustomOrdersUseCase.execute,
       super(const CustomOrdersState());
 
+  CustomOrdersCubit.seller({
+    required GetSellerCustomOrdersUseCase getSellerCustomOrdersUseCase,
+  }) : _loadPage = getSellerCustomOrdersUseCase.execute,
+       super(const CustomOrdersState());
+
   Future<void> load() async {
     final generation = ++_generation;
     final refreshing = state.status == CustomOrdersStatus.loaded;

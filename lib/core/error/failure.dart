@@ -51,6 +51,8 @@ Failure _unsupported(Object? body) => switch (_errorCode(body)) {
     PrescriptionFileTypeFailure(),
   final String code when code.startsWith('the photo must be') =>
     FootPhotoFileTypeFailure(),
+  final String code when code.startsWith('the report must be') =>
+    FittingReportFileTypeFailure(),
   _ => UnsupportedFileTypeFailure(),
 };
 
@@ -360,6 +362,11 @@ final class CustomOrderConsentRequiredFailure extends Failure {
 final class FootPhotoFileTypeFailure extends Failure {
   @override
   String get message => 'Envie a foto do pé em JPEG ou PNG.';
+}
+
+final class FittingReportFileTypeFailure extends Failure {
+  @override
+  String get message => 'Envie o laudo em PDF, JPEG ou PNG.';
 }
 
 final class CustomMadeNotAllowedFailure extends Failure {

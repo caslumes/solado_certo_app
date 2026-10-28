@@ -295,3 +295,24 @@ class MockHasCustomOrderConsentUseCase extends Mock
 
 class MockGrantCustomOrderConsentUseCase extends Mock
     implements GrantCustomOrderConsentUseCase {}
+
+class MockGetSellerCustomOrdersUseCase extends Mock
+    implements GetSellerCustomOrdersUseCase {}
+
+class MockGetSellerCustomOrderUseCase extends Mock
+    implements GetSellerCustomOrderUseCase {}
+
+class MockReviewCustomOrderUseCase extends Mock
+    implements ReviewCustomOrderUseCase {}
+
+class MockAcceptCustomOrderUseCase extends Mock
+    implements AcceptCustomOrderUseCase {}
+
+class MockRejectCustomOrderUseCase extends Mock
+    implements RejectCustomOrderUseCase {}
+
+class MockRequestCustomOrderInfoUseCase extends Mock
+    implements RequestCustomOrderInfoUseCase {}
+
+class MockSendFittingReportUseCase extends Mock
+    implements SendFittingReportUseCase {}

@@ -55,6 +55,28 @@ void main() {
       expect(notification.read, isTrue);
     });
 
+    test('a custom order notification says whose side it is on', () {
+      final toSeller = notificationFromJson(
+        notificationJson(
+          type: 'custom_order_updated',
+          data: {'custom_order_id': 'c1', 'recipient': 'seller'},
+        ),
+      );
+      final toBuyer = notificationFromJson(
+        notificationJson(
+          type: 'custom_order_updated',
+          data: {'custom_order_id': 'c1', 'recipient': 'buyer'},
+        ),
+      );
+
+      expect(toSeller.type, NotificationType.customOrderUpdated);
+      expect(toSeller.customOrderId, 'c1');
+      expect(toSeller.orderId, isNull);
+      expect(toSeller.forSeller, isTrue);
+      expect(toSeller.copyWith(read: true).forSeller, isTrue);
+      expect(toBuyer.forSeller, isFalse);
+    });
+
     test('reads a page with the unread count', () {
       final page = notificationsPageFromJson(pageJson());
 
@@ -64,7 +86,13 @@ void main() {
     });
 
     test('knows which types are about sales', () {
-      const sales = {'order_paid', 'order_cancelled', 'order_delivered'};
+      const sales = {
+        'order_paid',
+        'order_cancelled',
+        'order_delivered',
+        'prescription_sent',
+        'custom_order_requested',
+      };
       for (final type in [
         'order_paid',
         'order_cancelled',
@@ -73,6 +101,10 @@ void main() {
         'order_shipped',
         'order_refunded',
         'delivery_deadline',
+        'prescription_sent',
+        'prescription_rejected',
+        'custom_order_requested',
+        'custom_order_updated',
       ]) {
         expect(
           NotificationType.fromApi(type).forSeller,
