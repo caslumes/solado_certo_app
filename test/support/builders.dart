@@ -11,6 +11,11 @@ import 'package:solado_certo_app/features/catalog/domain/entities/purpose.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/shipping_option.dart';
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/entities/custom_order.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/entities/measurements.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/enum/arch_type.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/enum/custom_order_action.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/enum/custom_order_status.dart';
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
@@ -90,6 +95,7 @@ CatalogPageEntity buildCatalogPage({
 ProductDetailEntity buildProductDetail({
   int stock = 15,
   bool prescriptionRequired = true,
+  bool customMadeAllowed = false,
   String? contraindications = 'Pós-operatório recente.',
   bool safetyInfoComplete = true,
   SellerEntity? seller,
@@ -100,6 +106,7 @@ ProductDetailEntity buildProductDetail({
   price: 129.5,
   stock: stock,
   prescriptionRequired: prescriptionRequired,
+  customMadeAllowed: customMadeAllowed,
   side: 'left',
   rigidity: 'rigid',
   usageIndication: 'Uso noturno',
@@ -508,4 +515,62 @@ NotificationEntity buildNotification({
   orderId: orderId,
   read: read,
   createdAt: DateTime.utc(2026, 10, 20, 12),
+);
+
+const footMeasurements = Measurements(
+  left: FootMeasurement(lengthCm: 25.5, widthCm: 9.5),
+  right: FootMeasurement(lengthCm: 25.8, widthCm: 9.6),
+  archType: ArchType.flat,
+  shoeSize: 39,
+);
+
+CustomOrderEntity buildCustomOrder({
+  String id = 'c1',
+  CustomOrderStatus status = CustomOrderStatus.requested,
+  double? quotedPrice,
+}) => CustomOrderEntity(
+  id: id,
+  status: status,
+  advertisementId: '603',
+  advertisementTitle: 'Palmilha sob medida',
+  buyerName: 'Maria Souza',
+  sellerName: 'Loja Pé Bem',
+  quotedPrice: quotedPrice,
+  createdAt: DateTime(2026, 10, 26, 9, 0),
+  updatedAt: DateTime(2026, 10, 27, 10, 0),
+);
+
+CustomOrderDetailEntity buildCustomOrderDetail({
+  CustomOrderStatus status = CustomOrderStatus.requested,
+  Set<CustomOrderAction> actions = const {
+    CustomOrderAction.cancel,
+    CustomOrderAction.sendPhoto,
+  },
+  double? quotedPrice,
+  String? orderId,
+  String? technicalNotes = 'Dor no calcanhar',
+  String? rejectionReason,
+  String? adaptationInstructions,
+  String? footPhotoUrl,
+  FittingReportEntity? fittingReport,
+  List<CustomOrderChangeEntity>? history,
+}) => CustomOrderDetailEntity(
+  request: buildCustomOrder(status: status, quotedPrice: quotedPrice),
+  orderId: orderId,
+  measurements: footMeasurements,
+  technicalNotes: technicalNotes,
+  rejectionReason: rejectionReason,
+  adaptationInstructions: adaptationInstructions,
+  footPhotoUrl: footPhotoUrl,
+  fittingReport: fittingReport,
+  history:
+      history ??
+      [
+        CustomOrderChangeEntity(
+          to: CustomOrderStatus.requested,
+          changedBy: CustomOrderActor.buyer,
+          createdAt: DateTime(2026, 10, 26, 9, 0),
+        ),
+      ],
+  actions: actions,
 );

@@ -26,6 +26,7 @@ void main() {
   late MockCartBloc cartBloc;
   late MockAddToCartCubit addToCart;
   late MockProductReviewsCubit reviews;
+  late List<String> customRequests;
 
   Future<void> pumpPage(WidgetTester tester, ProductDetailState state) {
     tester.view.physicalSize = const Size(800, 3000);
@@ -41,7 +42,9 @@ void main() {
           BlocProvider<ProductReviewsCubit>.value(value: reviews),
         ],
         child: MaterialApp(
-          home: const ProductDetailPage(),
+          home: ProductDetailPage(
+            requestCustomOrder: (_, product) => customRequests.add(product.id),
+          ),
           routes: {'/sign-in': (_) => const Text('Entrar')},
         ),
       ),
@@ -58,6 +61,7 @@ void main() {
     when(() => addToCart.state).thenReturn(AddToCartIdle());
     when(() => addToCart.add(any(), any())).thenAnswer((_) async {});
     reviews = MockProductReviewsCubit();
+    customRequests = [];
     when(() => reviews.state).thenReturn(
       const ProductReviewsState(status: ProductReviewsStatus.loaded),
     );
@@ -250,6 +254,50 @@ void main() {
         findsOneWidget,
       );
       verifyNever(() => cartBloc.add(any()));
+    });
+  });
+
+  group('custom order (RF-037)', () {
+    testWidgets('only an ad that takes custom orders offers it', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(product: buildProductDetail()),
+      );
+
+      expect(find.text('Solicitar sob medida'), findsNothing);
+    });
+
+    testWidgets('opens the request form, even when sold out', (tester) async {
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(
+          product: buildProductDetail(stock: 0, customMadeAllowed: true),
+        ),
+      );
+
+      expect(find.text('Sob medida'), findsOneWidget);
+      await tester.tap(find.text('Solicitar sob medida'));
+      await tester.pump();
+
+      expect(customRequests, ['603']);
+    });
+
+    testWidgets('asks a signed-out visitor to sign in', (tester) async {
+      cartBloc = buildCartBloc();
+      await pumpPage(
+        tester,
+        ProductDetailLoaded(
+          product: buildProductDetail(customMadeAllowed: true),
+        ),
+      );
+
+      await tester.tap(find.text('Solicitar sob medida'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Entrar'), findsOneWidget);
+      expect(customRequests, isEmpty);
     });
   });
 

@@ -21,6 +21,7 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_de
 import 'package:solado_certo_app/features/catalog/presentation/bloc/product_detail_cubit.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_image.dart';
 import 'package:solado_certo_app/features/catalog/presentation/components/product_safety_section.dart';
+import 'package:solado_certo_app/features/custom_orders/presentation/pages/custom_order_request_page.dart';
 import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cases.dart';
 import 'package:solado_certo_app/features/reviews/presentation/bloc/product_reviews_cubit.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/product_reviews_section.dart';
@@ -28,7 +29,18 @@ import 'package:solado_certo_app/features/reviews/presentation/components/produc
 final _rating = NumberFormat('0.0', appLocale);
 
 class ProductDetailPage extends StatelessWidget {
-  const ProductDetailPage({super.key});
+  const ProductDetailPage({
+    super.key,
+    this.requestCustomOrder = _requestCustomOrder,
+  });
+
+  final void Function(BuildContext context, ProductDetailEntity product)
+  requestCustomOrder;
+
+  static void _requestCustomOrder(
+    BuildContext context,
+    ProductDetailEntity product,
+  ) => Navigator.of(context).push(CustomOrderRequestPage.route(product));
 
   static Route<void> route(String productId) {
     return MaterialPageRoute(
@@ -78,7 +90,10 @@ class ProductDetailPage extends StatelessWidget {
           ),
         },
         bottomNavigationBar: state is ProductDetailLoaded
-            ? _AddToCartBar(product: state.product)
+            ? _AddToCartBar(
+                product: state.product,
+                requestCustomOrder: requestCustomOrder,
+              )
             : null,
       ),
     );
@@ -125,9 +140,14 @@ class _LoadFailure extends StatelessWidget {
 }
 
 class _AddToCartBar extends StatefulWidget {
-  const _AddToCartBar({required this.product});
+  const _AddToCartBar({
+    required this.product,
+    required this.requestCustomOrder,
+  });
 
   final ProductDetailEntity product;
+  final void Function(BuildContext context, ProductDetailEntity product)
+  requestCustomOrder;
 
   @override
   State<_AddToCartBar> createState() => _AddToCartBarState();
@@ -142,6 +162,14 @@ class _AddToCartBarState extends State<_AddToCartBar> {
       return;
     }
     context.read<AddToCartCubit>().add(widget.product.id, _quantity);
+  }
+
+  void _requestCustomOrder() {
+    if (context.read<CartBloc>().state is CartInactive) {
+      Navigator.of(context).pushNamed(AuthRoutes.signIn);
+      return;
+    }
+    widget.requestCustomOrder(context, widget.product);
   }
 
   @override
@@ -165,25 +193,38 @@ class _AddToCartBarState extends State<_AddToCartBar> {
       builder: (context, state) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: stock == 0
-              ? const ShoeTextButton(onPressed: null, text: 'Esgotado')
-              : Row(
-                  spacing: 12.0,
-                  children: [
-                    ShoeQuantityStepper(
-                      value: _quantity,
-                      max: stock.clamp(1, maxCartItemQuantity),
-                      onChanged: (value) => setState(() => _quantity = value),
-                    ),
-                    Expanded(
-                      child: ShoeTextButton(
-                        onPressed: _add,
-                        isLoading: state is AddToCartInProgress,
-                        text: 'Adicionar ao carrinho',
-                      ),
-                    ),
-                  ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.product.customMadeAllowed)
+                TextButton.icon(
+                  onPressed: _requestCustomOrder,
+                  icon: const Icon(Icons.straighten),
+                  label: const Text('Solicitar sob medida'),
                 ),
+              stock == 0
+                  ? const ShoeTextButton(onPressed: null, text: 'Esgotado')
+                  : Row(
+                      spacing: 12.0,
+                      children: [
+                        ShoeQuantityStepper(
+                          value: _quantity,
+                          max: stock.clamp(1, maxCartItemQuantity),
+                          onChanged: (value) =>
+                              setState(() => _quantity = value),
+                        ),
+                        Expanded(
+                          child: ShoeTextButton(
+                            onPressed: _add,
+                            isLoading: state is AddToCartInProgress,
+                            text: 'Adicionar ao carrinho',
+                          ),
+                        ),
+                      ],
+                    ),
+            ],
+          ),
         ),
       ),
     );

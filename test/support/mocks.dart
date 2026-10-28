@@ -18,6 +18,7 @@ import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_de
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
 import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_repository.dart';
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/usecases/custom_order_use_cases.dart';
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
 import 'package:solado_certo_app/features/notifications/domain/repositories/notification_repository.dart';
 import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
@@ -35,7 +36,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/become_seller_
 import 'package:solado_certo_app/features/profile/domain/usecases/change_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_custom_order_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_custom_order_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
@@ -267,3 +270,28 @@ MockGetNotificationsUseCase registerNotifications({
   );
   return useCase;
 }
+
+class MockGetCustomOrdersUseCase extends Mock
+    implements GetCustomOrdersUseCase {}
+
+class MockGetCustomOrderUseCase extends Mock implements GetCustomOrderUseCase {}
+
+class MockCreateCustomOrderUseCase extends Mock
+    implements CreateCustomOrderUseCase {}
+
+class MockSendFootPhotoUseCase extends Mock implements SendFootPhotoUseCase {}
+
+class MockComplementCustomOrderUseCase extends Mock
+    implements ComplementCustomOrderUseCase {}
+
+class MockCancelCustomOrderUseCase extends Mock
+    implements CancelCustomOrderUseCase {}
+
+class MockCheckoutCustomOrderUseCase extends Mock
+    implements CheckoutCustomOrderUseCase {}
+
+class MockHasCustomOrderConsentUseCase extends Mock
+    implements HasCustomOrderConsentUseCase {}
+
+class MockGrantCustomOrderConsentUseCase extends Mock
+    implements GrantCustomOrderConsentUseCase {}

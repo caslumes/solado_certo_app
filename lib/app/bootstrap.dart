@@ -13,6 +13,9 @@ import 'package:solado_certo_app/features/catalog/data/repositories/api_catalog_
 import 'package:solado_certo_app/features/checkout/data/repositories/api_checkout_repository.dart';
 import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_repository.dart';
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
+import 'package:solado_certo_app/features/custom_orders/data/repositories/api_custom_order_repository.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/repositories/custom_order_repository.dart';
+import 'package:solado_certo_app/features/custom_orders/domain/usecases/custom_order_use_cases.dart';
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
@@ -41,7 +44,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_roles_use_
 import 'package:solado_certo_app/features/profile/domain/usecases/remove_avatar_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_addresses_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/get_pain_points_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/grant_custom_order_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescription_consent_use_case.dart';
+import 'package:solado_certo_app/features/profile/domain/usecases/has_custom_order_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_podological_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/revoke_podological_consent_use_case.dart';
@@ -102,6 +107,9 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<NotificationRepositoryInterface>(
     () => ApiNotificationRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<CustomOrderRepositoryInterface>(
+    () => ApiCustomOrderRepository(getIt<ClientInterface>()),
   );
 
   getIt.registerLazySingleton<SignUpUseCase>(
@@ -256,6 +264,33 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<GrantPrescriptionConsentUseCase>(
     () => GrantPrescriptionConsentUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<HasCustomOrderConsentUseCase>(
+    () => HasCustomOrderConsentUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GrantCustomOrderConsentUseCase>(
+    () => GrantCustomOrderConsentUseCase(getIt<ProfileRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetCustomOrdersUseCase>(
+    () => GetCustomOrdersUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetCustomOrderUseCase>(
+    () => GetCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CreateCustomOrderUseCase>(
+    () => CreateCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<SendFootPhotoUseCase>(
+    () => SendFootPhotoUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ComplementCustomOrderUseCase>(
+    () => ComplementCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CancelCustomOrderUseCase>(
+    () => CancelCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CheckoutCustomOrderUseCase>(
+    () => CheckoutCustomOrderUseCase(getIt<CustomOrderRepositoryInterface>()),
   );
   getIt.registerLazySingleton<CreateReviewUseCase>(
     () => CreateReviewUseCase(getIt<ReviewRepositoryInterface>()),

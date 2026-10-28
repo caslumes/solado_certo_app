@@ -41,12 +41,16 @@ Object? _errorCode(Object? body) => body is Map ? body['error'] : null;
 Failure _forbidden(Object? body) => switch (_errorCode(body)) {
   final String code when code.startsWith('sending a prescription requires') =>
     PrescriptionConsentRequiredFailure(),
+  final String code when code.startsWith('a custom order request requires') =>
+    CustomOrderConsentRequiredFailure(),
   _ => ForbiddenFailure(),
 };
 
 Failure _unsupported(Object? body) => switch (_errorCode(body)) {
   final String code when code.startsWith('the prescription must be') =>
     PrescriptionFileTypeFailure(),
+  final String code when code.startsWith('the photo must be') =>
+    FootPhotoFileTypeFailure(),
   _ => UnsupportedFileTypeFailure(),
 };
 
@@ -67,6 +71,8 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'item already reviewed' => AlreadyReviewedFailure(),
   'only a delivered order can be reviewed' => ReviewNotAllowedFailure(),
   'prescription required' => PrescriptionRequiredFailure.fromBody(body),
+  'this advertisement does not take custom orders' =>
+    CustomMadeNotAllowedFailure(),
   final String code when code.startsWith('invalid status transition') =>
     OrderStatusChangedFailure(),
   _ => ConflictFailure(),
@@ -343,6 +349,22 @@ final class PrescriptionRequiredFailure extends Failure {
   @override
   String get message =>
       'Envie uma receita válida dos itens que exigem prescrição.';
+}
+
+final class CustomOrderConsentRequiredFailure extends Failure {
+  @override
+  String get message =>
+      'Para pedir sob medida, aceite os termos de tratamento das suas medidas.';
+}
+
+final class FootPhotoFileTypeFailure extends Failure {
+  @override
+  String get message => 'Envie a foto do pé em JPEG ou PNG.';
+}
+
+final class CustomMadeNotAllowedFailure extends Failure {
+  @override
+  String get message => 'Este anúncio não aceita pedidos sob medida.';
 }
 
 final class UnreadableDocumentFailure extends Failure {

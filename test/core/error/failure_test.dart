@@ -322,4 +322,34 @@ void main() {
       'Não foi possível ler o arquivo. Envie outro.',
     );
   });
+
+  test('maps custom order errors by their code', () {
+    Failure fromBody(int status, String error) => Failure.from(
+      buildDioException(statusCode: status, data: {'error': error}),
+    );
+
+    expect(
+      fromBody(
+        403,
+        'a custom order request requires consent to the custom order terms',
+      ),
+      isA<CustomOrderConsentRequiredFailure>(),
+    );
+    expect(
+      fromBody(415, 'the photo must be a JPEG or PNG file'),
+      isA<FootPhotoFileTypeFailure>(),
+    );
+    expect(
+      fromBody(409, 'this advertisement does not take custom orders'),
+      isA<CustomMadeNotAllowedFailure>(),
+    );
+    expect(
+      fromBody(
+        409,
+        "invalid status transition: a request that is approved can't be "
+        'changed by complement',
+      ),
+      isA<OrderStatusChangedFailure>(),
+    );
+  });
 }

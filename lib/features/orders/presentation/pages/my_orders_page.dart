@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:solado_certo_app/features/custom_orders/presentation/pages/my_custom_orders_page.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_filter.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/orders_bloc.dart';
@@ -37,7 +38,15 @@ class MyOrdersPage extends StatelessWidget {
           'Pedidos'.toUpperCase(),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
-        actions: [OrderFilterButton(filter: filter, onChanged: applyFilter)],
+        actions: [
+          IconButton(
+            tooltip: 'Sob medida',
+            icon: const Icon(Icons.straighten),
+            onPressed: () =>
+                Navigator.of(context).push(MyCustomOrdersPage.route()),
+          ),
+          OrderFilterButton(filter: filter, onChanged: applyFilter),
+        ],
       ),
       body: Column(
         children: [
