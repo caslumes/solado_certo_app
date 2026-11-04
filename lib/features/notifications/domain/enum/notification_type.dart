@@ -10,6 +10,8 @@ enum NotificationType {
   prescriptionRejected(forSeller: false),
   customOrderRequested(forSeller: true),
   customOrderUpdated(forSeller: false),
+  supportTicketOpened(forSeller: false),
+  supportTicketUpdated(forSeller: false),
 
   other(forSeller: false);
 
@@ -29,6 +31,8 @@ enum NotificationType {
     'prescription_rejected' => prescriptionRejected,
     'custom_order_requested' => customOrderRequested,
     'custom_order_updated' => customOrderUpdated,
+    'support_ticket_opened' => supportTicketOpened,
+    'support_ticket_updated' => supportTicketUpdated,
     _ => other,
   };
 }

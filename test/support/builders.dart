@@ -17,6 +17,9 @@ import 'package:solado_certo_app/features/custom_orders/domain/enum/arch_type.da
 import 'package:solado_certo_app/features/custom_orders/domain/enum/custom_order_action.dart';
 import 'package:solado_certo_app/features/custom_orders/domain/enum/custom_order_status.dart';
 import 'package:solado_certo_app/features/notifications/domain/entities/notification.dart';
+import 'package:solado_certo_app/features/support/domain/entities/support_ticket.dart';
+import 'package:solado_certo_app/features/support/domain/enum/support_ticket_category.dart';
+import 'package:solado_certo_app/features/support/domain/enum/support_ticket_status.dart';
 import 'package:solado_certo_app/features/notifications/domain/enum/notification_type.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order.dart';
 import 'package:solado_certo_app/features/orders/domain/entities/order_detail.dart';
@@ -502,11 +505,54 @@ PaymentEntity buildPayment({
   createdAt: DateTime(2026, 10, 15, 9, 30),
 );
 
+SupportTicketEntity buildSupportTicket({
+  String id = 't1',
+  SupportTicketStatus status = SupportTicketStatus.open,
+  String? orderNumber = 'SC-1',
+}) => SupportTicketEntity(
+  id: id,
+  category: SupportTicketCategory.order,
+  status: status,
+  subject: 'Assunto $id',
+  orderId: orderNumber == null ? null : 'o1',
+  orderNumber: orderNumber,
+  openedAt: DateTime.utc(2026, 11, 1, 12),
+  updatedAt: DateTime.utc(2026, 11, 2, 12),
+);
+
+SupportMessageEntity buildSupportMessage({
+  String id = 'm1',
+  bool mine = false,
+  String message = 'Mensagem m1',
+  String? attachmentUrl,
+}) => SupportMessageEntity(
+  id: id,
+  senderName: 'Suporte Solado Certo',
+  mine: mine,
+  message: message,
+  attachmentUrl: attachmentUrl,
+  createdAt: DateTime.utc(2026, 11, 2, 12),
+);
+
+SupportTicketDetailEntity buildSupportTicketDetail({
+  SupportTicketStatus status = SupportTicketStatus.open,
+  String? resolution,
+  bool canReply = true,
+  List<SupportMessageEntity> messages = const [],
+}) => SupportTicketDetailEntity(
+  ticket: buildSupportTicket(status: status),
+  description: 'A palmilha chegou com o tamanho errado.',
+  resolution: resolution,
+  canReply: canReply,
+  messages: messages,
+);
+
 NotificationEntity buildNotification({
   String id = 'n1',
   NotificationType type = NotificationType.orderShipped,
   String? orderId = 'o1',
   String? customOrderId,
+  String? ticketId,
   bool sentToSeller = false,
   bool read = false,
 }) => NotificationEntity(
@@ -516,6 +562,7 @@ NotificationEntity buildNotification({
   body: 'Corpo $id',
   orderId: orderId,
   customOrderId: customOrderId,
+  ticketId: ticketId,
   sentToSeller: sentToSeller,
   read: read,
   createdAt: DateTime.utc(2026, 10, 20, 12),

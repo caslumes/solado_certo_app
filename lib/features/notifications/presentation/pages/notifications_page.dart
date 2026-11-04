@@ -12,6 +12,7 @@ import 'package:solado_certo_app/features/notifications/domain/enum/notification
 import 'package:solado_certo_app/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/order_detail_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_order_detail_page.dart';
+import 'package:solado_certo_app/features/support/presentation/pages/support_ticket_detail_page.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key, this.routeFor = defaultRouteFor});
@@ -19,6 +20,9 @@ class NotificationsPage extends StatefulWidget {
   final Route<void>? Function(NotificationEntity notification) routeFor;
 
   static Route<void>? defaultRouteFor(NotificationEntity notification) {
+    if (notification.ticketId case final ticketId?) {
+      return SupportTicketDetailPage.route(ticketId);
+    }
     if (notification.customOrderId case final requestId?) {
       return notification.forSeller
           ? SellerCustomOrderDetailPage.route(requestId)
@@ -202,6 +206,8 @@ class NotificationTile extends StatelessWidget {
     NotificationType.prescriptionRejected => Icons.description_outlined,
     NotificationType.customOrderRequested ||
     NotificationType.customOrderUpdated => Icons.straighten,
+    NotificationType.supportTicketOpened ||
+    NotificationType.supportTicketUpdated => Icons.support_agent,
     NotificationType.other => Icons.notifications_none,
   };
 

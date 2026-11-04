@@ -14,6 +14,13 @@ abstract final class FieldValidators {
       ? 'Máximo de $max caracteres'
       : null;
 
+  static FieldValidator textLength(int min, int max) => (value) {
+    final length = value?.trim().runes.length ?? 0;
+    if (length == 0) return 'Campo obrigatório';
+    if (length < min) return 'Escreva pelo menos $min caracteres';
+    return length > max ? 'Máximo de $max caracteres' : null;
+  };
+
   static String? decimal(String? value) {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return null;

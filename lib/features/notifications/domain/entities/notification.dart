@@ -8,6 +8,7 @@ class NotificationEntity {
 
   final String? orderId;
   final String? customOrderId;
+  final String? ticketId;
   final bool sentToSeller;
   final bool read;
   final DateTime createdAt;
@@ -19,6 +20,7 @@ class NotificationEntity {
     required this.body,
     this.orderId,
     this.customOrderId,
+    this.ticketId,
     this.sentToSeller = false,
     required this.read,
     required this.createdAt,
@@ -33,6 +35,7 @@ class NotificationEntity {
     body: body,
     orderId: orderId,
     customOrderId: customOrderId,
+    ticketId: ticketId,
     sentToSeller: sentToSeller,
     read: read ?? this.read,
     createdAt: createdAt,

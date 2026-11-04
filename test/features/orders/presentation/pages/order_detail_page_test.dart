@@ -127,6 +127,7 @@ void main() {
   ) async {
     await pumpPage(tester);
 
+    expect(find.byTooltip('Ajuda'), findsOneWidget);
     expect(find.text('Pedido SC-20261014-ABC123'), findsOneWidget);
     expect(find.text('Feito em 14/10/2026 às 09:05'), findsOneWidget);
     expect(find.text('Aguardando pagamento'), findsNWidgets(2));

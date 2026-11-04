@@ -13,13 +13,15 @@ import 'package:solado_certo_app/features/reviews/domain/usecases/review_use_cas
 import 'package:solado_certo_app/features/reviews/presentation/bloc/review_form_cubit.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/comfort_labels.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/rating_stars.dart';
+import 'package:solado_certo_app/features/support/domain/enum/support_ticket_category.dart';
+import 'package:solado_certo_app/features/support/presentation/pages/support_ticket_form_page.dart';
 
 class ReviewPage extends StatefulWidget {
   const ReviewPage({
     super.key,
     required this.item,
     required this.sellerName,
-    this.openSupport = supportUnavailable,
+    required this.openSupport,
   });
 
   final OrderItemEntity item;
@@ -29,6 +31,7 @@ class ReviewPage extends StatefulWidget {
 
   static Route<bool> route({
     required String orderId,
+    required String orderNumber,
     required OrderItemEntity item,
     required String sellerName,
   }) {
@@ -39,19 +42,19 @@ class ReviewPage extends StatefulWidget {
           orderId: orderId,
           itemId: item.id!,
         ),
-        child: ReviewPage(item: item, sellerName: sellerName),
+        child: ReviewPage(
+          item: item,
+          sellerName: sellerName,
+          openSupport: (context) => Navigator.of(context).push(
+            SupportTicketFormPage.route(
+              orderId: orderId,
+              orderNumber: orderNumber,
+              category: SupportTicketCategory.adaptation,
+            ),
+          ),
+        ),
       ),
     );
-  }
-
-  static void supportUnavailable(BuildContext context) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text('A abertura de chamados ainda não está disponível.'),
-        ),
-      );
   }
 
   @override
@@ -100,8 +103,8 @@ class _ReviewPageState extends State<ReviewPage> {
     final navigator = Navigator.of(context);
     final openSupport = suggestSupport && await _askSupport() == true;
     if (!mounted) return;
-    if (openSupport) widget.openSupport(context);
     navigator.pop(true);
+    if (openSupport) widget.openSupport(navigator.context);
   }
 
   Future<bool?> _askSupport() {

@@ -14,6 +14,7 @@ import 'package:solado_certo_app/features/profile/domain/usecases/add_address_us
 import 'package:solado_certo_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/address_entry.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/podological_profile_form.dart';
+import 'package:solado_certo_app/features/support/presentation/pages/my_support_tickets_page.dart';
 import 'package:solado_certo_app/features/profile/presentation/components/profile_avatar.dart';
 import 'package:solado_certo_app/features/profile/presentation/pages/address_form_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/pages/seller_orders_page.dart';
@@ -207,6 +208,13 @@ class _ProfileContent extends StatelessWidget {
               ),
               _SectionTitle('Vender'),
               _SellerSection(isSeller: data.isSeller, isSaving: state.isSaving),
+              _SectionTitle('Ajuda'),
+              ShoeTextButton(
+                onPressed: () =>
+                    Navigator.of(context).push(MySupportTicketsPage.route()),
+                text: 'Meus chamados',
+                textStyle: _buttonTextStyle(context),
+              ),
               _SectionTitle('Perfil podológico'),
               PodologicalProfileForm(
                 key: ValueKey((

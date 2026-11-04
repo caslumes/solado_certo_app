@@ -205,6 +205,19 @@ void main() {
     );
   });
 
+  test('a support notification leads to its ticket', () {
+    expect(
+      NotificationsPage.defaultRouteFor(
+        buildNotification(
+          type: NotificationType.supportTicketUpdated,
+          orderId: null,
+          ticketId: 't1',
+        ),
+      ),
+      isA<Route<void>>(),
+    );
+  });
+
   test('a custom order notification leads to its request', () {
     for (final sentToSeller in [false, true]) {
       expect(

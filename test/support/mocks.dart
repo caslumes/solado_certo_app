@@ -6,6 +6,7 @@ import 'package:solado_certo_app/features/auth/domain/repositories/auth_reposito
 import 'package:solado_certo_app/features/auth/domain/usecases/request_password_reset_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/reset_password_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
+import 'package:solado_certo_app/features/support/domain/usecases/support_use_cases.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/cart/domain/repositories/cart_repository.dart';
@@ -61,6 +62,18 @@ import 'package:solado_certo_app/features/seller/domain/usecases/save_ad_use_cas
 import 'builders.dart';
 
 class MockAuthRepository extends Mock implements AuthRepositoryInterface {}
+
+class MockGetSupportTicketsUseCase extends Mock
+    implements GetSupportTicketsUseCase {}
+
+class MockGetSupportTicketUseCase extends Mock
+    implements GetSupportTicketUseCase {}
+
+class MockCreateSupportTicketUseCase extends Mock
+    implements CreateSupportTicketUseCase {}
+
+class MockSendSupportMessageUseCase extends Mock
+    implements SendSupportMessageUseCase {}
 
 class MockRequestPasswordResetUseCase extends Mock
     implements RequestPasswordResetUseCase {}

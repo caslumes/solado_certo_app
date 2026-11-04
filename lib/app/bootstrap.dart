@@ -57,6 +57,9 @@ import 'package:solado_certo_app/features/profile/domain/usecases/get_podologica
 import 'package:solado_certo_app/features/profile/domain/usecases/get_profile_use_case.dart';
 import 'package:solado_certo_app/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
+import 'package:solado_certo_app/features/support/data/repositories/api_support_repository.dart';
+import 'package:solado_certo_app/features/support/domain/repositories/support_repository.dart';
+import 'package:solado_certo_app/features/support/domain/usecases/support_use_cases.dart';
 import 'package:solado_certo_app/features/profile/data/repositories/api_profile_repository.dart';
 import 'package:solado_certo_app/features/profile/domain/repositories/profile_repository.dart';
 import 'package:solado_certo_app/features/seller/data/repositories/api_seller_repository.dart';
@@ -114,6 +117,22 @@ void configureDependencies() {
     () => ApiCustomOrderRepository(getIt<ClientInterface>()),
   );
 
+  getIt.registerLazySingleton<SupportRepositoryInterface>(
+    () => ApiSupportRepository(getIt<ClientInterface>()),
+  );
+
+  getIt.registerLazySingleton<GetSupportTicketsUseCase>(
+    () => GetSupportTicketsUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetSupportTicketUseCase>(
+    () => GetSupportTicketUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CreateSupportTicketUseCase>(
+    () => CreateSupportTicketUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<SendSupportMessageUseCase>(
+    () => SendSupportMessageUseCase(getIt<SupportRepositoryInterface>()),
+  );
   getIt.registerLazySingleton<SignUpUseCase>(
     () => SignUpUseCase(authRepository: getIt<AuthRepositoryInterface>()),
   );

@@ -10,6 +10,7 @@ import 'package:solado_certo_app/features/orders/domain/entities/order_detail.da
 import 'package:solado_certo_app/features/orders/domain/enum/order_status.dart';
 import 'package:solado_certo_app/features/orders/domain/usecases/order_use_cases.dart';
 import 'package:solado_certo_app/features/orders/presentation/bloc/seller_order_detail_cubit.dart';
+import 'package:solado_certo_app/features/support/presentation/pages/support_ticket_form_page.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/amount_row.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_sections.dart';
 import 'package:solado_certo_app/features/orders/presentation/components/order_status_chip.dart';
@@ -121,6 +122,19 @@ class SellerOrderDetailPage extends StatelessWidget {
         appBar: AppBar(
           iconTheme: Theme.of(context).iconTheme,
           title: Text('Venda'.toUpperCase(), style: textTheme.bodyMedium),
+          actions: [
+            if (state is SellerOrderDetailLoaded)
+              IconButton(
+                tooltip: 'Ajuda',
+                icon: const Icon(Icons.help_outline),
+                onPressed: () => Navigator.of(context).push(
+                  SupportTicketFormPage.route(
+                    orderId: state.detail.order.id,
+                    orderNumber: state.detail.order.number,
+                  ),
+                ),
+              ),
+          ],
         ),
         body: switch (state) {
           SellerOrderDetailLoaded(:final detail, :final working) => _Detail(

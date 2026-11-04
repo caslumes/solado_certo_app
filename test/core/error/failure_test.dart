@@ -19,6 +19,39 @@ void main() {
     }
   });
 
+  test('maps the support ticket errors', () {
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 409,
+          data: {
+            'error':
+                'invalid status transition: a resolved ticket takes no more messages',
+          },
+        ),
+      ),
+      isA<TicketStatusChangedFailure>(),
+    );
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 409,
+          data: {'error': 'invalid status transition: paid to delivered'},
+        ),
+      ),
+      isA<OrderStatusChangedFailure>(),
+    );
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 415,
+          data: {'error': 'the attachment must be a PDF, JPEG or PNG file'},
+        ),
+      ),
+      isA<AttachmentFileTypeFailure>(),
+    );
+  });
+
   test('maps the password reset errors', () {
     expect(
       Failure.from(

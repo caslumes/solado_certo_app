@@ -41,7 +41,14 @@ void main() {
                         child: ReviewPage(
                           item: buildOrderItem(itemId: 'i1'),
                           sellerName: 'Loja s1',
-                          openSupport: (_) => supportOpened++,
+                          openSupport: (context) {
+                            supportOpened++;
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => const Text('form de chamado'),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -148,6 +155,8 @@ void main() {
 
     expect(supportOpened, 1);
     expect(results, [true]);
+    expect(find.byType(ReviewPage), findsNothing);
+    expect(find.text('form de chamado'), findsOneWidget);
   });
 
   testWidgets('offers support when the buyer had problems', (tester) async {

@@ -10,6 +10,7 @@ NotificationEntity notificationFromJson(Map<String, dynamic> json) {
     body: json['body'] as String,
     orderId: data?['order_id'] as String?,
     customOrderId: data?['custom_order_id'] as String?,
+    ticketId: data?['ticket_id'] as String?,
     sentToSeller: data?['recipient'] == 'seller',
     read: json['read'] as bool,
     createdAt: DateTime.parse(json['created_at'] as String),

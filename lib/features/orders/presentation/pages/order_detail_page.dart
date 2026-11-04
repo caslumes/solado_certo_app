@@ -26,6 +26,7 @@ import 'package:solado_certo_app/features/profile/domain/usecases/grant_prescrip
 import 'package:solado_certo_app/features/profile/domain/usecases/has_prescription_consent_use_case.dart';
 import 'package:solado_certo_app/features/reviews/presentation/components/item_review_summary.dart';
 import 'package:solado_certo_app/features/reviews/presentation/pages/review_page.dart';
+import 'package:solado_certo_app/features/support/presentation/pages/support_ticket_form_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailPage extends StatelessWidget {
@@ -178,6 +179,19 @@ class OrderDetailPage extends StatelessWidget {
         appBar: AppBar(
           iconTheme: Theme.of(context).iconTheme,
           title: Text('Pedido'.toUpperCase(), style: textTheme.bodyMedium),
+          actions: [
+            if (state is OrderDetailLoaded)
+              IconButton(
+                tooltip: 'Ajuda',
+                icon: const Icon(Icons.help_outline),
+                onPressed: () => Navigator.of(context).push(
+                  SupportTicketFormPage.route(
+                    orderId: state.detail.order.id,
+                    orderNumber: state.detail.order.number,
+                  ),
+                ),
+              ),
+          ],
         ),
         body: switch (state) {
           OrderDetailLoaded(:final detail, :final payments, :final working) =>
@@ -280,6 +294,7 @@ class _Detail extends StatelessWidget {
     final reviewed = await Navigator.of(context).push(
       ReviewPage.route(
         orderId: detail.order.id,
+        orderNumber: detail.order.number,
         item: item,
         sellerName: detail.order.sellerName,
       ),

@@ -212,6 +212,14 @@ void main() {
     expect(FieldValidators.resetCode('12a456'), 'O código tem 6 dígitos');
   });
 
+  test('textLength checks the trimmed text', () {
+    final validator = FieldValidators.textLength(5, 10);
+    expect(validator('  abcde  '), isNull);
+    expect(validator('   '), 'Campo obrigatório');
+    expect(validator('abcd'), 'Escreva pelo menos 5 caracteres');
+    expect(validator('a' * 11), 'Máximo de 10 caracteres');
+  });
+
   group('tracking code', () {
     test('is stored without spaces and in upper case', () {
       expect(

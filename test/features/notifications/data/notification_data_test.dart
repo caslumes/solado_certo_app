@@ -45,6 +45,18 @@ void main() {
       expect(notification.createdAt, DateTime.utc(2026, 10, 20, 12));
     });
 
+    test('reads a support notification', () {
+      final notification = notificationFromJson(
+        notificationJson(
+          type: 'support_ticket_updated',
+          data: {'ticket_id': 't1'},
+        ),
+      );
+
+      expect(notification.type, NotificationType.supportTicketUpdated);
+      expect(notification.ticketId, 't1');
+    });
+
     test('reads one without data, of a type it does not know', () {
       final notification = notificationFromJson(
         notificationJson(type: 'support_reply', data: null, read: true),

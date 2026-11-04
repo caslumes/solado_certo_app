@@ -60,6 +60,8 @@ Failure _unsupported(Object? body) => switch (_errorCode(body)) {
     FootPhotoFileTypeFailure(),
   final String code when code.startsWith('the report must be') =>
     FittingReportFileTypeFailure(),
+  final String code when code.startsWith('the attachment must be') =>
+    AttachmentFileTypeFailure(),
   _ => UnsupportedFileTypeFailure(),
 };
 
@@ -82,6 +84,10 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
   'prescription required' => PrescriptionRequiredFailure.fromBody(body),
   'this advertisement does not take custom orders' =>
     CustomMadeNotAllowedFailure(),
+  final String code
+      when code.startsWith('invalid status transition') &&
+          code.contains('ticket') =>
+    TicketStatusChangedFailure(),
   final String code when code.startsWith('invalid status transition') =>
     OrderStatusChangedFailure(),
   _ => ConflictFailure(),
@@ -268,6 +274,17 @@ final class OrderStatusChangedFailure extends Failure {
   @override
   String get message =>
       'A situação deste pedido mudou. Confira e tente de novo.';
+}
+
+final class TicketStatusChangedFailure extends Failure {
+  @override
+  String get message =>
+      'A situação deste chamado mudou. Confira e tente de novo.';
+}
+
+final class AttachmentFileTypeFailure extends Failure {
+  @override
+  String get message => 'Envie o anexo em PDF, JPEG ou PNG.';
 }
 
 final class ShippingRequiredFailure extends Failure {
