@@ -16,13 +16,14 @@ sealed class Failure {
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
         if (statusCode == 401) return UnauthorizedFailure();
-        if (statusCode == 400) return InvalidInputFailure();
+        if (statusCode == 400) return _badRequest(error.response?.data);
         if (statusCode == 403) return _forbidden(error.response?.data);
         if (statusCode == 404) return _notFound(error.response?.data);
         if (statusCode == 409) return _conflict(error.response?.data);
         if (statusCode == 413) return FileTooLargeFailure();
         if (statusCode == 415) return _unsupported(error.response?.data);
         if (statusCode == 422) return _unprocessable(error.response?.data);
+        if (statusCode == 429) return TooManyRequestsFailure();
         if (statusCode == 503 &&
             _errorCode(error.response?.data) == 'payment gateway unavailable') {
           return GatewayUnavailableFailure();
@@ -37,6 +38,12 @@ sealed class Failure {
 }
 
 Object? _errorCode(Object? body) => body is Map ? body['error'] : null;
+
+Failure _badRequest(Object? body) => switch (_errorCode(body)) {
+  'invalid or expired code' => InvalidResetCodeFailure(),
+  'too many attempts, request a new code' => ResetAttemptsExceededFailure(),
+  _ => InvalidInputFailure(),
+};
 
 Failure _forbidden(Object? body) => switch (_errorCode(body)) {
   final String code when code.startsWith('sending a prescription requires') =>
@@ -110,6 +117,21 @@ final class InvalidCredentialsFailure extends Failure {
 final class InvalidInputFailure extends Failure {
   @override
   String get message => 'Verifique os dados informados.';
+}
+
+final class InvalidResetCodeFailure extends Failure {
+  @override
+  String get message => 'Código inválido ou expirado.';
+}
+
+final class ResetAttemptsExceededFailure extends Failure {
+  @override
+  String get message => 'Muitas tentativas. Peça um novo código.';
+}
+
+final class TooManyRequestsFailure extends Failure {
+  @override
+  String get message => 'Muitas tentativas. Aguarde um minuto e tente de novo.';
 }
 
 final class ForbiddenFailure extends Failure {

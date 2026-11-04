@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/request_password_reset_use_case.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/reset_password_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_in_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
@@ -59,6 +61,11 @@ import 'package:solado_certo_app/features/seller/domain/usecases/save_ad_use_cas
 import 'builders.dart';
 
 class MockAuthRepository extends Mock implements AuthRepositoryInterface {}
+
+class MockRequestPasswordResetUseCase extends Mock
+    implements RequestPasswordResetUseCase {}
+
+class MockResetPasswordUseCase extends Mock implements ResetPasswordUseCase {}
 
 class MockProfileRepository extends Mock
     implements ProfileRepositoryInterface {}

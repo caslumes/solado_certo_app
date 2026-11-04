@@ -41,4 +41,21 @@ class ApiAuthRepository implements AuthRepositoryInterface {
         .post('/auth/logout', data: {'refresh_token': refreshToken})
         .then((response) => response);
   }
+
+  @override
+  Future<void> requestPasswordReset(String email) {
+    return client
+        .post('/auth/password/forgot', data: {'email': email})
+        .then((response) => response);
+  }
+
+  @override
+  Future<void> resetPassword(String email, String code, String newPassword) {
+    return client
+        .post(
+          '/auth/password/reset',
+          data: {'email': email, 'code': code, 'new_password': newPassword},
+        )
+        .then((response) => response);
+  }
 }

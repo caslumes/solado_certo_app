@@ -19,6 +19,31 @@ void main() {
     }
   });
 
+  test('maps the password reset errors', () {
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 400,
+          data: {'error': 'invalid or expired code'},
+        ),
+      ),
+      isA<InvalidResetCodeFailure>(),
+    );
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 400,
+          data: {'error': 'too many attempts, request a new code'},
+        ),
+      ),
+      isA<ResetAttemptsExceededFailure>(),
+    );
+    expect(
+      Failure.from(buildDioException(statusCode: 429)),
+      isA<TooManyRequestsFailure>(),
+    );
+  });
+
   test('maps response status codes', () {
     expect(
       Failure.from(buildDioException(statusCode: 401)),

@@ -110,6 +110,18 @@ class _SignInPageState extends State<SignInPage> {
                                 autofillHints: const [AutofillHints.password],
                                 onFieldSubmitted: (_) => _submit(),
                               ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: ShoeHypertext(
+                                  text: 'Esqueci minha senha',
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      AuthRoutes.forgotPassword,
+                                    );
+                                  },
+                                ),
+                              ),
                               BlocBuilder<AuthBloc, AuthState>(
                                 builder: (context, state) => ShoeTextButton(
                                   isLoading: state is AuthLoading,

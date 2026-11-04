@@ -204,6 +204,14 @@ void main() {
     });
   });
 
+  test('resetCode takes exactly 6 digits', () {
+    expect(FieldValidators.resetCode(' 123456 '), isNull);
+    expect(FieldValidators.resetCode(''), 'Informe o código');
+    expect(FieldValidators.resetCode('12345'), 'O código tem 6 dígitos');
+    expect(FieldValidators.resetCode('1234567'), 'O código tem 6 dígitos');
+    expect(FieldValidators.resetCode('12a456'), 'O código tem 6 dígitos');
+  });
+
   group('tracking code', () {
     test('is stored without spaces and in upper case', () {
       expect(

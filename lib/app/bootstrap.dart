@@ -4,6 +4,8 @@ import 'package:solado_certo_app/core/network/api_client.dart';
 import 'package:solado_certo_app/core/network/client.dart';
 import 'package:solado_certo_app/features/auth/data/repositories/api_auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/request_password_reset_use_case.dart';
+import 'package:solado_certo_app/features/auth/domain/usecases/reset_password_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_out_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/sign_up_use_case.dart';
 import 'package:solado_certo_app/features/cart/data/repositories/api_cart_repository.dart';
@@ -126,6 +128,15 @@ void configureDependencies() {
       repository: getIt<AuthRepositoryInterface>(),
       secureStorage: getIt<FlutterSecureStorage>(),
     ),
+  );
+  getIt.registerLazySingleton<RequestPasswordResetUseCase>(
+    () => RequestPasswordResetUseCase(
+      authRepository: getIt<AuthRepositoryInterface>(),
+    ),
+  );
+  getIt.registerLazySingleton<ResetPasswordUseCase>(
+    () =>
+        ResetPasswordUseCase(authRepository: getIt<AuthRepositoryInterface>()),
   );
   getIt.registerLazySingleton<GetProfileUseCase>(
     () => GetProfileUseCase(getIt<ProfileRepositoryInterface>()),

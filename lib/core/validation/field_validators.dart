@@ -206,6 +206,12 @@ abstract final class FieldValidators {
     return null;
   }
 
+  static String? resetCode(String? value) {
+    final code = value?.trim() ?? '';
+    if (code.isEmpty) return 'Informe o código';
+    return RegExp(r'^\d{6}$').hasMatch(code) ? null : 'O código tem 6 dígitos';
+  }
+
   static FieldValidator combine(List<FieldValidator> validators) => (value) {
     for (final validator in validators) {
       final error = validator(value);
