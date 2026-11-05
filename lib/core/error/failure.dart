@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:solado_certo_app/core/formatting/formatters.dart';
 
 sealed class Failure {
   const Failure();
@@ -45,7 +46,13 @@ Failure _badRequest(Object? body) => switch (_errorCode(body)) {
   _ => InvalidInputFailure(),
 };
 
-Failure _forbidden(Object? body) => switch (_errorCode(body)) {
+Failure _forbidden(Object? body) => switch (body is Map ? body['code'] : null) {
+  'account_blocked' => AccountBlockedFailure(),
+  'account_suspended' => AccountSuspendedFailure.fromBody(body),
+  _ => _forbiddenByError(body),
+};
+
+Failure _forbiddenByError(Object? body) => switch (_errorCode(body)) {
   final String code when code.startsWith('sending a prescription requires') =>
     PrescriptionConsentRequiredFailure(),
   final String code when code.startsWith('a custom order request requires') =>
@@ -88,6 +95,14 @@ Failure _conflict(Object? body) => switch (_errorCode(body)) {
       when code.startsWith('invalid status transition') &&
           code.contains('ticket') =>
     TicketStatusChangedFailure(),
+  final String code
+      when code.startsWith('invalid status transition') &&
+          code.contains('account') =>
+    AccountStatusChangedFailure(),
+  final String code
+      when code.startsWith('invalid status transition') &&
+          code.contains('advertisement') =>
+    AdStatusChangedFailure(),
   final String code when code.startsWith('invalid status transition') =>
     OrderStatusChangedFailure(),
   _ => ConflictFailure(),
@@ -143,6 +158,30 @@ final class TooManyRequestsFailure extends Failure {
 final class ForbiddenFailure extends Failure {
   @override
   String get message => 'Você não tem permissão para fazer isso.';
+}
+
+final class AccountBlockedFailure extends Failure {
+  @override
+  String get message => 'Sua conta foi bloqueada pela moderação.';
+}
+
+final class AccountSuspendedFailure extends Failure {
+  const AccountSuspendedFailure(this.until);
+
+  factory AccountSuspendedFailure.fromBody(Object? body) {
+    final until = body is Map ? body['suspended_until'] : null;
+    return AccountSuspendedFailure(
+      until is String ? DateTime.tryParse(until) : null,
+    );
+  }
+
+  final DateTime? until;
+
+  @override
+  String get message => switch (until) {
+    final until? => 'Sua conta está suspensa até ${formatDateTime(until)}.',
+    null => 'Sua conta está suspensa.',
+  };
 }
 
 final class MissingFieldsFailure extends Failure {
@@ -280,6 +319,18 @@ final class TicketStatusChangedFailure extends Failure {
   @override
   String get message =>
       'A situação deste chamado mudou. Confira e tente de novo.';
+}
+
+final class AccountStatusChangedFailure extends Failure {
+  @override
+  String get message =>
+      'A situação desta conta mudou. Confira e tente de novo.';
+}
+
+final class AdStatusChangedFailure extends Failure {
+  @override
+  String get message =>
+      'A situação deste anúncio mudou. Confira e tente de novo.';
 }
 
 final class AttachmentFileTypeFailure extends Failure {

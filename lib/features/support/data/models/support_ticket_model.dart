@@ -10,6 +10,7 @@ SupportTicketEntity supportTicketFromJson(Map<String, dynamic> json) =>
       subject: json['subject'] as String,
       orderId: json['order_id'] as String?,
       orderNumber: json['order_number'] as String?,
+      assignedToMe: json['assigned_to_me'] as bool? ?? false,
       openedAt: DateTime.parse(json['opened_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -47,6 +48,27 @@ SupportTicketsPageEntity supportTicketsPageFromJson(
   currentPage: json['current_page'] as int,
   hasNext: json['has_next'] as bool,
 );
+
+SupportQueuePageEntity supportQueuePageFromJson(Map<String, dynamic> json) =>
+    SupportQueuePageEntity(
+      items: [
+        for (final item in json['items'] as List? ?? const [])
+          SupportQueueItemEntity(
+            ticket: supportTicketFromJson(item),
+            openedBy: (item['opened_by'] as Map)['name'] as String,
+            assignedTo: (item['assigned_to'] as Map?)?['name'] as String?,
+          ),
+      ],
+      currentPage: json['current_page'] as int,
+      hasNext: json['has_next'] as bool,
+    );
+
+String supportQueueQuery(SupportQueueFilter filter) => switch (filter) {
+  SupportQueueFilter.active => 'status=active',
+  SupportQueueFilter.unassigned => 'status=active&assigned=none',
+  SupportQueueFilter.mine => 'status=active&assigned=me',
+  SupportQueueFilter.resolved => 'status=resolved',
+};
 
 Map<String, dynamic> newSupportTicketToJson(NewSupportTicket ticket) => {
   'category': ticket.category.apiValue,

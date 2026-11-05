@@ -8,6 +8,7 @@ class SupportTicketEntity {
   final String subject;
   final String? orderId;
   final String? orderNumber;
+  final bool assignedToMe;
   final DateTime openedAt;
   final DateTime updatedAt;
 
@@ -18,9 +19,45 @@ class SupportTicketEntity {
     required this.subject,
     this.orderId,
     this.orderNumber,
+    this.assignedToMe = false,
     required this.openedAt,
     required this.updatedAt,
   });
+}
+
+class SupportQueueItemEntity {
+  final SupportTicketEntity ticket;
+  final String openedBy;
+  final String? assignedTo;
+
+  const SupportQueueItemEntity({
+    required this.ticket,
+    required this.openedBy,
+    this.assignedTo,
+  });
+}
+
+class SupportQueuePageEntity {
+  final List<SupportQueueItemEntity> items;
+  final int currentPage;
+  final bool hasNext;
+
+  const SupportQueuePageEntity({
+    required this.items,
+    required this.currentPage,
+    required this.hasNext,
+  });
+}
+
+enum SupportQueueFilter {
+  active('Em aberto'),
+  unassigned('Sem responsável'),
+  mine('Comigo'),
+  resolved('Resolvidos');
+
+  const SupportQueueFilter(this.label);
+
+  final String label;
 }
 
 class SupportMessageEntity {

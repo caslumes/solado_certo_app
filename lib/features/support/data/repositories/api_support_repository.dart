@@ -53,4 +53,34 @@ class ApiSupportRepository implements SupportRepositoryInterface {
           );
     return supportTicketDetailFromJson(response as Map<String, dynamic>);
   }
+
+  @override
+  Future<SupportQueuePageEntity> getQueue(
+    SupportQueueFilter filter,
+    int page,
+  ) async {
+    final response = await client.get(
+      '/admin/support/tickets?${supportQueueQuery(filter)}'
+      '&page=$page&limit=$pageSize',
+    );
+    return supportQueuePageFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<SupportTicketDetailEntity> assignTicket(String id) async {
+    final response = await client.post('/admin/support/tickets/$id/assign');
+    return supportTicketDetailFromJson(response as Map<String, dynamic>);
+  }
+
+  @override
+  Future<SupportTicketDetailEntity> closeTicket(
+    String id,
+    String resolution,
+  ) async {
+    final response = await client.post(
+      '/admin/support/tickets/$id/close',
+      data: {'resolution': resolution},
+    );
+    return supportTicketDetailFromJson(response as Map<String, dynamic>);
+  }
 }

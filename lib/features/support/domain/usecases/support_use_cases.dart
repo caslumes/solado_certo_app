@@ -40,3 +40,30 @@ class SendSupportMessageUseCase {
     UploadFile? file,
   }) => repository.sendMessage(id, message, file: file);
 }
+
+class GetSupportQueueUseCase {
+  final SupportRepositoryInterface repository;
+
+  GetSupportQueueUseCase(this.repository);
+
+  Future<SupportQueuePageEntity> execute(SupportQueueFilter filter, int page) =>
+      repository.getQueue(filter, page);
+}
+
+class AssignSupportTicketUseCase {
+  final SupportRepositoryInterface repository;
+
+  AssignSupportTicketUseCase(this.repository);
+
+  Future<SupportTicketDetailEntity> execute(String id) =>
+      repository.assignTicket(id);
+}
+
+class CloseSupportTicketUseCase {
+  final SupportRepositoryInterface repository;
+
+  CloseSupportTicketUseCase(this.repository);
+
+  Future<SupportTicketDetailEntity> execute(String id, String resolution) =>
+      repository.closeTicket(id, resolution);
+}

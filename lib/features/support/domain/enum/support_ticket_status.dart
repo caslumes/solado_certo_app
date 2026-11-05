@@ -9,6 +9,8 @@ enum SupportTicketStatus {
 
   final String label;
 
+  bool get isActive => this != resolved && this != closed;
+
   static SupportTicketStatus fromApi(String value) => switch (value) {
     'open' => open,
     'in_progress' => inProgress,

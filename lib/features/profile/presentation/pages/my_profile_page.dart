@@ -7,6 +7,7 @@ import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
+import 'package:solado_certo_app/features/admin/presentation/pages/admin_home_page.dart';
 import 'package:solado_certo_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/new_address.dart';
 import 'package:solado_certo_app/features/profile/domain/entities/profile.dart';
@@ -208,6 +209,15 @@ class _ProfileContent extends StatelessWidget {
               ),
               _SectionTitle('Vender'),
               _SellerSection(isSeller: data.isSeller, isSaving: state.isSaving),
+              if (data.isAdmin) ...[
+                _SectionTitle('Administração'),
+                ShoeTextButton(
+                  onPressed: () =>
+                      Navigator.of(context).push(AdminHomePage.route()),
+                  text: 'Área administrativa',
+                  textStyle: _buttonTextStyle(context),
+                ),
+              ],
               _SectionTitle('Ajuda'),
               ShoeTextButton(
                 onPressed: () =>

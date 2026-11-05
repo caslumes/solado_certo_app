@@ -7,14 +7,20 @@ import 'package:solado_certo_app/features/support/domain/usecases/support_use_ca
 class SupportTicketDetailCubit extends Cubit<SupportTicketDetailState> {
   final GetSupportTicketUseCase _getTicketUseCase;
   final SendSupportMessageUseCase _sendMessageUseCase;
+  final AssignSupportTicketUseCase? _assignTicketUseCase;
+  final CloseSupportTicketUseCase? _closeTicketUseCase;
   final String ticketId;
 
   SupportTicketDetailCubit({
     required GetSupportTicketUseCase getTicketUseCase,
     required SendSupportMessageUseCase sendMessageUseCase,
+    AssignSupportTicketUseCase? assignTicketUseCase,
+    CloseSupportTicketUseCase? closeTicketUseCase,
     required this.ticketId,
   }) : _getTicketUseCase = getTicketUseCase,
        _sendMessageUseCase = sendMessageUseCase,
+       _assignTicketUseCase = assignTicketUseCase,
+       _closeTicketUseCase = closeTicketUseCase,
        super(SupportTicketDetailLoading());
 
   Future<void> load() async {
@@ -40,17 +46,24 @@ class SupportTicketDetailCubit extends Cubit<SupportTicketDetailState> {
     }
   }
 
-  Future<bool> send(String message, {UploadFile? file}) async {
+  Future<bool> send(String message, {UploadFile? file}) =>
+      _change(() => _sendMessageUseCase.execute(ticketId, message, file: file));
+
+  Future<bool> assign() =>
+      _change(() => _assignTicketUseCase!.execute(ticketId));
+
+  Future<bool> resolve(String resolution) =>
+      _change(() => _closeTicketUseCase!.execute(ticketId, resolution));
+
+  Future<bool> _change(
+    Future<SupportTicketDetailEntity> Function() action,
+  ) async {
     final current = state;
     if (current is! SupportTicketDetailLoaded || current.sending) return false;
 
     emit(SupportTicketDetailLoaded(detail: current.detail, sending: true));
     try {
-      final detail = await _sendMessageUseCase.execute(
-        ticketId,
-        message,
-        file: file,
-      );
+      final detail = await action();
       if (!isClosed) emit(SupportTicketDetailLoaded(detail: detail));
       return true;
     } catch (e) {

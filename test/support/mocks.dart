@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
+import 'package:solado_certo_app/features/admin/domain/usecases/admin_use_cases.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/request_password_reset_use_case.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/reset_password_use_case.dart';
@@ -74,6 +75,21 @@ class MockCreateSupportTicketUseCase extends Mock
 
 class MockSendSupportMessageUseCase extends Mock
     implements SendSupportMessageUseCase {}
+
+class MockGetSupportQueueUseCase extends Mock
+    implements GetSupportQueueUseCase {}
+
+class MockAssignSupportTicketUseCase extends Mock
+    implements AssignSupportTicketUseCase {}
+
+class MockCloseSupportTicketUseCase extends Mock
+    implements CloseSupportTicketUseCase {}
+
+class MockGetIndicatorsUseCase extends Mock implements GetIndicatorsUseCase {}
+
+class MockModerateUserUseCase extends Mock implements ModerateUserUseCase {}
+
+class MockTakeDownAdUseCase extends Mock implements TakeDownAdUseCase {}
 
 class MockRequestPasswordResetUseCase extends Mock
     implements RequestPasswordResetUseCase {}

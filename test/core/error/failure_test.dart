@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
+import 'package:solado_certo_app/core/formatting/formatters.dart';
 
 import '../../support/builders.dart';
 
 void main() {
+  setUpAll(initializeFormatting);
+
   test('maps connection problems and timeouts to NetworkFailure', () {
     for (final type in [
       DioExceptionType.connectionError,
@@ -412,6 +415,59 @@ void main() {
         'changed by complement',
       ),
       isA<OrderStatusChangedFailure>(),
+    );
+  });
+
+  test('maps a refused sign-in of a blocked or suspended account', () {
+    expect(
+      Failure.from(
+        buildDioException(
+          statusCode: 403,
+          data: {'error': 'this account is blocked', 'code': 'account_blocked'},
+        ),
+      ),
+      isA<AccountBlockedFailure>(),
+    );
+
+    final suspended = Failure.from(
+      buildDioException(
+        statusCode: 403,
+        data: {
+          'error': 'this account is suspended',
+          'code': 'account_suspended',
+          'suspended_until': '2026-11-20T15:00:00Z',
+        },
+      ),
+    );
+    expect(
+      suspended,
+      isA<AccountSuspendedFailure>().having(
+        (f) => f.until,
+        'until',
+        DateTime.utc(2026, 11, 20, 15),
+      ),
+    );
+    expect(suspended.message, startsWith('Sua conta está suspensa até '));
+    expect(
+      const AccountSuspendedFailure(null).message,
+      'Sua conta está suspensa.',
+    );
+  });
+
+  test('maps refused moderations by their code', () {
+    Failure fromBody(String error) => Failure.from(
+      buildDioException(statusCode: 409, data: {'error': error}),
+    );
+
+    expect(
+      fromBody('invalid status transition: the account is already blocked'),
+      isA<AccountStatusChangedFailure>(),
+    );
+    expect(
+      fromBody(
+        'invalid status transition: the advertisement is already removed',
+      ),
+      isA<AdStatusChangedFailure>(),
     );
   });
 }

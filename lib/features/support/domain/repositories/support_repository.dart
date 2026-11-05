@@ -10,4 +10,7 @@ abstract class SupportRepositoryInterface {
     String message, {
     UploadFile? file,
   });
+  Future<SupportQueuePageEntity> getQueue(SupportQueueFilter filter, int page);
+  Future<SupportTicketDetailEntity> assignTicket(String id);
+  Future<SupportTicketDetailEntity> closeTicket(String id, String resolution);
 }

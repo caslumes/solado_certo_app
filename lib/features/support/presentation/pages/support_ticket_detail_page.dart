@@ -5,6 +5,7 @@ import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/error/failure.dart';
 import 'package:solado_certo_app/core/files/upload_file.dart';
 import 'package:solado_certo_app/core/formatting/formatters.dart';
+import 'package:solado_certo_app/core/presentation/components/reason_dialog.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_button.dart';
 import 'package:solado_certo_app/core/presentation/components/shoe_text_form_field.dart';
 import 'package:solado_certo_app/core/validation/field_validators.dart';
@@ -19,10 +20,12 @@ import 'package:solado_certo_app/features/support/presentation/components/suppor
 class SupportTicketDetailPage extends StatefulWidget {
   const SupportTicketDetailPage({
     super.key,
+    this.admin = false,
     this.pickFile = _pickAttachment,
     this.openAttachment = _openAttachment,
   });
 
+  final bool admin;
   final Future<UploadFile?> Function(BuildContext context) pickFile;
   final void Function(BuildContext context, String url) openAttachment;
 
@@ -37,15 +40,19 @@ class SupportTicketDetailPage extends StatefulWidget {
     Navigator.of(context).push(DocumentPage.route(url, title: 'Anexo'));
   }
 
-  static Route<void> route(String ticketId) {
+  static Route<void> route(String ticketId, {bool admin = false}) {
     return MaterialPageRoute(
       builder: (_) => BlocProvider(
         create: (_) => SupportTicketDetailCubit(
           getTicketUseCase: getIt<GetSupportTicketUseCase>(),
           sendMessageUseCase: getIt<SendSupportMessageUseCase>(),
+          assignTicketUseCase: admin
+              ? getIt<AssignSupportTicketUseCase>()
+              : null,
+          closeTicketUseCase: admin ? getIt<CloseSupportTicketUseCase>() : null,
           ticketId: ticketId,
         )..load(),
-        child: const SupportTicketDetailPage(),
+        child: SupportTicketDetailPage(admin: admin),
       ),
     );
   }
@@ -76,6 +83,54 @@ class _SupportTicketDetailPageState extends State<SupportTicketDetailPage> {
     });
   }
 
+  void _notify(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _assign() async {
+    final assigned = await context.read<SupportTicketDetailCubit>().assign();
+    if (assigned && mounted) _notify('Você é o responsável por este chamado.');
+  }
+
+  Future<void> _close() async {
+    final cubit = context.read<SupportTicketDetailCubit>();
+    final resolution = await ReasonDialog.show(
+      context,
+      title: 'Encerrar chamado',
+      message:
+          'A decisão é enviada às partes e o chamado deixa de receber '
+          'mensagens.',
+      label: 'Decisão',
+      confirmText: 'Encerrar',
+      minLength: 10,
+      maxLength: 2000,
+    );
+    if (resolution == null || !mounted) return;
+    final closed = await cubit.resolve(resolution);
+    if (closed && mounted) _notify('Chamado resolvido.');
+  }
+
+  List<Widget> _adminActions(SupportTicketDetailState state) {
+    if (!widget.admin || state is! SupportTicketDetailLoaded) return const [];
+    final ticket = state.detail.ticket;
+    if (!ticket.status.isActive) return const [];
+    return [
+      if (!ticket.assignedToMe)
+        IconButton(
+          tooltip: 'Assumir chamado',
+          onPressed: state.sending ? null : _assign,
+          icon: const Icon(Icons.assignment_ind_outlined),
+        ),
+      IconButton(
+        tooltip: 'Encerrar chamado',
+        onPressed: state.sending ? null : _close,
+        icon: const Icon(Icons.task_alt),
+      ),
+    ];
+  }
+
   void _onStateChanged(BuildContext context, SupportTicketDetailState state) {
     if (state is SupportTicketDetailLoadFailure &&
         state.failure is UnauthorizedFailure) {
@@ -103,6 +158,7 @@ class _SupportTicketDetailPageState extends State<SupportTicketDetailPage> {
           surfaceTintColor: Colors.white,
           iconTheme: Theme.of(context).iconTheme,
           title: Text('Chamado'.toUpperCase(), style: textTheme.bodyMedium),
+          actions: _adminActions(state),
         ),
         body: switch (state) {
           SupportTicketDetailLoaded(:final detail, :final sending) => Column(

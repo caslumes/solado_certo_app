@@ -2,6 +2,7 @@ enum AdStatus {
   draft('Rascunho'),
   published('Publicado'),
   paused('Pausado'),
+  archived('Arquivado'),
   removed('Removido');
 
   const AdStatus(this.label);

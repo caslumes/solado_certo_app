@@ -509,6 +509,7 @@ SupportTicketEntity buildSupportTicket({
   String id = 't1',
   SupportTicketStatus status = SupportTicketStatus.open,
   String? orderNumber = 'SC-1',
+  bool assignedToMe = false,
 }) => SupportTicketEntity(
   id: id,
   category: SupportTicketCategory.order,
@@ -516,6 +517,7 @@ SupportTicketEntity buildSupportTicket({
   subject: 'Assunto $id',
   orderId: orderNumber == null ? null : 'o1',
   orderNumber: orderNumber,
+  assignedToMe: assignedToMe,
   openedAt: DateTime.utc(2026, 11, 1, 12),
   updatedAt: DateTime.utc(2026, 11, 2, 12),
 );
@@ -539,8 +541,9 @@ SupportTicketDetailEntity buildSupportTicketDetail({
   String? resolution,
   bool canReply = true,
   List<SupportMessageEntity> messages = const [],
+  bool assignedToMe = false,
 }) => SupportTicketDetailEntity(
-  ticket: buildSupportTicket(status: status),
+  ticket: buildSupportTicket(status: status, assignedToMe: assignedToMe),
   description: 'A palmilha chegou com o tamanho errado.',
   resolution: resolution,
   canReply: canReply,

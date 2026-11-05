@@ -2,6 +2,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:solado_certo_app/core/network/api_client.dart';
 import 'package:solado_certo_app/core/network/client.dart';
+import 'package:solado_certo_app/features/admin/data/repositories/api_admin_repository.dart';
+import 'package:solado_certo_app/features/admin/domain/repositories/admin_repository.dart';
+import 'package:solado_certo_app/features/admin/domain/usecases/admin_use_cases.dart';
 import 'package:solado_certo_app/features/auth/data/repositories/api_auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:solado_certo_app/features/auth/domain/usecases/request_password_reset_use_case.dart';
@@ -132,6 +135,43 @@ void configureDependencies() {
   );
   getIt.registerLazySingleton<SendSupportMessageUseCase>(
     () => SendSupportMessageUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetSupportQueueUseCase>(
+    () => GetSupportQueueUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<AssignSupportTicketUseCase>(
+    () => AssignSupportTicketUseCase(getIt<SupportRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<CloseSupportTicketUseCase>(
+    () => CloseSupportTicketUseCase(getIt<SupportRepositoryInterface>()),
+  );
+
+  getIt.registerLazySingleton<AdminRepositoryInterface>(
+    () => ApiAdminRepository(getIt<ClientInterface>()),
+  );
+  getIt.registerLazySingleton<GetIndicatorsUseCase>(
+    () => GetIndicatorsUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAdminUsersUseCase>(
+    () => GetAdminUsersUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<ModerateUserUseCase>(
+    () => ModerateUserUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAdminAdsUseCase>(
+    () => GetAdminAdsUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<TakeDownAdUseCase>(
+    () => TakeDownAdUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAdminOrdersUseCase>(
+    () => GetAdminOrdersUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAdminPaymentsUseCase>(
+    () => GetAdminPaymentsUseCase(getIt<AdminRepositoryInterface>()),
+  );
+  getIt.registerLazySingleton<GetAuditLogsUseCase>(
+    () => GetAuditLogsUseCase(getIt<AdminRepositoryInterface>()),
   );
   getIt.registerLazySingleton<SignUpUseCase>(
     () => SignUpUseCase(authRepository: getIt<AuthRepositoryInterface>()),

@@ -278,6 +278,8 @@ class ProfileData {
 
   bool get isSeller => roles.contains(UserRole.seller);
 
+  bool get isAdmin => roles.contains(UserRole.admin);
+
   ProfileData copyWith({
     ProfileEntity? profile,
     List<AddressEntity>? addresses,

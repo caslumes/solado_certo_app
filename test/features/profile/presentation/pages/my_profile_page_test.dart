@@ -32,6 +32,7 @@ void main() {
   ProfileData buildData({
     bool hasConsent = true,
     bool isSeller = false,
+    bool isAdmin = false,
     String avatarUrl = '',
   }) => ProfileData(
     profile: ProfileEntity(
@@ -46,7 +47,11 @@ void main() {
     ),
     painPoints: const [],
     hasPodologicalConsent: hasConsent,
-    roles: [UserRole.buyer, if (isSeller) UserRole.seller],
+    roles: [
+      UserRole.buyer,
+      if (isSeller) UserRole.seller,
+      if (isAdmin) UserRole.admin,
+    ],
   );
 
   Future<void> pumpPage(WidgetTester tester) => tester.pumpWidget(
@@ -184,6 +189,24 @@ void main() {
         find.textContaining('Sua conta de vendedor está ativa'),
         findsOneWidget,
       );
+    });
+  });
+
+  group('admin', () {
+    testWidgets('an admin sees the admin area', (tester) async {
+      when(
+        () => bloc.state,
+      ).thenReturn(ProfileLoaded(data: buildData(isAdmin: true)));
+      await pumpPage(tester);
+
+      expect(find.text('ADMINISTRAÇÃO'), findsOneWidget);
+      expect(find.text('ÁREA ADMINISTRATIVA'), findsOneWidget);
+    });
+
+    testWidgets('other users do not', (tester) async {
+      await pumpPage(tester);
+
+      expect(find.text('ÁREA ADMINISTRATIVA'), findsNothing);
     });
   });
 
