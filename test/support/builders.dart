@@ -6,6 +6,7 @@ import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.d
 import 'package:solado_certo_app/features/catalog/domain/entities/catalog_page.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/category.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/condition.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/home_section.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/product_detail.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/purpose.dart';
 import 'package:solado_certo_app/features/catalog/domain/entities/seller.dart';
@@ -82,6 +83,16 @@ DioException buildDioException({
 
 CatalogItemEntity buildCatalogItem({String id = '601', int stock = 10}) =>
     CatalogItemEntity(id: id, title: 'Palmilha $id', price: 89.9, stock: stock);
+
+HomeSectionEntity buildHomeSection({
+  String code = 'TRENDING',
+  String title = 'Em alta',
+  List<CatalogItemEntity>? items,
+}) => HomeSectionEntity(
+  code: code,
+  title: title,
+  items: items ?? [buildCatalogItem()],
+);
 
 CatalogPageEntity buildCatalogPage({
   List<CatalogItemEntity>? items,

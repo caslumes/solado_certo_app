@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +11,7 @@ import 'package:solado_certo_app/features/auth/presentation/pages/sign_in_page.d
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:solado_certo_app/features/cart/presentation/pages/cart_page.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/home_section.dart';
 import 'package:solado_certo_app/features/checkout/domain/entities/checkout.dart';
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
 import 'package:solado_certo_app/features/checkout/presentation/pages/checkout_page.dart';
@@ -26,7 +29,8 @@ class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
 void main() {
   late MockAuthBloc bloc;
-  late MockGetRecommendedItemsUseCase recommendations;
+  late MockGetHomeSectionsUseCase homeSections;
+  late MockGetCatalogItemsUseCase catalogItems;
   late MockCartBloc cartBloc;
   late MockGetOrdersUseCase orders;
   late MockGetNotificationsUseCase notifications;
@@ -65,41 +69,88 @@ void main() {
     bloc = MockAuthBloc();
     when(() => bloc.state).thenReturn(AuthUnauthenticated());
     registerCatalogFilterOptions();
-    recommendations = registerRecommendedItems();
+    homeSections = registerHomeSections();
+    catalogItems = registerCatalogItems();
     orders = registerOrders();
     notifications = registerNotifications();
     cartBloc = buildCartBloc();
     registerFallbackValue(LoadCartEvent());
   });
 
-  testWidgets('shows "Para você" when signed in with matching items', (
+  testWidgets('shows the sections sent by the server, in order', (
     tester,
   ) async {
-    when(
-      recommendations.execute,
-    ).thenAnswer((_) async => [buildCatalogItem(id: '603')]);
+    when(homeSections.execute).thenAnswer(
+      (_) async => [
+        buildHomeSection(
+          code: 'FOR_ME',
+          title: 'Para você',
+          items: [buildCatalogItem(id: '603')],
+        ),
+        buildHomeSection(items: [buildCatalogItem(id: '601')]),
+      ],
+    );
     await pumpShell(tester, isSignedIn: true);
     await tester.pump();
 
-    expect(find.text('Para você'), findsOneWidget);
     expect(find.text('Palmilha 603'), findsOneWidget);
+    expect(find.text('Palmilha 601'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Para você')).dy,
+      lessThan(tester.getTopLeft(find.text('Em alta')).dy),
+    );
   });
 
-  testWidgets('hides "Para você" when there are no matches', (tester) async {
+  testWidgets('shows no section when the server sends none', (tester) async {
     await pumpShell(tester, isSignedIn: true);
     await tester.pump();
 
-    verify(recommendations.execute).called(1);
+    verify(homeSections.execute).called(1);
     expect(find.text('Para você'), findsNothing);
+    expect(find.text('Em alta'), findsNothing);
   });
 
-  testWidgets('does not ask for "Para você" when signed out', (tester) async {
-    when(recommendations.execute).thenAnswer((_) async => [buildCatalogItem()]);
+  testWidgets('loads the sections when signed out too', (tester) async {
+    when(homeSections.execute).thenAnswer((_) async => [buildHomeSection()]);
     await pumpShell(tester, isSignedIn: false);
     await tester.pump();
 
-    verifyNever(recommendations.execute);
+    verify(homeSections.execute).called(1);
+    expect(find.text('Em alta'), findsOneWidget);
+  });
+
+  testWidgets('swaps the sections when signing out', (tester) async {
+    when(homeSections.execute).thenAnswer(
+      (_) async => [buildHomeSection(code: 'FOR_ME', title: 'Para você')],
+    );
+    await pumpShell(tester, isSignedIn: true);
+    await tester.pump();
+    expect(find.text('Para você'), findsOneWidget);
+
+    final response = Completer<List<HomeSectionEntity>>();
+    when(homeSections.execute).thenAnswer((_) => response.future);
+    await pumpShell(tester, isSignedIn: false);
+    await tester.pump();
     expect(find.text('Para você'), findsNothing);
+
+    response.complete([buildHomeSection()]);
+    await tester.pump();
+    expect(find.text('Em alta'), findsOneWidget);
+  });
+
+  testWidgets('loads all the products once, signed in or out', (tester) async {
+    await pumpShell(tester, isSignedIn: false);
+    await tester.pump();
+    await pumpShell(tester, isSignedIn: true);
+    await tester.pump();
+
+    verify(
+      () => catalogItems.execute(
+        filters: any(named: 'filters'),
+        sort: any(named: 'sort'),
+        page: 1,
+      ),
+    ).called(1);
   });
 
   testWidgets('starts on the catalog tab', (tester) async {

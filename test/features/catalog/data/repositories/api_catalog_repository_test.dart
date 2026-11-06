@@ -69,13 +69,34 @@ void main() {
     expect(uri.queryParametersAll['condition'], ['501', '505']);
   });
 
-  test('asks for the items matching the profile', () async {
-    final uri = await requestedUri(
-      const CatalogFilters(forMe: true),
-      CatalogSort.relevance,
+  test('reads the home sections in order', () async {
+    when(() => client.get('/catalog/home')).thenAnswer(
+      (_) async => {
+        'sections': [
+          {
+            'code': 'FOR_ME',
+            'title': 'Para você',
+            'items': [
+              {
+                'id': '603',
+                'title': 'Órtese corretora para joanete',
+                'price': '129.50',
+                'stock': 15,
+              },
+            ],
+          },
+          {'code': 'TRENDING', 'title': 'Em alta', 'items': []},
+        ],
+      },
     );
 
-    expect(uri.queryParameters['for_me'], 'true');
+    final sections = await repository.getHomeSections();
+
+    expect(sections.map((section) => section.code), ['FOR_ME', 'TRENDING']);
+    expect(sections.first.title, 'Para você');
+    expect(sections.first.items.single.id, '603');
+    expect(sections.first.items.single.price, 129.5);
+    expect(sections.last.items, isEmpty);
   });
 
   test('reads the wrapped purposes list', () async {

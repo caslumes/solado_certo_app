@@ -25,7 +25,7 @@ import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_re
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
-import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_home_sections_use_case.dart';
 import 'package:solado_certo_app/features/notifications/data/repositories/api_notification_repository.dart';
 import 'package:solado_certo_app/features/notifications/domain/repositories/notification_repository.dart';
 import 'package:solado_certo_app/features/notifications/domain/usecases/notification_use_cases.dart';
@@ -251,8 +251,8 @@ void configureDependencies() {
   getIt.registerLazySingleton<GetProductDetailUseCase>(
     () => GetProductDetailUseCase(getIt<CatalogRepositoryInterface>()),
   );
-  getIt.registerLazySingleton<GetRecommendedItemsUseCase>(
-    () => GetRecommendedItemsUseCase(getIt<CatalogRepositoryInterface>()),
+  getIt.registerLazySingleton<GetHomeSectionsUseCase>(
+    () => GetHomeSectionsUseCase(getIt<CatalogRepositoryInterface>()),
   );
   getIt.registerLazySingleton<GetMyAdsUseCase>(
     () => GetMyAdsUseCase(getIt<SellerRepositoryInterface>()),

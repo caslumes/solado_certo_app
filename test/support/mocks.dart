@@ -17,9 +17,11 @@ import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart'
 import 'package:solado_certo_app/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
-import 'package:solado_certo_app/features/catalog/domain/entities/catalog_item.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/catalog_filters.dart';
+import 'package:solado_certo_app/features/catalog/domain/entities/home_section.dart';
+import 'package:solado_certo_app/features/catalog/domain/enum/catalog_sort.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_product_detail_use_case.dart';
-import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_home_sections_use_case.dart';
 import 'package:solado_certo_app/features/checkout/domain/repositories/checkout_repository.dart';
 import 'package:solado_certo_app/features/checkout/domain/usecases/checkout_use_cases.dart';
 import 'package:solado_certo_app/features/custom_orders/domain/usecases/custom_order_use_cases.dart';
@@ -167,15 +169,30 @@ class MockGetCatalogFilterOptionsUseCase extends Mock
 class MockGetProductDetailUseCase extends Mock
     implements GetProductDetailUseCase {}
 
-class MockGetRecommendedItemsUseCase extends Mock
-    implements GetRecommendedItemsUseCase {}
+class MockGetHomeSectionsUseCase extends Mock
+    implements GetHomeSectionsUseCase {}
 
-MockGetRecommendedItemsUseCase registerRecommendedItems({
-  List<CatalogItemEntity> items = const [],
+MockGetHomeSectionsUseCase registerHomeSections({
+  List<HomeSectionEntity> sections = const [],
 }) {
-  final useCase = MockGetRecommendedItemsUseCase();
-  when(useCase.execute).thenAnswer((_) async => items);
-  getIt.registerSingleton<GetRecommendedItemsUseCase>(useCase);
+  final useCase = MockGetHomeSectionsUseCase();
+  when(useCase.execute).thenAnswer((_) async => sections);
+  getIt.registerSingleton<GetHomeSectionsUseCase>(useCase);
+  return useCase;
+}
+
+MockGetCatalogItemsUseCase registerCatalogItems() {
+  registerFallbackValue(const CatalogFilters());
+  registerFallbackValue(CatalogSort.relevance);
+  final useCase = MockGetCatalogItemsUseCase();
+  when(
+    () => useCase.execute(
+      filters: any(named: 'filters'),
+      sort: any(named: 'sort'),
+      page: any(named: 'page'),
+    ),
+  ).thenAnswer((_) async => buildCatalogPage(items: const [], totalItems: 0));
+  getIt.registerSingleton<GetCatalogItemsUseCase>(useCase);
   return useCase;
 }
 

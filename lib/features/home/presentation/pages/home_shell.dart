@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:solado_certo_app/app/bootstrap.dart';
 import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_filter_options_use_case.dart';
-import 'package:solado_certo_app/features/catalog/domain/usecases/get_recommended_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_catalog_items_use_case.dart';
+import 'package:solado_certo_app/features/catalog/domain/usecases/get_home_sections_use_case.dart';
+import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:solado_certo_app/features/catalog/presentation/bloc/catalog_options_cubit.dart';
-import 'package:solado_certo_app/features/catalog/presentation/bloc/recommendations_cubit.dart';
+import 'package:solado_certo_app/features/catalog/presentation/bloc/home_sections_cubit.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/features/auth/presentation/routes/auth_routes.dart';
 import 'package:solado_certo_app/features/cart/presentation/bloc/cart_bloc.dart';
@@ -41,8 +43,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   int _selectedIndex = _catalogIndex;
 
-  late final _recommendationsCubit = RecommendationsCubit(
-    getRecommendedItemsUseCase: getIt<GetRecommendedItemsUseCase>(),
+  late final _homeSectionsCubit = HomeSectionsCubit(
+    getHomeSectionsUseCase: getIt<GetHomeSectionsUseCase>(),
   );
   late final _ordersBloc = OrdersBloc(
     getOrdersUseCase: getIt<GetOrdersUseCase>(),
@@ -59,8 +61,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _homeSectionsCubit.load();
     if (widget.isSignedIn) {
-      _recommendationsCubit.load();
       context.read<CartBloc>().add(LoadCartEvent());
       _watchNotifications();
     }
@@ -95,12 +97,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void didUpdateWidget(HomeShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isSignedIn == oldWidget.isSignedIn) return;
+    _homeSectionsCubit
+      ..hide()
+      ..load();
     if (widget.isSignedIn) {
-      _recommendationsCubit.load();
       context.read<CartBloc>().add(LoadCartEvent());
       _watchNotifications();
     } else {
-      _recommendationsCubit.hide();
       context.read<CartBloc>().add(ClearCartEvent());
       _ordersBloc.add(ClearOrdersEvent());
       _stopWatchingNotifications();
@@ -113,7 +116,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _stopWatchingNotifications();
-    _recommendationsCubit.close();
+    _homeSectionsCubit.close();
     _ordersBloc.close();
     _notificationsBloc.close();
     super.dispose();
@@ -151,7 +154,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
                 getIt<GetCatalogFilterOptionsUseCase>(),
           )..load(),
         ),
-        BlocProvider.value(value: _recommendationsCubit),
+        BlocProvider.value(value: _homeSectionsCubit),
+        BlocProvider(
+          create: (_) => CatalogBloc(
+            getCatalogItemsUseCase: getIt<GetCatalogItemsUseCase>(),
+          )..add(CatalogStarted()),
+        ),
         BlocProvider.value(value: _ordersBloc),
         BlocProvider.value(value: _notificationsBloc),
       ],

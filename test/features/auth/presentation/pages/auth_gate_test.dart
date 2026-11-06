@@ -55,7 +55,8 @@ void main() {
     states = StreamController<AuthState>();
     whenListen(bloc, states.stream, initialState: AuthInitial());
     registerCatalogFilterOptions();
-    registerRecommendedItems();
+    registerHomeSections();
+    registerCatalogItems();
     registerOrders();
     registerNotifications();
   });
