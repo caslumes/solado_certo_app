@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_platform_interface/cached_network_image_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'package:solado_certo_app/app/theme/app_colors.dart';
 import 'package:solado_certo_app/core/network/api_urls.dart';
@@ -24,6 +25,7 @@ class ProductImage extends StatelessWidget {
       label: semanticLabel,
       child: CachedNetworkImage(
         imageUrl: resolveApiUrl(url!),
+        imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
         fit: BoxFit.cover,
         placeholder: (_, _) =>
             const ColoredBox(color: AppColors.secondaryColor),
